@@ -1,0 +1,9 @@
+include MANIFEST.in
+include README.md
+include LICENSE.md
+include example.py
+recursive-include cache *.*
+recursive-include external *.*
+recursive-include files *.*
+recursive-include jigsawpy *.*
+recursive-include tests *.*
