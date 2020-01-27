@@ -8,12 +8,12 @@
 *
 """
 
-from pathlib import Path
-import numpy as np
+import os
 
 import jigsawpy
 
-def case_7_(src_path,dst_path):
+
+def case_7_(src_path, dst_path):
 
     opts = jigsawpy.jigsaw_jig_t()
 
@@ -24,29 +24,29 @@ def case_7_(src_path,dst_path):
 
     print("Call libJIGSAW: case 7a.")
 
-    geomfile = \
-        str(Path(src_path)/"wheel.msh")
-
-    jigsawpy.loadmsh(geomfile,geom)
+    jigsawpy.loadmsh(os.path.join(
+        src_path, "wheel.msh"), geom)
 
     opts.hfun_hmax = 0.03               # set HFUN limits
-    
+
     opts.mesh_kern = "delfront"         # DELFRONT kernel
     opts.mesh_dims = +2
 
     opts.geom_feat = True
     opts.mesh_top1 = True
     opts.mesh_top2 = True
-    
-    jigsawpy.lib.jigsaw (opts,geom,mesh)
+
+    jigsawpy.lib.jigsaw(opts, geom, mesh)
 
     print("Saving case_7a.vtk file.")
 
-    jigsawpy.savevtk("case_7a.vtk",geom)
+    jigsawpy.savevtk(os.path.join(
+        dst_path, "case_7a.vtk"), geom)
 
     print("Saving case_7b.vtk file.")
 
-    jigsawpy.savevtk("case_7b.vtk",mesh)
+    jigsawpy.savevtk(os.path.join(
+        dst_path, "case_7b.vtk"), mesh)
 
     return
 

@@ -164,11 +164,11 @@
     OPTIONAL fields (OPTM):
     ----------------------
 
-    OPTS.OPTM_KERN - {default='odt+dqdx'} mesh optimisation 
-        kernel, choice of an Optimal Delaunay Tessellation 
+    OPTS.OPTM_KERN - {default='odt+dqdx'} mesh optimisation
+        kernel, choice of an Optimal Delaunay Tessellation
         strategy (KERN='odt+dqdx') or a Centroidal Voronoi
         Tessellation method (KERN='cvt+dqdx'). In both cases
-        a hybrid formulation is employed, using a "blend" of 
+        a hybrid formulation is employed, using a "blend" of
         ODT/CVT updates, and gradients of a "fall-back" mesh
         quality function Q.
 
@@ -208,6 +208,7 @@
 
     --------------------------------------------------------
     """
+
 
 class jigsaw_jig_t:
     def __init__(self):
@@ -277,7 +278,7 @@ class jigsaw_jig_t:
         self.mesh_vol3 = None
 
     #------------------------------------------ OPTM options
-        self.optm_kern = None        
+        self.optm_kern = None
 
         self.optm_iter = None
 

@@ -1,6 +1,7 @@
 
 import subprocess
-import os,inspect
+import os
+import inspect
 import shutil
 import copy
 import numpy as np
@@ -17,6 +18,7 @@ from jigsawpy.msh_t import jigsaw_msh_t
 from jigsawpy.loadmsh import loadmsh
 from jigsawpy.savemsh import savemsh
 from jigsawpy.savejig import savejig
+
 
 def jigsaw(opts, mesh=None):
     """
@@ -36,8 +38,8 @@ def jigsaw(opts, mesh=None):
     if (not isinstance(opts, jigsaw_jig_t)):
         raise Exception("Incorrect type: OPTS.")
 
-    if (mesh is not None and \
-        not isinstance(mesh, jigsaw_msh_t)):
+    if (mesh is not None and not
+            isinstance(mesh, jigsaw_msh_t)):
         raise Exception("Incorrect type: MESH.")
 
     savejig(opts.jcfg_file, opts)
@@ -54,37 +56,33 @@ def jigsaw(opts, mesh=None):
         filepath = \
             Path(filename).resolve().parent
 
-        if   (os.name ==    "nt"):
-            jexename  = \
-                filepath/"_bin"/"jigsaw.exe"
+        if   (os.name == "nt"):
+            jexename = filepath / "_bin" / "jigsaw.exe"
 
         elif (os.name == "posix"):
-            jexename  = \
-                filepath/"_bin"/"jigsaw"
-
-        else:
-            jexename  = Path ()
+            jexename = filepath / "_bin" / "jigsaw"
 
         if (not jexename.is_file()):
-            jexename  = Path ()
+            jexename = Path()
 
     if (jexename == Path()):
 #---------------------------- search machine path for binary
-        jexescan = shutil.which("jigsaw")        
+        jexescan = shutil.which("jigsaw")
 
-        if (jexescan is not None):        
-            jexename  = Path ( jexescan )
+        if (jexescan is not None):
+            jexename = Path(jexescan)
 
     if (jexename != Path()):
 #---------------------------- call JIGSAW and capture output
-        subprocess.run( \
-            [str(jexename), opts.jcfg_file], check = True)
+        subprocess.run([
+            str(jexename), opts.jcfg_file], check=True)
 
-        if mesh is not None: loadmsh(opts.mesh_file, mesh)
+        if (mesh is not None):
+            loadmsh(opts.mesh_file, mesh)
 
     else:
 
-        raise Exception("JIGSAW's executable not found!!")
+        raise Exception("JIGSAW executable not found!")
 
     return
 
@@ -107,15 +105,15 @@ def tripod(opts, tria=None):
     if (not isinstance(opts, jigsaw_jig_t)):
         raise Exception("Incorrect type: OPTS.")
 
-    if (tria is not None and \
-        not isinstance(tria, jigsaw_msh_t)):
+    if (tria is not None and not
+            isinstance(tria, jigsaw_msh_t)):
         raise Exception("Incorrect type: TRIA.")
 
     savejig(opts.jcfg_file, opts)
 
     if (jexename == Path()):
 #---------------------------- set-up path for "local" binary
-        
+
     #   stackoverflow.com/questions/2632199/
     #       how-do-i-get-the-
     #       path-of-the-current-executed-file-in-python
@@ -125,37 +123,33 @@ def tripod(opts, tria=None):
         filepath = \
             Path(filename).resolve().parent
 
-        if   (os.name ==    "nt"):
-            jexename  = \
-                filepath/"_bin"/"tripod.exe"
+        if   (os.name == "nt"):
+            jexename = filepath / "_bin" / "tripod.exe"
 
         elif (os.name == "posix"):
-            jexename  = \
-                filepath/"_bin"/"tripod"
-
-        else:
-            jexename  = Path ()
+            jexename = filepath / "_bin" / "tripod"
 
         if (not jexename.is_file()):
-            jexename  = Path ()
+            jexename = Path()
 
     if (jexename == Path()):
 #---------------------------- search machine path for binary
-        jexescan = shutil.which("tripod")        
+        jexescan = shutil.which("tripod")
 
-        if (jexescan is not None):        
-            jexename  = Path ( jexescan )
+        if (jexescan is not None):
+            jexename = Path(jexescan)
 
     if (jexename != Path()):
 #---------------------------- call JIGSAW and capture output
-        subprocess.run( \
-            [str(jexename), opts.jcfg_file], check = True)
+        subprocess.run([
+            str(jexename), opts.jcfg_file], check=True)
 
-        if tria is not None: loadmsh(opts.mesh_file, tria)
+        if (tria is not None):
+            loadmsh(opts.mesh_file, tria)
 
     else:
 
-        raise Exception("JIGSAW's executable not found!!")
+        raise Exception("TRIPOD executable not found!")
 
     return
 
@@ -166,14 +160,14 @@ def marche(opts, ffun=None):
 
     MARCHE(OPTS, FFUN=None)
 
-    Call the "fast-marching" solver MARCHE using the config. 
+    Call the "fast-marching" solver MARCHE using the config.
     options specified in the OPTS structure. MARCHE solves
     the Eikonal equations
- 
-    MAX(||dh/dx||, g) = g, 
- 
-    where g = g(x) is a gradient threshold applied to h. See 
-    the SAVEMSH/LOADMSH functions for a description of the 
+
+    MAX(||dh/dx||, g) = g,
+
+    where g = g(x) is a gradient threshold applied to h. See
+    the SAVEMSH/LOADMSH functions for a description of the
     HFUN output structure.
 
     OPTS is a user-defined set of meshing options. See JIG_t
@@ -185,15 +179,15 @@ def marche(opts, ffun=None):
     if (not isinstance(opts, jigsaw_jig_t)):
         raise Exception("Incorrect type: OPTS.")
 
-    if (ffun is not None and \
-        not isinstance(ffun, jigsaw_msh_t)):
+    if (ffun is not None and not
+            isinstance(ffun, jigsaw_msh_t)):
         raise Exception("Incorrect type: FFUN.")
 
     savejig(opts.jcfg_file, opts)
 
     if (jexename == Path()):
 #---------------------------- set-up path for "local" binary
-        
+
     #   stackoverflow.com/questions/2632199/
     #       how-do-i-get-the-
     #       path-of-the-current-executed-file-in-python
@@ -203,37 +197,33 @@ def marche(opts, ffun=None):
         filepath = \
             Path(filename).resolve().parent
 
-        if   (os.name ==    "nt"):
-            jexename  = \
-                filepath/"_bin"/"marche.exe"
+        if   (os.name == "nt"):
+            jexename = filepath / "_bin" / "marche.exe"
 
         elif (os.name == "posix"):
-            jexename  = \
-                filepath/"_bin"/"marche"
-
-        else:
-            jexename  = Path ()
+            jexename = filepath / "_bin" / "marche"
 
         if (not jexename.is_file()):
-            jexename  = Path ()
+            jexename = Path()
 
     if (jexename == Path()):
 #---------------------------- search machine path for binary
-        jexescan = shutil.which("marche")        
+        jexescan = shutil.which("marche")
 
-        if (jexescan is not None):        
-            jexename  = Path ( jexescan )
+        if (jexescan is not None):
+            jexename = Path(jexescan)
 
     if (jexename != Path()):
 #---------------------------- call JIGSAW and capture output
-        subprocess.run( \
-            [str(jexename), opts.jcfg_file], check = True)
+        subprocess.run([
+            str(jexename), opts.jcfg_file], check=True)
 
-        if ffun is not None: loadmsh(opts.hfun_file, ffun)
+        if (ffun is not None):
+            loadmsh(opts.hfun_file, ffun)
 
     else:
 
-        raise Exception("JIGSAW's executable not found!!")
+        raise Exception("MARCHE executable not found!")
 
     return
 
@@ -247,14 +237,16 @@ def jitter(opts, imax, ibad, mesh=None):
     if (not isinstance(opts, jigsaw_jig_t)):
         raise Exception("Incorrect type: OPTS.")
 
-    if (mesh is not None and \
-        not isinstance(mesh, jigsaw_msh_t)):
+    if (mesh is not None and not
+            isinstance(mesh, jigsaw_msh_t)):
         raise Exception("Incorrect type: MESH.")
 
-    if (mesh is None):mesh = jigsaw_msh_t()
+    if (mesh is None): mesh = jigsaw_msh_t()
 
 #--------- call JIGSAW iteratively; try to improve topology.
-    OPTS = copy.copy (opts)
+    OPTS = copy.copy(opts)
+
+    done = False
 
     for iter in range(imax):
 
@@ -277,26 +269,25 @@ def jitter(opts, imax, ibad, mesh=None):
 
             OPTS.init_file = str(path / name)
 
-            if (mesh.tria3 is not None and 
+            if (mesh.tria3 is not None and
                     mesh.tria3.size != +0):
 
     #------------------------------ mark any irregular nodes
                 vdeg = trideg2(
-                    mesh.point["coord"], 
-                        mesh.tria3["index"])
+                    mesh.point["coord"],
+                    mesh.tria3["index"])
 
-                ierr = np.abs(vdeg - 6) # err. in topo. deg. 
+                ierr = np.abs(vdeg - 6)  # err in topo. deg.
+                ierr = ierr[mesh.tria3["index"]]
 
-                M = np.sum(ierr[
-                mesh.tria3["index"]], axis=1) >= ibad
-    
+                M = np.sum(ierr, axis=1) >= ibad
 
-                keep[mesh.tria3["index"][M,:]] = False
+                keep[mesh.tria3["index"][M, :]] = False
 
-            if (mesh.edge2 is not None and 
+            if (mesh.edge2 is not None and
                     mesh.edge2.size != +0):
 
-                keep[mesh.edge2["index"][:,:]] = True
+                keep[mesh.edge2["index"][:, :]] = True
 
     #------------------------------ don't delete everything!
             if (np.count_nonzero(keep) <= +8):
@@ -305,13 +296,18 @@ def jitter(opts, imax, ibad, mesh=None):
                     (nvrt), True, dtype=bool)
 
     #------------------------------ keep nodes far from seam
-            init = jigsaw_msh_t()            
+            init = jigsaw_msh_t()
             init.point = mesh.point[keep]
 
             savemsh(OPTS.init_file, init)
 
+            done = (
+                np.count_nonzero(keep) == +0)
+
     #------------------------------ call JIGSAW with new ICs
-        jigsaw (OPTS, mesh)
+        jigsaw(OPTS, mesh)
+
+        if (done is True): break
 
     return
 
@@ -349,59 +345,30 @@ def tetris(opts, nlev, mesh=None):
     if (not isinstance(opts, jigsaw_jig_t)):
         raise Exception("Incorrect type: OPTS.")
 
-    if (mesh is not None and \
-        not isinstance(mesh, jigsaw_msh_t)):
+    if (mesh is not None and not
+            isinstance(mesh, jigsaw_msh_t)):
         raise Exception("Incorrect type: MESH.")
 
 #---------------------------- call JIGSAW via inc. bisection
     SCAL = +2. ** nlev
 
-    OPTS = copy.copy (opts)
+    OPTS = copy.copy(opts)
 
     while (nlev >= +0):
-    
-        if (opts.optm_qlim is not None):
-    
-    #------------------------ create/write current QLIM data
-            FACT = max(0.50, 1.00 
-                - np.sqrt(nlev) * 0.10)
-
-            OPTS.optm_qlim = \
-                opts.optm_qlim * FACT
-
-        else:               # no QLIM specified => defaults!
-   
-            FACT = max(0.50, 1.00 
-                - np.sqrt(nlev) * 0.10)
-            
-            OPTS.optm_qlim = \
-                    +9.375E-01 * FACT
-
-        if (opts.optm_qtol is not None):
-
-    #------------------------ create/write current QTOL data
-
-            OPTS.optm_qtol = \
-                opts.optm_qtol*(nlev+1)
-
-        else:               # no QTOL specified => defaults!
-
-            OPTS.optm_qtol = \
-                    +1.00E-004*(nlev+1)
 
         if (opts.optm_dual is not None):
-        
+
     #------------------------ create/write current DUAL data
             OPTS.optm_dual = nlev == 0
 
         if (opts.hfun_hmax is not None):
-        
+
     #------------------------ create/write current HMAX data
             OPTS.hfun_hmax = \
                 opts.hfun_hmax * SCAL
-        
+
         if (opts.hfun_hmin is not None):
-        
+
     #------------------------ create/write current HMIN data
             OPTS.hfun_hmin = \
                 opts.hfun_hmin * SCAL
@@ -415,31 +382,37 @@ def tetris(opts, nlev, mesh=None):
 
             name = str(name)
             fext = str(fext)
-            
-            OPTS.hfun_file = str(
-            path / name + "-ITER" + fext)
+            name = name + "-ITER" + fext
+
+            OPTS.hfun_file = str(path / name)
 
             HFUN = jigsaw_msh_t()
 
             loadmsh(opts.hfun_file, HFUN)
-        
-            HFUN.value = HFUN.value*SCAL
+
+            HFUN.value = HFUN.value * SCAL
 
             savemsh(OPTS.hfun_file, HFUN)
 
     #------------------------ call JIGSAW kernel at this lev
         if (nlev >= +1):
 
-            jitter(OPTS, 2**(nlev+1), 1, mesh)
+            njit = round(
+                3 * (nlev + 1) ** (+5. / 4.))
+
+            jitter(OPTS, njit, +1, mesh)
 
         else:
 
-            jitter(OPTS, 2**(nlev+1), 1, mesh)
+            njit = round(
+                3 * (nlev + 1) ** (+5. / 4.))
+
+            jitter(OPTS, njit, +1, mesh)
 
         nlev = nlev - 1
         SCAL = SCAL / 2.
 
-        if (nlev < +0): done = True; break
+        if (nlev < +0): break
 
         if (opts.init_file is not None):
 
@@ -450,13 +423,13 @@ def tetris(opts, nlev, mesh=None):
 
             name = str(name)
             fext = str(fext)
-            
-            OPTS.init_file = str(
-            path / name + "-ITER" + fext)
+            name = name + "-ITER" + fext
+
+            OPTS.init_file = str(path / name)
 
             bisect(mesh)
             attach(mesh)
-        
+
             savemsh(OPTS.init_file, mesh)
 
         else:
@@ -468,16 +441,16 @@ def tetris(opts, nlev, mesh=None):
 
             name = str(name)
             fext = str(fext)
-            
-            OPTS.init_file = str(
-            path / name + "-ITER" + fext)
+            name = name + "-ITER" + fext
+
+            OPTS.init_file = str(path / name)
 
             bisect(mesh)
             attach(mesh)
-        
+
             savemsh(OPTS.init_file, mesh)
 
-    return 
+    return
 
 
 

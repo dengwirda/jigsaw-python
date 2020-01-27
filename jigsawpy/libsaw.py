@@ -1,8 +1,8 @@
 
 import ctypes as ct
-import numpy  as np
-import copy
-import os, inspect, platform
+import numpy as np
+import inspect
+import platform
 
 from pathlib import Path
 
@@ -19,66 +19,62 @@ from jigsawpy.jig_l import libsaw_jig_t
 
 from jigsawpy.certify import certify
 
-from jigsawpy.def_t import jigsaw_def_t
+from jigsawpy.def_t import jigsaw_def_t as defs
 from jigsawpy.jig_t import jigsaw_jig_t
 from jigsawpy.msh_t import jigsaw_msh_t
 
 #---------------------------- Try to find/load JIGSAW's API.
 
-jlibname = Path()
+JLIBNAME = Path()
 
-if (jlibname == Path()):
+if (JLIBNAME == Path()):
 #---------------------------- set-up path for "local" binary
+
+    WIN = "Windows"
+    LNX = "Linux"
+    MAC = "Darwin"
 
 #   stackoverflow.com/questions/2632199/
 #       how-do-i-get-the-
 #           path-of-the-current-executed-file-in-python
-    filename = \
-        inspect.getsourcefile(lambda:None)
+    FILENAME = \
+        inspect.getsourcefile(lambda: +0)
 
-    filepath = \
-        (Path(filename).resolve()).parent
+    FILEPATH = \
+        (Path(FILENAME).resolve()).parent
 
-    if   (platform.system() == "Windows"):
-        jlibname  = \
-            filepath/"_lib"/  "jigsaw.dll"
+    if   (platform.system() == WIN):
+        JLIBNAME = \
+            FILEPATH / "_lib" / "jigsaw.dll"
 
-    elif (platform.system() ==  "Linux"):
-        jlibname  = \
-            filepath/"_lib"/"libjigsaw.so"
+    elif (platform.system() == LNX):
+        JLIBNAME = \
+            FILEPATH / "_lib" / "libjigsaw.so"
 
-    elif (platform.system() == "Darwin"):
-        jlibname  = \
-            filepath/"_lib"/"libjigsaw.dylib"
+    elif (platform.system() == MAC):
+        JLIBNAME = \
+            FILEPATH / "_lib" / "libjigsaw.dylib"
 
-    else:
-        jlibname  = Path ()
+    if (not JLIBNAME.is_file()):
+        JLIBNAME = Path()
 
-    if (not jlibname.is_file()):
-        jlibname  = Path ()
-
-if (jlibname == Path()):
+if (JLIBNAME == Path()):
 #---------------------------- search machine path for binary
-    if   (platform.system() == "Windows"):
-        jlibname  = Path (    "jigsaw.dll" )
+    if   (platform.system() == WIN):
+        JLIBNAME = Path("jigsaw.dll")
 
-    elif (platform.system() ==  "Linux"):
-        jlibname  = Path (  "libjigsaw.so" )
+    elif (platform.system() == LNX):
+        JLIBNAME = Path("libjigsaw.so")
 
-    elif (platform.system() == "Darwin"):
-        jlibname  = Path (  "libjigsaw.dylib" )
+    elif (platform.system() == MAC):
+        JLIBNAME = Path("libjigsaw.dylib")
 
-    else:
-        jlibname  = Path ()
-
-if (jlibname != Path()):
+if (JLIBNAME != Path()):
 #---------------------------- load jigsaw library via ctypes
-    jlib = ct.cdll.LoadLibrary(str(jlibname))
-
-   #print( jlibname )
+    JLIB = ct.cdll.LoadLibrary(str(JLIBNAME))
 
 else:
-    raise Exception("JIGSAW's lib not found")
+    raise Exception("JIGSAW lib. not found!")
 
 
 def put_jig_t(jigt, jigl):
@@ -95,11 +91,11 @@ def put_jig_t(jigt, jigl):
     if (isinstance(jigt.hfun_scal, str)):
         if (jigt.hfun_scal.lower() == "absolute"):
             jigl.hfun_scal = \
-        jigsaw_def_t.JIGSAW_HFUN_ABSOLUTE
+                defs.JIGSAW_HFUN_ABSOLUTE
 
         if (jigt.hfun_scal.lower() == "relative"):
             jigl.hfun_scal = \
-        jigsaw_def_t.JIGSAW_HFUN_RELATIVE
+                defs.JIGSAW_HFUN_RELATIVE
 
     elif (jigt.hfun_scal is not None):
         raise Exception("HFUN-SCAL type")
@@ -107,11 +103,11 @@ def put_jig_t(jigt, jigl):
     if (isinstance(jigt.bnds_kern, str)):
         if (jigt.bnds_kern.lower() == "triacell"):
             jigl.bnds_kern = \
-        jigsaw_def_t.JIGSAW_BNDS_TRIACELL
+                defs.JIGSAW_BNDS_TRIACELL
 
         if (jigt.bnds_kern.lower() == "dualcell"):
             jigl.bnds_kern = \
-        jigsaw_def_t.JIGSAW_BNDS_DUALCELL
+                defs.JIGSAW_BNDS_DUALCELL
 
     elif (jigt.bnds_kern is not None):
         raise Exception("BNDS-KERN type")
@@ -119,11 +115,11 @@ def put_jig_t(jigt, jigl):
     if (isinstance(jigt.mesh_kern, str)):
         if (jigt.mesh_kern.lower() == "delfront"):
             jigl.mesh_kern = \
-        jigsaw_def_t.JIGSAW_KERN_DELFRONT
+                defs.JIGSAW_KERN_DELFRONT
 
         if (jigt.mesh_kern.lower() == "delaunay"):
             jigl.mesh_kern = \
-        jigsaw_def_t.JIGSAW_KERN_DELAUNAY
+                defs.JIGSAW_KERN_DELAUNAY
 
     elif (jigt.mesh_kern is not None):
         raise Exception("MESH-KERN type")
@@ -131,11 +127,11 @@ def put_jig_t(jigt, jigl):
     if (isinstance(jigt.optm_kern, str)):
         if (jigt.optm_kern.lower() == "odt+dqdx"):
             jigl.optm_kern = \
-        jigsaw_def_t.JIGSAW_KERN_ODT_DQDX
+                defs.JIGSAW_KERN_ODT_DQDX
 
         if (jigt.optm_kern.lower() == "cvt+dqdx"):
             jigl.optm_kern = \
-        jigsaw_def_t.JIGSAW_KERN_CVT_DQDX
+                defs.JIGSAW_KERN_CVT_DQDX
 
     elif (jigt.optm_kern is not None):
         raise Exception("OPTM-KERN type")
@@ -305,7 +301,7 @@ def put_jig_t(jigt, jigl):
 
 
 def put_ptr_t(data, kind):
-    
+
     #--------------------------------- helper to assign ptrs
     return np.asfortranarray(
         data).ctypes.data_as(ct.POINTER(kind))
@@ -322,154 +318,138 @@ def put_msh_t(msht, mshl):
 
     if (msht.mshID is not None):
     #--------------------------------- assign mshID variable
-        if (msht.mshID.lower() == \
-                        "euclidean-mesh"):
-            mshl.flags = \
-                jigsaw_def_t. \
-                    JIGSAW_EUCLIDEAN_MESH
-        
-        if (msht.mshID.lower() == \
-                        "euclidean-grid"):
-            mshl.flags = \
-                jigsaw_def_t. \
-                    JIGSAW_EUCLIDEAN_GRID
+        istr = msht.mshID.lower()
 
-        if (msht.mshID.lower() == \
-                        "ellipsoid-mesh"):
+        if (istr == "euclidean-mesh"):
             mshl.flags = \
-                jigsaw_def_t. \
-                    JIGSAW_ELLIPSOID_MESH
+                defs.JIGSAW_EUCLIDEAN_MESH
 
-        if (msht.mshID.lower() == \
-                        "ellipsoid-grid"):
+        if (istr == "euclidean-grid"):
             mshl.flags = \
-                jigsaw_def_t. \
-                    JIGSAW_ELLIPSOID_GRID
-        
-    if (msht.radii is not None and \
-        msht.radii.size != +0 ):
+                defs.JIGSAW_EUCLIDEAN_GRID
+
+        if (istr == "ellipsoid-mesh"):
+            mshl.flags = \
+                defs.JIGSAW_ELLIPSOID_MESH
+
+        if (istr == "ellipsoid-grid"):
+            mshl.flags = \
+                defs.JIGSAW_ELLIPSOID_GRID
+
+    if (msht.radii is not None and
+            msht.radii.size != +0):
     #--------------------------------- assign ptrs for RADII
         mshl.radii.size = msht.radii.size
         mshl.radii.data = \
             put_ptr_t(msht.radii, real_t)
 
-    if (msht.vert2 is not None and \
-        msht.vert2.size != +0 ):
+    if (msht.vert2 is not None and
+            msht.vert2.size != +0):
     #--------------------------------- assign ptrs for VERT2
         mshl.vert2.size = msht.vert2.size
-        mshl.vert2.data = \
-            put_ptr_t (
-                msht.vert2, libsaw_VERT2_t)
+        mshl.vert2.data = put_ptr_t(
+            msht.vert2, libsaw_VERT2_t)
 
-    if (msht.vert3 is not None and \
-        msht.vert3.size != +0 ):
+    if (msht.vert3 is not None and
+            msht.vert3.size != +0):
     #--------------------------------- assign ptrs for VERT3
         mshl.vert3.size = msht.vert3.size
-        mshl.vert3.data = \
-            put_ptr_t (
-                msht.vert3, libsaw_VERT3_t)
+        mshl.vert3.data = put_ptr_t(
+            msht.vert3, libsaw_VERT3_t)
 
-    if (msht.power is not None and \
-        msht.power.size != +0 ):
+    if (msht.power is not None and
+            msht.power.size != +0):
     #--------------------------------- assign ptrs for POWER
         mshl.power.size = msht.power.size
         mshl.power.data = \
             put_ptr_t(msht.power, real_t)
 
-    if (msht.edge2 is not None and \
-        msht.edge2.size != +0 ):
+    if (msht.edge2 is not None and
+            msht.edge2.size != +0):
     #--------------------------------- assign ptrs for EDGE2
         mshl.edge2.size = msht.edge2.size
-        mshl.edge2.data = \
-            put_ptr_t (
-                msht.edge2, libsaw_EDGE2_t)
+        mshl.edge2.data = put_ptr_t(
+            msht.edge2, libsaw_EDGE2_t)
 
-    if (msht.tria3 is not None and \
-        msht.tria3.size != +0 ):
+    if (msht.tria3 is not None and
+            msht.tria3.size != +0):
     #--------------------------------- assign ptrs for TRIA3
         mshl.tria3.size = msht.tria3.size
-        mshl.tria3.data = \
-            put_ptr_t (
-                msht.tria3, libsaw_TRIA3_t)
+        mshl.tria3.data = put_ptr_t(
+            msht.tria3, libsaw_TRIA3_t)
 
-    if (msht.quad4 is not None and \
-        msht.quad4.size != +0 ):
+    if (msht.quad4 is not None and
+            msht.quad4.size != +0):
     #--------------------------------- assign ptrs for QUAD4
         mshl.quad4.size = msht.quad4.size
-        mshl.quad4.data = \
-            put_ptr_t (
-                msht.quad4, libsaw_QUAD4_t)
+        mshl.quad4.data = put_ptr_t(
+            msht.quad4, libsaw_QUAD4_t)
 
-    if (msht.tria4 is not None and \
-        msht.tria4.size != +0 ):
+    if (msht.tria4 is not None and
+            msht.tria4.size != +0):
     #--------------------------------- assign ptrs for TRIA4
         mshl.tria4.size = msht.tria4.size
-        mshl.tria4.data = \
-            put_ptr_t (
-                msht.tria4, libsaw_TRIA4_t)
+        mshl.tria4.data = put_ptr_t(
+            msht.tria4, libsaw_TRIA4_t)
 
-    if (msht.hexa8 is not None and \
-        msht.hexa8.size != +0 ):
+    if (msht.hexa8 is not None and
+            msht.hexa8.size != +0):
     #--------------------------------- assign ptrs for HEXA8
         mshl.hexa8.size = msht.hexa8.size
-        mshl.hexa8.data = \
-            put_ptr_t (
-                msht.hexa8, libsaw_HEXA8_t)
+        mshl.hexa8.data = put_ptr_t(
+            msht.hexa8, libsaw_HEXA8_t)
 
-    if (msht.wedg6 is not None and \
-        msht.wedg6.size != +0 ):
+    if (msht.wedg6 is not None and
+            msht.wedg6.size != +0):
     #--------------------------------- assign ptrs for WEDG6
         mshl.wedg6.size = msht.wedg6.size
-        mshl.wedg6.data = \
-            put_ptr_t (
-                msht.wedg6, libsaw_WEDG6_t)
+        mshl.wedg6.data = put_ptr_t(
+            msht.wedg6, libsaw_WEDG6_t)
 
-    if (msht.pyra5 is not None and \
-        msht.pyra5.size != +0 ):
+    if (msht.pyra5 is not None and
+            msht.pyra5.size != +0):
     #--------------------------------- assign ptrs for PYRA5
         mshl.pyra5.size = msht.pyra5.size
-        mshl.pyra5.data = \
-            put_ptr_t (
-                msht.pyra5, libsaw_PYRA5_t)
+        mshl.pyra5.data = put_ptr_t(
+            msht.pyra5, libsaw_PYRA5_t)
 
-    if (msht.bound is not None and \
-        msht.bound.size != +0 ):
+    if (msht.bound is not None and
+            msht.bound.size != +0):
     #--------------------------------- assign ptrs for BOUND
         mshl.bound.size = msht.bound.size
-        mshl.bound.data = \
-            put_ptr_t (
-                msht.bound, libsaw_BOUND_t)
+        mshl.bound.data = put_ptr_t(
+            msht.bound, libsaw_BOUND_t)
 
-    if (msht.xgrid is not None and \
-        msht.xgrid.size != +0 ):
+    if (msht.xgrid is not None and
+            msht.xgrid.size != +0):
     #--------------------------------- assign ptrs for XGRID
         mshl.xgrid.size = msht.xgrid.size
         mshl.xgrid.data = \
             put_ptr_t(msht.xgrid, real_t)
 
-    if (msht.ygrid is not None and \
-        msht.ygrid.size != +0 ):
+    if (msht.ygrid is not None and
+            msht.ygrid.size != +0):
     #--------------------------------- assign ptrs for YGRID
         mshl.ygrid.size = msht.ygrid.size
         mshl.ygrid.data = \
             put_ptr_t(msht.ygrid, real_t)
 
-    if (msht.zgrid is not None and \
-        msht.zgrid.size != +0 ):
+    if (msht.zgrid is not None and
+            msht.zgrid.size != +0):
     #--------------------------------- assign ptrs for ZGRID
         mshl.zgrid.size = msht.zgrid.size
         mshl.zgrid.data = \
             put_ptr_t(msht.zgrid, real_t)
 
-    if (msht.value is not None and \
-        msht.value.size != +0 ):
+    if (msht.value is not None and
+            msht.value.size != +0):
     #--------------------------------- assign ptrs for VALUE
         mshl.value.size = msht.value.size
         mshl.value.data = \
             put_ptr_t(msht.value, real_t)
 
-    if (msht.slope is not None and \
-        msht.slope.size != +0 ):
+    if (msht.slope is not None and
+            msht.slope.size != +0):
     #--------------------------------- assign ptrs for SLOPE
         mshl.slope.size = msht.slope.size
         mshl.slope.data = \
@@ -483,11 +463,14 @@ def get_ptr_t(ptrl, kind):
     #--------------------------------- helper to copy buffer
     data = np.empty(ptrl.size, dtype=kind)
 
+    byte = np.dtype(kind).itemsize
+
     ct.memmove(data.ctypes.data,
-        ptrl.data,
-        ptrl.size*np.dtype(kind).itemsize)
+               ptrl.data,
+               ptrl.size * byte)
 
     return data
+
 
 def get_msh_t(msht, mshl):
     """
@@ -496,169 +479,169 @@ def get_msh_t(msht, mshl):
     """
 
     #--------------------------------- assign mshID variable
-    if (mshl.flags == \
-        jigsaw_def_t.JIGSAW_EUCLIDEAN_MESH):
-        
-        msht.mshID =  "euclidean-mesh"
-    
-    if (mshl.flags == \
-        jigsaw_def_t.JIGSAW_EUCLIDEAN_GRID):
-        
-        msht.mshID =  "euclidean-grid"
+    if (mshl.flags ==
+            defs.JIGSAW_EUCLIDEAN_MESH):
 
-    if (mshl.flags == \
-        jigsaw_def_t.JIGSAW_ELLIPSOID_MESH):
-        
-        msht.mshID =  "ellipsoid-mesh"
+        msht.mshID = "euclidean-mesh"
 
-    if (mshl.flags == \
-        jigsaw_def_t.JIGSAW_ELLIPSOID_GRID):
-        
-        msht.mshID =  "ellipsoid-grid"
+    if (mshl.flags ==
+            defs.JIGSAW_EUCLIDEAN_GRID):
+
+        msht.mshID = "euclidean-grid"
+
+    if (mshl.flags ==
+            defs.JIGSAW_ELLIPSOID_MESH):
+
+        msht.mshID = "ellipsoid-mesh"
+
+    if (mshl.flags ==
+            defs.JIGSAW_ELLIPSOID_GRID):
+
+        msht.mshID = "ellipsoid-grid"
 
     if (mshl.radii.size >= +1):
     #--------------------------------- copy buffer for RADII
         msht.radii = get_ptr_t(
-        mshl.radii, jigsaw_msh_t.REALS_t)
+            mshl.radii, jigsaw_msh_t.REALS_t)
 
         ptrl = ct.byref(mshl.radii)
 
-        jlib.jigsaw_free_reals(ptrl)
+        JLIB.jigsaw_free_reals(ptrl)
 
     if (mshl.vert2.size >= +1):
     #--------------------------------- copy buffer for VERT2
         msht.vert2 = get_ptr_t(
-        mshl.vert2, jigsaw_msh_t.VERT2_t)
+            mshl.vert2, jigsaw_msh_t.VERT2_t)
 
         ptrl = ct.byref(mshl.vert2)
 
-        jlib.jigsaw_free_vert2(ptrl)
+        JLIB.jigsaw_free_vert2(ptrl)
 
     if (mshl.vert3.size >= +1):
     #--------------------------------- copy buffer for VERT3
         msht.vert3 = get_ptr_t(
-        mshl.vert3, jigsaw_msh_t.VERT3_t)
+            mshl.vert3, jigsaw_msh_t.VERT3_t)
 
         ptrl = ct.byref(mshl.vert3)
 
-        jlib.jigsaw_free_vert3(ptrl)
+        JLIB.jigsaw_free_vert3(ptrl)
 
     if (mshl.power.size >= +1):
     #--------------------------------- copy buffer for POWER
         msht.power = get_ptr_t(
-        mshl.power, jigsaw_msh_t.REALS_t)
+            mshl.power, jigsaw_msh_t.REALS_t)
 
         ptrl = ct.byref(mshl.power)
 
-        jlib.jigsaw_free_reals(ptrl)
+        JLIB.jigsaw_free_reals(ptrl)
 
     if (mshl.edge2.size >= +1):
     #--------------------------------- copy buffer for EDGE2
         msht.edge2 = get_ptr_t(
-        mshl.edge2, jigsaw_msh_t.EDGE2_t)
+            mshl.edge2, jigsaw_msh_t.EDGE2_t)
 
         ptrl = ct.byref(mshl.edge2)
 
-        jlib.jigsaw_free_edge2(ptrl)
+        JLIB.jigsaw_free_edge2(ptrl)
 
     if (mshl.tria3.size >= +1):
     #--------------------------------- copy buffer for TRIA3
         msht.tria3 = get_ptr_t(
-        mshl.tria3, jigsaw_msh_t.TRIA3_t)
+            mshl.tria3, jigsaw_msh_t.TRIA3_t)
 
         ptrl = ct.byref(mshl.tria3)
 
-        jlib.jigsaw_free_tria3(ptrl)
+        JLIB.jigsaw_free_tria3(ptrl)
 
     if (mshl.quad4.size >= +1):
     #--------------------------------- copy buffer for QUAD4
         msht.quad4 = get_ptr_t(
-        mshl.quad4, jigsaw_msh_t.QUAD4_t)
+            mshl.quad4, jigsaw_msh_t.QUAD4_t)
 
         ptrl = ct.byref(mshl.quad4)
 
-        jlib.jigsaw_free_quad4(ptrl)
+        JLIB.jigsaw_free_quad4(ptrl)
 
     if (mshl.tria4.size >= +1):
     #--------------------------------- copy buffer for TRIA4
         msht.tria4 = get_ptr_t(
-        mshl.tria4, jigsaw_msh_t.TRIA4_t)
+            mshl.tria4, jigsaw_msh_t.TRIA4_t)
 
         ptrl = ct.byref(mshl.tria4)
 
-        jlib.jigsaw_free_tria4(ptrl)
+        JLIB.jigsaw_free_tria4(ptrl)
 
     if (mshl.hexa8.size >= +1):
     #--------------------------------- copy buffer for HEXA8
         msht.hexa8 = get_ptr_t(
-        mshl.hexa8, jigsaw_msh_t.HEXA8_t)
+            mshl.hexa8, jigsaw_msh_t.HEXA8_t)
 
         ptrl = ct.byref(mshl.hexa8)
 
-        jlib.jigsaw_free_hexa8(ptrl)
+        JLIB.jigsaw_free_hexa8(ptrl)
 
     if (mshl.wedg6.size >= +1):
     #--------------------------------- copy buffer for WEDG6
         msht.wedg6 = get_ptr_t(
-        mshl.wedg6, jigsaw_msh_t.WEDG6_t)
+            mshl.wedg6, jigsaw_msh_t.WEDG6_t)
 
         ptrl = ct.byref(mshl.wedg6)
 
-        jlib.jigsaw_free_wedg6(ptrl)
+        JLIB.jigsaw_free_wedg6(ptrl)
 
     if (mshl.pyra5.size >= +1):
     #--------------------------------- copy buffer for PYRA5
         msht.pyra5 = get_ptr_t(
-        mshl.pyra5, jigsaw_msh_t.PYRA5_t)
+            mshl.pyra5, jigsaw_msh_t.PYRA5_t)
 
         ptrl = ct.byref(mshl.pyra5)
 
-        jlib.jigsaw_free_pyra5(ptrl)
+        JLIB.jigsaw_free_pyra5(ptrl)
 
     if (mshl.xgrid.size >= +1):
     #--------------------------------- copy buffer for XGRID
         msht.xgrid = get_ptr_t(
-        mshl.xgrid, jigsaw_msh_t.REALS_t)
+            mshl.xgrid, jigsaw_msh_t.REALS_t)
 
         ptrl = ct.byref(mshl.xgrid)
 
-        jlib.jigsaw_free_reals(ptrl)
+        JLIB.jigsaw_free_reals(ptrl)
 
     if (mshl.ygrid.size >= +1):
     #--------------------------------- copy buffer for YGRID
         msht.ygrid = get_ptr_t(
-        mshl.ygrid, jigsaw_msh_t.REALS_t)
+            mshl.ygrid, jigsaw_msh_t.REALS_t)
 
         ptrl = ct.byref(mshl.ygrid)
 
-        jlib.jigsaw_free_reals(ptrl)
+        JLIB.jigsaw_free_reals(ptrl)
 
     if (mshl.zgrid.size >= +1):
     #--------------------------------- copy buffer for ZGRID
         msht.zgrid = get_ptr_t(
-        mshl.zgrid, jigsaw_msh_t.REALS_t)
+            mshl.zgrid, jigsaw_msh_t.REALS_t)
 
         ptrl = ct.byref(mshl.zgrid)
 
-        jlib.jigsaw_free_reals(ptrl)
-        
+        JLIB.jigsaw_free_reals(ptrl)
+
     if (mshl.value.size >= +1):
     #--------------------------------- copy buffer for VALUE
         msht.value = get_ptr_t(
-        mshl.value, jigsaw_msh_t.REALS_t)
+            mshl.value, jigsaw_msh_t.REALS_t)
 
         ptrl = ct.byref(mshl.value)
 
-        jlib.jigsaw_free_reals(ptrl)
+        JLIB.jigsaw_free_reals(ptrl)
 
     if (mshl.value.size >= +1):
     #--------------------------------- copy buffer for SLOPE
         msht.slope = get_ptr_t(
-        mshl.slope, jigsaw_msh_t.REALS_t)
+            mshl.slope, jigsaw_msh_t.REALS_t)
 
         ptrl = ct.byref(mshl.slope)
 
-        jlib.jigsaw_free_reals(ptrl)
+        JLIB.jigsaw_free_reals(ptrl)
 
     return
 
@@ -666,23 +649,23 @@ def get_msh_t(msht, mshl):
 def jigsaw(opts, geom, mesh, init=None, hfun=None):
     """
     JIGSAW API-lib. interface to JIGSAW.
- 
+
     JIGSAW(OPTS,GEOM,MESH,INIT=None,
                           HFUN=None)
- 
-    Call the JIGSAW mesh generator using the config. options 
+
+    Call the JIGSAW mesh generator using the config. options
     specified in the OPTS structure.
- 
+
     OPTS is a user-defined set of meshing options. See JIG_t
     for details.
- 
+
     """
 
     #--------------------------------- set-up ctypes objects
 
     ojig = libsaw_jig_t()
 
-    jlib.jigsaw_init_jig_t(ct.byref(ojig))    
+    JLIB.jigsaw_init_jig_t(ct.byref(ojig))
 
     put_jig_t(opts, ojig)
 
@@ -691,24 +674,24 @@ def jigsaw(opts, geom, mesh, init=None, hfun=None):
     imsh = libsaw_msh_t()
     hmsh = libsaw_msh_t()
 
-    jlib.jigsaw_init_msh_t(ct.byref(gmsh))
-    jlib.jigsaw_init_msh_t(ct.byref(mmsh))
-    jlib.jigsaw_init_msh_t(ct.byref(imsh))
-    jlib.jigsaw_init_msh_t(ct.byref(hmsh))
-    
+    JLIB.jigsaw_init_msh_t(ct.byref(gmsh))
+    JLIB.jigsaw_init_msh_t(ct.byref(mmsh))
+    JLIB.jigsaw_init_msh_t(ct.byref(imsh))
+    JLIB.jigsaw_init_msh_t(ct.byref(hmsh))
+
     put_msh_t(geom, gmsh)
     put_msh_t(init, imsh)
     put_msh_t(hfun, hmsh)
 
-    iptr = ct.byref(imsh) 
-    if init is None:iptr = 0
+    iptr = ct.byref(imsh)
+    if (init is None): iptr = 0
 
-    hptr = ct.byref(hmsh) 
-    if hfun is None:hptr = 0
+    hptr = ct.byref(hmsh)
+    if (hfun is None): hptr = 0
 
     #--------------------------------- call to JIGSAW's lib.
 
-    retv = jlib.jigsaw(ct.byref(ojig),
+    retv = JLIB.jigsaw(ct.byref(ojig),
                        ct.byref(gmsh),
                        iptr, hptr,
                        ct.byref(mmsh))
@@ -727,22 +710,22 @@ def jigsaw(opts, geom, mesh, init=None, hfun=None):
 def tripod(opts, init, tria, geom=None):
     """
     TRIPOD API-lib. interface to TRIPOD.
- 
+
     TRIPOD(OPTS,INIT,TRIA,GEOM=None)
- 
-    Call the TRIPOD tessellation util. using the config. opt 
-    specified in the OPTS structure. 
- 
+
+    Call the TRIPOD tessellation util. using the config. opt
+    specified in the OPTS structure.
+
     OPTS is a user-defined set of meshing options. See JIG_t
     for details.
- 
+
     """
 
     #--------------------------------- set-up ctypes objects
-    
+
     ojig = libsaw_jig_t()
 
-    jlib.jigsaw_init_jig_t(ct.byref(ojig))    
+    JLIB.jigsaw_init_jig_t(ct.byref(ojig))
 
     put_jig_t(opts, ojig)
 
@@ -750,19 +733,19 @@ def tripod(opts, init, tria, geom=None):
     tmsh = libsaw_msh_t()
     gmsh = libsaw_msh_t()
 
-    jlib.jigsaw_init_msh_t(ct.byref(imsh))
-    jlib.jigsaw_init_msh_t(ct.byref(tmsh))
-    jlib.jigsaw_init_msh_t(ct.byref(gmsh))
+    JLIB.jigsaw_init_msh_t(ct.byref(imsh))
+    JLIB.jigsaw_init_msh_t(ct.byref(tmsh))
+    JLIB.jigsaw_init_msh_t(ct.byref(gmsh))
 
     put_msh_t(init, imsh)
     put_msh_t(geom, gmsh)
 
-    gptr = ct.byref(gmsh) 
-    if geom is None:gptr = 0
+    gptr = ct.byref(gmsh)
+    if (geom is None): gptr = 0
 
     #--------------------------------- call to JIGSAW's lib.
-    
-    retv = jlib.tripod(ct.byref(ojig),
+
+    retv = JLIB.tripod(ct.byref(ojig),
                        ct.byref(imsh),
                        gptr,
                        ct.byref(tmsh))
@@ -781,41 +764,41 @@ def tripod(opts, init, tria, geom=None):
 def marche(opts, ffun):
     """
     MARCHE API-lib. interface to MARCHE.
- 
+
     MARCHE(OPTS,FFUN=None)
- 
-    Call the "fast-marching" solver MARCHE using the config. 
+
+    Call the "fast-marching" solver MARCHE using the config.
     options specified in the OPTS structure. MARCHE solves
     the Eikonal equations
- 
-    MAX(||dh/dx||, g) = g, 
- 
-    where g = g(x) is a gradient threshold applied to h. See 
-    the SAVEMSH/LOADMSH functions for a description of the 
+
+    MAX(||dh/dx||, g) = g,
+
+    where g = g(x) is a gradient threshold applied to h. See
+    the SAVEMSH/LOADMSH functions for a description of the
     HFUN output structure.
- 
+
     OPTS is a user-defined set of meshing options. See JIG_t
     for details.
- 
+
     """
 
     #--------------------------------- set-up ctypes objects
-    
+
     ojig = libsaw_jig_t()
 
-    jlib.jigsaw_init_jig_t(ct.byref(ojig))
+    JLIB.jigsaw_init_jig_t(ct.byref(ojig))
 
     put_jig_t(opts, ojig)
 
     fmsh = libsaw_msh_t()
 
-    jlib.jigsaw_init_msh_t(ct.byref(fmsh))
+    JLIB.jigsaw_init_msh_t(ct.byref(fmsh))
 
     put_msh_t(ffun, fmsh)
-    
+
     #--------------------------------- call to JIGSAW's lib.
-    
-    retv = jlib.marche(ct.byref(ojig),
+
+    retv = JLIB.marche(ct.byref(ojig),
                        ct.byref(fmsh))
 
     if (retv != +0):

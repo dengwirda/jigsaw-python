@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-import jigsawpy
+import os
+import argparse
 
 from tests.case_0_ import case_0_
 from tests.case_1_ import case_1_
@@ -11,52 +12,46 @@ from tests.case_5_ import case_5_
 from tests.case_6_ import case_6_
 from tests.case_7_ import case_7_
 from tests.case_8_ import case_8_
-from tests.case_9_ import case_9_
 
-import os
-import argparse
 
 def example(IDnumber=0):
 
 #--------------- delegate to the individual example cases...
- 
+
     src_path = os.path.join(
         os.path.abspath(
-        os.path.dirname(__file__)),"files")
+            os.path.dirname(__file__)), "files")
 
     dst_path = os.path.join(
         os.path.abspath(
-        os.path.dirname(__file__)),"cache")
-   
+            os.path.dirname(__file__)), "cache")
+
     if   (IDnumber == +0):
-        case_0_(src_path,dst_path)
+        case_0_(src_path, dst_path)
 
     elif (IDnumber == +1):
-        case_1_(src_path,dst_path)
+        case_1_(src_path, dst_path)
 
     elif (IDnumber == +2):
-        case_2_(src_path,dst_path)
+        case_2_(src_path, dst_path)
 
     elif (IDnumber == +3):
-        case_3_(src_path,dst_path)
+        case_3_(src_path, dst_path)
 
     elif (IDnumber == +4):
-        case_4_(src_path,dst_path)
+        case_4_(src_path, dst_path)
 
     elif (IDnumber == +5):
-        case_5_(src_path,dst_path)
+        case_5_(src_path, dst_path)
 
     elif (IDnumber == +6):
-        case_6_(src_path,dst_path)
+        case_6_(src_path, dst_path)
 
     elif (IDnumber == +7):
-        case_7_(src_path,dst_path)
+        case_7_(src_path, dst_path)
 
     elif (IDnumber == +8):
-        case_8_(src_path,dst_path)
-
-    elif (IDnumber == +9):
-        case_9_(src_path,dst_path)
+        case_8_(src_path, dst_path)
 
     return
 
@@ -70,7 +65,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    example(IDnumber = args.IDnumber)
+    example(IDnumber=args.IDnumber)
 
 
 
