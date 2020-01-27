@@ -705,7 +705,7 @@ def loadmsh(name, mesh):
                 break
 
     if (mesh.mshID.lower() in
-            ["eucliden-grid", "ellipsoid-grid"]):
+            ["euclidean-grid", "ellipsoid-grid"]):
 
         mesh.value = \
             sanitise_grid(mesh, mesh.value)
