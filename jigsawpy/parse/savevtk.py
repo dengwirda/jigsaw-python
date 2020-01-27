@@ -7,7 +7,7 @@ from jigsawpy.certify import certify
 
 def save_mesh_file(mesh, fptr):
     """
-    SAVE-MESH-FILE: save a JIGSAW mesh object to *.VTK
+    SAVE-MESH-FILE: save a JIGSAW mesh object to *.VTK file.
 
     """
     nnum = {
@@ -388,6 +388,3 @@ def savevtk(name, mesh):
                 "MESH.mshID is not supported!!")
 
     return
-
-
-

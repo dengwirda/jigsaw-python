@@ -69,6 +69,3 @@ def case_2_(src_path, dst_path):
         dst_path, "case_2b.vtk"), mesh)
 
     return
-
-
-

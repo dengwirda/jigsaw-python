@@ -269,6 +269,3 @@ class libsaw_msh_t(ct.Structure):
     # mesh object.
 
     ("slope", libsaw_REALS_array_t)]
-
-
-

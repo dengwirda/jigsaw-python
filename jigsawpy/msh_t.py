@@ -223,6 +223,3 @@ class jigsaw_msh_t:
             self.vert3 = verts; return
 
         raise Exception("Invalid POINT type")
-
-
-

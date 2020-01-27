@@ -60,7 +60,7 @@ def bisect(mesh):
     quad = np.empty((0, 4), dtype=np.int32)
     qmap = mapper()
     hexa = np.empty((0, 8), dtype=np.int32)
-    hmap = mapper()
+#   hmap = mapper()
 
     if (mesh.edge2 is not None and
             mesh.edge2.size != +0):
@@ -73,10 +73,12 @@ def bisect(mesh):
         edge = np.concatenate(
             (edge, cell[:, (0, 1)]), axis=0)
 
+        indx = np.arange(0, ncel)
+
         emap.edge2.index = \
             np.empty((ncel, 1), dtype=np.int32)
         emap.edge2.index[:, 0] = \
-            np.arange(0, ncel) + ncel*0 + nedg
+            indx + ncel * 0 + nedg
 
     if (mesh.tria3 is not None and
             mesh.tria3.size != +0):
@@ -93,14 +95,16 @@ def bisect(mesh):
         edge = np.concatenate(
             (edge, cell[:, (2, 0)]), axis=0)
 
+        indx = np.arange(0, ncel)
+
         emap.tria3.index = \
             np.empty((ncel, 3), dtype=np.int32)
         emap.tria3.index[:, 0] = \
-            np.arange(0, ncel) + ncel*0 + nedg
+            indx + ncel * 0 + nedg
         emap.tria3.index[:, 1] = \
-            np.arange(0, ncel) + ncel*1 + nedg
+            indx + ncel * 1 + nedg
         emap.tria3.index[:, 2] = \
-            np.arange(0, ncel) + ncel*2 + nedg
+            indx + ncel * 2 + nedg
 
     if (mesh.quad4 is not None and
             mesh.quad4.size != +0):
@@ -123,21 +127,23 @@ def bisect(mesh):
         edge = np.concatenate(
             (edge, cell[:, (3, 0)]), axis=0)
 
+        indx = np.arange(0, ncel)
+
         qmap.quad4.index = \
             np.empty((ncel, 1), dtype=np.int32)
         qmap.quad4.index[:, 0] = \
-            np.arange(0, ncel) + ncel*0 + nfac
+            indx + ncel * 0 + nfac
 
         emap.quad4.index = \
             np.empty((ncel, 4), dtype=np.int32)
         emap.quad4.index[:, 0] = \
-            np.arange(0, ncel) + ncel*0 + nedg
+            indx + ncel * 0 + nedg
         emap.quad4.index[:, 1] = \
-            np.arange(0, ncel) + ncel*1 + nedg
+            indx + ncel * 1 + nedg
         emap.quad4.index[:, 2] = \
-            np.arange(0, ncel) + ncel*2 + nedg
+            indx + ncel * 2 + nedg
         emap.quad4.index[:, 3] = \
-            np.arange(0, ncel) + ncel*3 + nedg
+            indx + ncel * 3 + nedg
 
     if (mesh.tria4 is not None and
             mesh.tria4.size != +0):
@@ -160,20 +166,22 @@ def bisect(mesh):
         edge = np.concatenate(
             (edge, cell[:, (2, 3)]), axis=0)
 
+        indx = np.arange(0, ncel)
+
         emap.tria4.index = \
             np.empty((ncel, 6), dtype=np.int32)
         emap.tria4.index[:, 0] = \
-            np.arange(0, ncel) + ncel*0 + nedg
+            indx + ncel * 0 + nedg
         emap.tria4.index[:, 1] = \
-            np.arange(0, ncel) + ncel*1 + nedg
+            indx + ncel * 1 + nedg
         emap.tria4.index[:, 2] = \
-            np.arange(0, ncel) + ncel*2 + nedg
+            indx + ncel * 2 + nedg
         emap.tria4.index[:, 3] = \
-            np.arange(0, ncel) + ncel*3 + nedg
+            indx + ncel * 3 + nedg
         emap.tria4.index[:, 4] = \
-            np.arange(0, ncel) + ncel*4 + nedg
+            indx + ncel * 4 + nedg
         emap.tria4.index[:, 5] = \
-            np.arange(0, ncel) + ncel*5 + nedg
+            indx + ncel * 5 + nedg
 
     if (mesh.hexa8 is not None and
             mesh.hexa8.size != +0):
@@ -351,7 +359,7 @@ def bisect(mesh):
             nold = np.size(vert, 0)
             nnew = np.size(hmid, 0)
 
-            qnew = nold + np.arange(+0, nnew)
+            hnew = nold + np.arange(+0, nnew)
 
             vnew = np.empty(
                 nnew, dtype=mesh.point.dtype)
@@ -741,23 +749,18 @@ def bisect(mesh):
         mesh.tria4 = np.concatenate(
             (tria1, tria2,
              tria3, tria4,
-        # 1st subdiv. of octahedron
-             triaA[index[:, 2] == 0],
+             triaA[index[:, 2] == 0],  # subdiv. 1
              triaB[index[:, 2] == 0],
              triaC[index[:, 2] == 0],
              triaD[index[:, 2] == 0],
-        # 2nd subdiv. of octahedron
-             triaE[index[:, 2] == 1],
+             triaE[index[:, 2] == 1],  # subdiv. 2
              triaF[index[:, 2] == 1],
              triaG[index[:, 2] == 1],
              triaH[index[:, 2] == 1],
-        # 3rd subdiv. of octahedron
-             triaI[index[:, 2] == 2],
+             triaI[index[:, 2] == 2],  # subdiv. 3
              triaJ[index[:, 2] == 2],
              triaK[index[:, 2] == 2],
-             triaL[index[:, 2] == 2]), axis=0)
+             triaL[index[:, 2] == 2]
+             ), axis=0)
 
     return
-
-
-

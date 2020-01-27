@@ -7,7 +7,7 @@ from jigsawpy.certify import certify
 
 def saveradii(mesh, fptr):
     """
-    SAVERADII: save the RADII data structure to file.
+    SAVERADII: save the RADII data structure to *.msh file.
 
     """
     if   (mesh.radii.size == +3):
@@ -29,7 +29,7 @@ def saveradii(mesh, fptr):
 
 def savevert2(mesh, fptr):
     """
-    SAVEVERT2: save the POINT data structure to file.
+    SAVEVERT2: save the POINT data structure to *.msh file.
 
     """
     fptr.write(
@@ -50,7 +50,7 @@ def savevert2(mesh, fptr):
 
 def savevert3(mesh, fptr):
     """
-    SAVEVERT3: save the POINT data structure to file.
+    SAVEVERT3: save the POINT data structure to *.msh file.
 
     """
     fptr.write(
@@ -72,7 +72,7 @@ def savevert3(mesh, fptr):
 
 def savevalue(ftag, data, fptr):
     """
-    SAVEVALUE: save the ARRAY data structure to file.
+    SAVEVALUE: save the ARRAY data structure to *.msh file.
 
     """
     if (np.ndim(data) == +1):
@@ -103,7 +103,7 @@ def savevalue(ftag, data, fptr):
 
 def saveedge2(mesh, fptr):
     """
-    SAVEEDGE2: save the EDGE2 data structure to file.
+    SAVEEDGE2: save the EDGE2 data structure to *.msh file.
 
     """
     fptr.write(
@@ -124,7 +124,7 @@ def saveedge2(mesh, fptr):
 
 def savetria3(mesh, fptr):
     """
-    SAVETRIA3: save the TRIA3 data structure to file.
+    SAVETRIA3: save the TRIA3 data structure to *.msh file.
 
     """
     fptr.write(
@@ -146,7 +146,7 @@ def savetria3(mesh, fptr):
 
 def savequad4(mesh, fptr):
     """
-    SAVEQUAD4: save the QUAD4 data structure to file.
+    SAVEQUAD4: save the QUAD4 data structure to *.msh file.
 
     """
     fptr.write(
@@ -169,7 +169,7 @@ def savequad4(mesh, fptr):
 
 def savetria4(mesh, fptr):
     """
-    SAVETRIA4: save the TRIA4 data structure to file.
+    SAVETRIA4: save the TRIA4 data structure to *.msh file.
 
     """
     fptr.write(
@@ -192,7 +192,7 @@ def savetria4(mesh, fptr):
 
 def savehexa8(mesh, fptr):
     """
-    SAVEHEXA8: save the HEXA8 data structure to file.
+    SAVEHEXA8: save the HEXA8 data structure to *.msh file.
 
     """
     fptr.write(
@@ -219,7 +219,7 @@ def savehexa8(mesh, fptr):
 
 def savewedg6(mesh, fptr):
     """
-    SAVEWEDG6: save the WEDG6 data structure to file.
+    SAVEWEDG6: save the WEDG6 data structure to *.msh file.
 
     """
     fptr.write(
@@ -244,7 +244,7 @@ def savewedg6(mesh, fptr):
 
 def savepyra5(mesh, fptr):
     """
-    SAVEPYRA5: save the PYRA5 data structure to file.
+    SAVEPYRA5: save the PYRA5 data structure to *.msh file.
 
     """
     fptr.write(
@@ -268,7 +268,7 @@ def savepyra5(mesh, fptr):
 
 def savebound(mesh, fptr):
     """
-    SAVEBOUND: save the BOUND data structure to file.
+    SAVEBOUND: save the BOUND data structure to *.msh file.
 
     """
     fptr.write(
@@ -290,7 +290,7 @@ def savebound(mesh, fptr):
 
 def savecoord(data, fptr, inum):
     """
-    SAVECOORD: save the COORD data structure to file.
+    SAVECOORD: save the COORD data structure to *.msh file.
 
     """
     fptr.write(
@@ -305,7 +305,7 @@ def savecoord(data, fptr, inum):
 
 def savendmat(ftag, data, fptr):
     """
-    SAVENDMAT: save the VALUE data structure to file.
+    SAVENDMAT: save the VALUE data structure to *.msh file.
 
     """
     ntot = np.prod(data.shape)
@@ -544,6 +544,3 @@ def savemsh(name, mesh):
                 mesh, fptr, nver, "ellipsoid-grid")
 
     return
-
-
-

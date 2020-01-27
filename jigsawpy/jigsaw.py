@@ -451,6 +451,3 @@ def tetris(opts, nlev, mesh=None):
             savemsh(OPTS.init_file, mesh)
 
     return
-
-
-

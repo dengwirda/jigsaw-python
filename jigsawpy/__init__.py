@@ -127,6 +127,3 @@ class lib:
     def marche(opts, ffun):
 
         return libsaw.marche(opts, ffun)
-
-
-

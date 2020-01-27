@@ -289,6 +289,3 @@ class jigsaw_jig_t:
         self.optm_div_ = None
         self.optm_tria = None
         self.optm_dual = None
-
-
-

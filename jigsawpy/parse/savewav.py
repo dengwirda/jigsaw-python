@@ -7,7 +7,7 @@ from jigsawpy.certify import certify
 
 def save_mesh_file(mesh, fptr):
     """
-    SAVE-MESH-FILE: save a JIGSAW mesh object to *.OBJ
+    SAVE-MESH-FILE: save a JIGSAW mesh object to *.OBJ file.
 
     """
     ZERO_PT_COORD = +0.E+00
@@ -128,6 +128,3 @@ def savewav(name, mesh):
                 "MESH.mshID is not supported!!")
 
     return
-
-
-

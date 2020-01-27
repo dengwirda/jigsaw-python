@@ -66,6 +66,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     example(IDnumber=args.IDnumber)
-
-
-

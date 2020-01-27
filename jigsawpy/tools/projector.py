@@ -154,6 +154,3 @@ def stereo3(rrad, xpos, ypos, xmid, ymid, kind):
             stereo3_i(rrad, xpos, ypos, xmid, ymid)
 
     return xnew, ynew, scal
-
-
-

@@ -180,6 +180,3 @@ def case_1_(src_path, dst_path):
     case_1b(src_path, dst_path)
 
     return
-
-
-

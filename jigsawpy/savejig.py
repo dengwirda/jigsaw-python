@@ -78,7 +78,8 @@ def savejig(name, opts):
 
     with Path(name).open("w") as fptr:
 
-        fptr.write("# " + Path(name).name +
+        fptr.write(
+            "# " + Path(name).name +
             " config. file;"
             " created by JIGSAW's PYTHON interface \n")
 
@@ -202,6 +203,3 @@ def savejig(name, opts):
             savebool(fptr, opts.optm_dual, "OPTM_DUAL")
 
     return
-
-
-

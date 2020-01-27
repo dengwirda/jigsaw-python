@@ -10,7 +10,6 @@
 
 import os
 import numpy as np
-
 import jigsawpy
 
 
@@ -246,6 +245,3 @@ def case_0_(src_path, dst_path):
     case_0c(src_path, dst_path)
 
     return
-
-
-

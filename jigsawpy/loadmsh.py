@@ -704,7 +704,7 @@ def loadmsh(name, mesh):
     #--------------------------- reached end-of-file: done!!
                 break
 
-    if (mesh.mshID.lower() in 
+    if (mesh.mshID.lower() in
             ["eucliden-grid", "ellipsoid-grid"]):
 
         mesh.value = \
@@ -714,6 +714,3 @@ def loadmsh(name, mesh):
             sanitise_grid(mesh, mesh.slope)
 
     return
-
-
-

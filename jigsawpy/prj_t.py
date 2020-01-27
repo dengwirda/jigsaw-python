@@ -9,6 +9,3 @@ class jigsaw_prj_t(object):
 
         self.xbase = +0.E+00
         self.ybase = +0.E+00
-
-
-

@@ -280,6 +280,3 @@ def certify(mesh):
         raise Exception("Invalid MESH.MSHID tag.")
 
     return
-
-
-

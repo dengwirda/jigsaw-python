@@ -249,6 +249,3 @@ def project(mesh, proj, sign):
                 mesh.power = mesh.power * SPOW
 
     return
-
-
-

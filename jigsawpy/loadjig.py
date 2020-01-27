@@ -163,6 +163,3 @@ def loadjig(name, opts):
                 break
 
     return
-
-
-

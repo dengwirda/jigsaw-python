@@ -40,6 +40,3 @@ def R3toS2(radii, E3):
     S2[:, 0] = np.arctan2(ym, xm)
 
     return S2
-
-
-

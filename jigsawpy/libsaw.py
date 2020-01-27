@@ -806,6 +806,3 @@ def marche(opts, ffun):
             "MARCHE returned code: " + str(retv))
 
     return
-
-
-

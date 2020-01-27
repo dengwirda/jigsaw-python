@@ -254,6 +254,3 @@ class libsaw_jig_t(ct.Structure):
     # ations on sub-faces within the optimisation stages.
 
     ("optm_div_", indx_t)]
-
-
-

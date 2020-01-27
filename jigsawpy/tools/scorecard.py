@@ -283,6 +283,3 @@ def triang3(ppos, tri3):
         np.minimum(+1.0, dcos[:, 5])
 
     return np.arccos(dcos) * 180. / np.pi
-
-
-

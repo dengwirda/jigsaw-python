@@ -336,6 +336,3 @@ def orient2(ppos, apos, bpos, cpos):
         smat[0, 2, :] * det3
 
     return np.reshape(sign, (sign.size))
-
-
-

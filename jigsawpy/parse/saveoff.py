@@ -7,7 +7,7 @@ from jigsawpy.certify import certify
 
 def save_mesh_file(mesh, fptr):
     """
-    SAVE-MESH-FILE: save a JIGSAW mesh object to *.OFF
+    SAVE-MESH-FILE: save a JIGSAW mesh object to *.OFF file.
 
     """
     nnum = {
@@ -156,6 +156,3 @@ def saveoff(name, mesh):
                 "MESH.mshID is not supported!!")
 
     return
-
-
-
