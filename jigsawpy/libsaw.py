@@ -303,8 +303,7 @@ def put_jig_t(jigt, jigl):
 def put_ptr_t(data, kind):
 
     #--------------------------------- helper to assign ptrs
-    return np.asfortranarray(
-        data).ctypes.data_as(ct.POINTER(kind))
+    return data.ctypes.data_as(ct.POINTER(kind))
 
 
 def put_msh_t(msht, mshl):
@@ -360,6 +359,9 @@ def put_msh_t(msht, mshl):
     if (msht.power is not None and
             msht.power.size != +0):
     #--------------------------------- assign ptrs for POWER
+        msht.power = \
+            np.asfortranarray(msht.power)
+
         mshl.power.size = msht.power.size
         mshl.power.data = \
             put_ptr_t(msht.power, real_t)
@@ -444,6 +446,9 @@ def put_msh_t(msht, mshl):
     if (msht.value is not None and
             msht.value.size != +0):
     #--------------------------------- assign ptrs for VALUE
+        msht.value = \
+            np.asfortranarray(msht.value)
+
         mshl.value.size = msht.value.size
         mshl.value.data = \
             put_ptr_t(msht.value, real_t)
@@ -451,6 +456,9 @@ def put_msh_t(msht, mshl):
     if (msht.slope is not None and
             msht.slope.size != +0):
     #--------------------------------- assign ptrs for SLOPE
+        msht.slope = \
+            np.asfortranarray(msht.slope)
+
         mshl.slope.size = msht.slope.size
         mshl.slope.data = \
             put_ptr_t(msht.slope, real_t)
