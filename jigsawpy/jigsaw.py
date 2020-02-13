@@ -244,7 +244,7 @@ def jitter(opts, imax, ibad, mesh=None):
     if (mesh is None): mesh = jigsaw_msh_t()
 
 #--------- call JIGSAW iteratively; try to improve topology.
-    OPTS = copy.copy(opts)
+    OPTS = copy.deepcopy(opts)
 
     done = False
 
@@ -278,6 +278,9 @@ def jitter(opts, imax, ibad, mesh=None):
                     mesh.tria3["index"])
 
                 ierr = np.abs(vdeg - 6)  # err in topo. deg.
+
+                ierr[vdeg > 6] = ierr[vdeg > 6] * 2
+
                 ierr = ierr[mesh.tria3["index"]]
 
                 M = np.sum(ierr, axis=1) >= ibad
@@ -295,19 +298,18 @@ def jitter(opts, imax, ibad, mesh=None):
                 keep = np.full(
                     (nvrt), True, dtype=bool)
 
+            done = np.all(keep)
+
     #------------------------------ keep nodes far from seam
             init = jigsaw_msh_t()
             init.point = mesh.point[keep]
 
             savemsh(OPTS.init_file, init)
 
-            done = (
-                np.count_nonzero(keep) == +0)
-
     #------------------------------ call JIGSAW with new ICs
         jigsaw(OPTS, mesh)
 
-        if (done is True): break
+        if (done): return
 
     return
 
@@ -352,7 +354,7 @@ def tetris(opts, nlev, mesh=None):
 #---------------------------- call JIGSAW via inc. bisection
     SCAL = +2. ** nlev
 
-    OPTS = copy.copy(opts)
+    OPTS = copy.deepcopy(opts)
 
     while (nlev >= +0):
 
@@ -400,14 +402,14 @@ def tetris(opts, nlev, mesh=None):
             njit = round(
                 3 * (nlev + 1) ** (+5. / 4.))
 
-            jitter(OPTS, njit, +1, mesh)
+            jitter(OPTS, njit, +2, mesh)
 
         else:
 
             njit = round(
                 3 * (nlev + 1) ** (+5. / 4.))
 
-            jitter(OPTS, njit, +1, mesh)
+            jitter(OPTS, njit, +3, mesh)
 
         nlev = nlev - 1
         SCAL = SCAL / 2.

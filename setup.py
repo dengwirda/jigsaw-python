@@ -12,7 +12,7 @@ DESCRIPTION = \
 AUTHOR = "Darren Engwirda"
 AUTHOR_EMAIL = "darren.engwirda@columbia.edu"
 URL = "https://github.com/dengwirda/"
-VERSION = "0.2.0"
+VERSION = "0.2.1"
 REQUIRES_PYTHON = ">=3.6.0"
 KEYWORDS = "Mesh-generation Delaunay Voronoi"
 
