@@ -1,5 +1,6 @@
 
 import ctypes as ct
+import ctypes.util
 import numpy as np
 import inspect
 import platform
@@ -61,7 +62,7 @@ if (JLIBNAME == Path()):
 if (JLIBNAME == Path()):
 #---------------------------- search machine path for binary
     if   (platform.system() == WIN):
-        JLIBNAME = Path("jigsaw.dll")
+        JLIBNAME = ctypes.util.find_library("jigsaw.dll")
 
     elif (platform.system() == LNX):
         JLIBNAME = Path("libjigsaw.so")
