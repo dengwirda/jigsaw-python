@@ -62,7 +62,7 @@ if (JLIBNAME == Path()):
 if (JLIBNAME == Path()):
 #---------------------------- search machine path for binary
     if   (platform.system() == WIN):
-        JLIBNAME = ctypes.util.find_library("jigsaw.dll")
+        JLIBNAME = Path(ctypes.util.find_library("jigsaw.dll"))
 
     elif (platform.system() == LNX):
         JLIBNAME = Path("libjigsaw.so")
