@@ -27,19 +27,18 @@ def saveradii(mesh, fptr):
     return
 
 
-def savevert2(mesh, fptr):
+def savevert2(ftag, data, fptr):
     """
     SAVEVERT2: save the POINT data structure to *.msh file.
 
     """
     fptr.write(
-        "POINT="
-        + str(mesh.vert2.size) + "\n")
+        ftag + "=" + str(data.size) + "\n")
 
-    xpts = mesh.vert2["coord"]
-    itag = mesh.vert2["IDtag"]
+    xpts = data["coord"]
+    itag = data["IDtag"]
 
-    for ipos in range(mesh.vert2.size):
+    for ipos in range(data.size):
         fptr.write(
             f"{xpts[ipos, 0]:.18G};"
             f"{xpts[ipos, 1]:.18G};"
@@ -48,19 +47,18 @@ def savevert2(mesh, fptr):
     return
 
 
-def savevert3(mesh, fptr):
+def savevert3(ftag, data, fptr):
     """
     SAVEVERT3: save the POINT data structure to *.msh file.
 
     """
     fptr.write(
-        "POINT="
-        + str(mesh.vert3.size) + "\n")
+        ftag + "=" + str(data.size) + "\n")
 
-    xpts = mesh.vert3["coord"]
-    itag = mesh.vert3["IDtag"]
+    xpts = data["coord"]
+    itag = data["IDtag"]
 
-    for ipos in range(mesh.vert3.size):
+    for ipos in range(data.size):
         fptr.write(
             f"{xpts[ipos, 0]:.18G};"
             f"{xpts[ipos, 1]:.18G};"
@@ -346,13 +344,29 @@ def save_mesh_file(mesh, fptr, nver, kind):
             mesh.vert2.size != +0):
 
     #----------------------------------- write VERT2 struct.
-        savevert2(mesh, fptr)
+        savevert2("POINT",
+                  mesh.point, fptr)
 
     if (mesh.vert3 is not None and
             mesh.vert3.size != +0):
 
     #----------------------------------- write VERT3 struct.
-        savevert3(mesh, fptr)
+        savevert3("POINT",
+                  mesh.point, fptr)
+
+    if (mesh.seed2 is not None and
+            mesh.seed2.size != +0):
+
+    #----------------------------------- write VERT2 struct.
+        savevert2("SEEDS",
+                  mesh.seeds, fptr)
+
+    if (mesh.seed3 is not None and
+            mesh.seed3.size != +0):
+
+    #----------------------------------- write VERT3 struct.
+        savevert3("SEEDS",
+                  mesh.seeds, fptr)
 
     if (mesh.power is not None and
             mesh.power.size != +0):

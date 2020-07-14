@@ -162,6 +162,11 @@ class jigsaw_msh_t:
         self.vert3 = np.empty(
             DIM1, dtype=jigsaw_msh_t.VERT3_t)
 
+        self.seed2 = np.empty(
+            DIM1, dtype=jigsaw_msh_t.VERT2_t)
+        self.seed3 = np.empty(
+            DIM1, dtype=jigsaw_msh_t.VERT3_t)
+
         self.power = np.empty(
             DIM2, dtype=jigsaw_msh_t.REALS_t)
 
@@ -223,3 +228,31 @@ class jigsaw_msh_t:
             self.vert3 = verts; return
 
         raise Exception("Invalid POINT type")
+
+    @property
+    def seeds(self):
+    #------------------------------------------ SEEDS helper
+        seeds = self.seed2
+        if (seeds is not None and seeds.size):
+            return seeds
+
+        seeds = self.seed3
+        if (seeds is not None and seeds.size):
+            return seeds
+
+        return None
+
+    @seeds.setter
+    def seeds(self, seeds):
+    #------------------------------------------ SEEDS helper
+        if (isinstance(seeds, np.ndarray) and
+                seeds.dtype == self.VERT2_t):
+
+            self.seed2 = seeds; return
+
+        if (isinstance(seeds, np.ndarray) and
+                seeds.dtype == self.VERT3_t):
+
+            self.seed3 = seeds; return
+
+        raise Exception("Invalid SEEDS type")

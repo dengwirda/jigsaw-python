@@ -4,11 +4,13 @@ import os
 import inspect
 import shutil
 import copy
+import math
 import numpy as np
 
 from pathlib import Path
 
 from jigsawpy.tools.scorecard import trideg2, trideg3
+from jigsawpy.tools.mathutils import S2toR3
 
 from jigsawpy.bisect import bisect
 
@@ -353,7 +355,7 @@ def tetris(opts, nlev, mesh=None):
 
 #---------------------------- call JIGSAW via inc. bisection
     SCAL = +2. ** nlev
-
+    NLEV = nlev
     OPTS = copy.deepcopy(opts)
 
     while (nlev >= +0):
@@ -397,7 +399,7 @@ def tetris(opts, nlev, mesh=None):
             savemsh(OPTS.hfun_file, HFUN)
 
     #------------------------ call JIGSAW kernel at this lev
-        if (nlev >= +1):
+        if (nlev >= NLEV):
 
             njit = round(
                 3 * (nlev + 1) ** (+5. / 4.))
@@ -451,5 +453,192 @@ def tetris(opts, nlev, mesh=None):
             attach(mesh)
 
             savemsh(OPTS.init_file, mesh)
+
+    return
+
+
+def refine(opts, nlev, mesh=None):
+    """
+    REFINE generate a mesh using an inc. bisection strategy.
+
+    """
+
+    if (not isinstance(opts, jigsaw_jig_t)):
+        raise Exception("Incorrect type: OPTS.")
+
+    if (mesh is not None and not
+            isinstance(mesh, jigsaw_msh_t)):
+        raise Exception("Incorrect type: MESH.")
+
+#---------------------------- call JIGSAW via inc. bisection
+
+    opts.mesh_iter = +0
+    opts.optm_div_ = False
+    opts.optm_zip_ = False
+
+    for ilev in reversed(range(nlev+1)):
+
+        if (opts.optm_dual is not None):
+
+    #------------------------ create/write current DUAL data
+            opts.optm_dual = ilev == 0
+
+    #------------------------ call JIGSAW kernel at this lev
+
+        jigsaw(opts, mesh)
+
+        if (ilev <= +0): break
+
+        if (opts.mesh_file is not None):
+
+    #------------------------ create/write current INIT data
+            path = Path(opts.mesh_file).parent
+            name = Path(opts.mesh_file).stem
+            fext = Path(opts.mesh_file).suffix
+
+            name = str(name)
+            fext = str(fext)
+            name = name + "-ITER" + fext
+
+            opts.init_file = str(path / name)
+
+            bisect(mesh)
+            attach(mesh)
+
+            savemsh(opts.init_file, mesh)
+
+    return
+
+
+def icosahedron(opts, nlev, mesh):
+    """
+    ICOSAHEDRON Nth-level icosahedral mesh of the ellipsoid.
+
+    """
+
+    if (not isinstance(opts, jigsaw_jig_t)):
+        raise Exception("Incorrect type: OPTS.")
+
+    if (not isinstance(mesh, jigsaw_msh_t)):
+        raise Exception("Incorrect type: MESH.")
+
+    geom = jigsaw_msh_t()
+
+    loadmsh(opts.geom_file, geom)
+
+#-------------------------------- setup icosahedron geometry
+    la = math.atan(1.0 / 2.0)
+    lo = 2.0 / 10.0 * np.pi
+
+    PI = np.pi
+    mesh.mshID = "euclidean-mesh"
+    apos = np.array([
+        (+0.0 * PI, -0.5 * PI),
+        (+0.0 * PI, +0.5 * PI),
+        (+0.0 * lo, +1.0 * la),
+        (+1.0 * lo, -1.0 * la),
+        (+2.0 * lo, +1.0 * la),
+        (+3.0 * lo, -1.0 * la),
+        (+4.0 * lo, +1.0 * la),
+        (+5.0 * lo, -1.0 * la),
+        (+6.0 * lo, +1.0 * la),
+        (+7.0 * lo, -1.0 * la),
+        (+8.0 * lo, +1.0 * la),
+        (+9.0 * lo, -1.0 * la)])
+
+    mesh.vert3 = np.zeros(
+        +12, dtype=mesh.VERT3_t)
+
+    mesh.vert3["coord"] = \
+        S2toR3(geom.radii, apos)
+
+    mesh.vert3["IDtag"] = +2
+
+#-------------------------------- setup icosahedron topology
+    mesh.tria3 = np.array([
+        ((0,  3,  5),  0),
+        ((0,  5,  7),  0),
+        ((0,  7,  9),  0),
+        ((0,  9, 11),  0),
+        ((0, 11,  3),  0),
+        ((1,  2,  4),  0),
+        ((1,  4,  6),  0),
+        ((1,  6,  8),  0),
+        ((1,  8, 10),  0),
+        ((1, 10,  2),  0),
+        ((3,  2,  4),  0),
+        ((5,  4,  6),  0),
+        ((7,  6,  8),  0),
+        ((9,  8, 10),  0),
+       ((11, 10,  2),  0),
+        ((4,  3,  5),  0),
+        ((6,  5,  7),  0),
+        ((8,  7,  9),  0),
+       ((10,  9, 11),  0),
+        ((2, 11,  3),  0)],
+        dtype=mesh.TRIA3_t)
+
+    opts.init_file = opts.mesh_file
+
+    savemsh(opts.init_file, mesh)
+
+    refine(opts, nlev, mesh)
+
+    return
+
+
+def cubedsphere(opts, nlev, mesh):
+    """
+    CUBEDSPHERE Nth-level cubedsphere mesh of the ellipsoid.
+
+    """
+
+    if (not isinstance(opts, jigsaw_jig_t)):
+        raise Exception("Incorrect type: OPTS.")
+
+    if (not isinstance(mesh, jigsaw_msh_t)):
+        raise Exception("Incorrect type: MESH.")
+
+    geom = jigsaw_msh_t()
+
+    loadmsh(opts.geom_file, geom)
+
+#-------------------------------- setup cubedsphere geometry
+    aval = +0.19592 * np.pi
+
+    mesh.mshID = "euclidean-mesh"
+    apos = np.array([
+        (+0.25 * np.pi, -aval),
+        (+0.75 * np.pi, -aval),
+        (-0.75 * np.pi, -aval),
+        (-0.25 * np.pi, -aval),
+        (+0.25 * np.pi, +aval),
+        (+0.75 * np.pi, +aval),
+        (-0.75 * np.pi, +aval),
+        (-0.25 * np.pi, +aval)])
+
+    mesh.vert3 = np.zeros(
+        +12, dtype=mesh.VERT3_t)
+
+    mesh.vert3["coord"] = \
+        S2toR3(geom.radii, apos)
+
+    mesh.vert3["IDtag"] = +2
+
+#-------------------------------- setup cubedsphere topology
+    mesh.quad4 = np.array([
+        ((0,  1,  2,  3),  0),
+        ((0,  1,  5,  4),  0),
+        ((1,  2,  6,  5),  0),
+        ((2,  3,  7,  6),  0),
+        ((3,  0,  4,  7),  0),
+        ((4,  5,  6,  7),  0)],
+        dtype=mesh.QUAD4_t)
+
+    opts.init_file = opts.mesh_file
+
+    savemsh(opts.init_file, mesh)
+
+#   refine(opts, nlev, mesh)
 
     return

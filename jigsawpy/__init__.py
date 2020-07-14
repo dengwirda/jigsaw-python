@@ -13,7 +13,7 @@ r"""
  * JIGSAW: Interface to the JIGSAW meshing library.
 ------------------------------------------------------------
  *
- * Last updated: 23 January, 2020
+ * Last updated: 13 July, 2020
  *
  * Copyright 2019 --
  * Darren Engwirda
@@ -95,6 +95,18 @@ class cmd:
 
         return jigsaw.tetris(opts, nlev,
                              mesh)
+
+    @staticmethod
+    def icosahedron(opts, nlev, mesh=None):
+
+        return jigsaw.icosahedron(
+            opts, nlev, mesh)
+
+    @staticmethod
+    def cubedsphere(opts, nlev, mesh=None):
+
+        return jigsaw.cubedsphere(
+            opts, nlev, mesh)
 
     @staticmethod
     def tripod(opts, tria=None):
