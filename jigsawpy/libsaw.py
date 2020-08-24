@@ -72,15 +72,16 @@ if (JLIBNAME == Path()):
         JLIBNAME = Path("libjigsaw.dylib")
 
 if not JLIBNAME.is_file():
+    # Search for libjigsaw on lib directory of current Python environment
     libdir = Path("/".join(sys.executable.split('/')[:-2])) / 'lib'
     JLIBNAME = libdir.resolve()
     if platform.system() == WIN:
         JLIBNAME /= Path(ctypes.util.find_library("jigsaw.dll"))
 
-    elif (platform.system() == LNX):
+    elif platform.system() == LNX:
         JLIBNAME /= Path("libjigsaw.so")
 
-    elif (platform.system() == MAC):
+    elif platform.system() == MAC:
         JLIBNAME /= Path("libjigsaw.dylib")
 
 if JLIBNAME.is_file():
