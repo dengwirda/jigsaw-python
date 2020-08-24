@@ -4,6 +4,7 @@ import ctypes.util
 import numpy as np
 import inspect
 import platform
+import sys
 
 from pathlib import Path
 
@@ -69,6 +70,18 @@ if (JLIBNAME == Path()):
 
     elif (platform.system() == MAC):
         JLIBNAME = Path("libjigsaw.dylib")
+
+if not JLIBNAME.exists():
+    libdir = Path("/".join(sys.executable.split('/')[:-2])) / 'lib'
+    JLIBNAME = libdir.resolve()
+    if platform.system() == WIN:
+        JLIBNAME /= Path(ctypes.util.find_library("jigsaw.dll"))
+
+    elif (platform.system() == LNX):
+        JLIBNAME /= Path("libjigsaw.so")
+
+    elif (platform.system() == MAC):
+        JLIBNAME /= Path("libjigsaw.dylib")
 
 if (JLIBNAME != Path()):
 #---------------------------- load jigsaw library via ctypes
