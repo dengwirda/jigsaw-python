@@ -71,7 +71,7 @@ if (JLIBNAME == Path()):
     elif (platform.system() == MAC):
         JLIBNAME = Path("libjigsaw.dylib")
 
-if not JLIBNAME.exists():
+if not JLIBNAME.is_file():
     libdir = Path("/".join(sys.executable.split('/')[:-2])) / 'lib'
     JLIBNAME = libdir.resolve()
     if platform.system() == WIN:
@@ -83,7 +83,7 @@ if not JLIBNAME.exists():
     elif (platform.system() == MAC):
         JLIBNAME /= Path("libjigsaw.dylib")
 
-if (JLIBNAME != Path()):
+if JLIBNAME.is_file():
 #---------------------------- load jigsaw library via ctypes
     JLIB = ct.cdll.LoadLibrary(str(JLIBNAME))
 
