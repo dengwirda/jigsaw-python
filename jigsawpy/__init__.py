@@ -13,11 +13,11 @@ r"""
  * JIGSAW: Interface to the JIGSAW meshing library.
 ------------------------------------------------------------
  *
- * Last updated: 13 July, 2020
+ * Last updated: 03 September, 2020
  *
- * Copyright 2019 --
+ * Copyright 2019-2020
  * Darren Engwirda
- * darren.engwirda@columbia.edu
+ * d.engwirda@gmail.com
  * https://github.com/dengwirda
  *
 ------------------------------------------------------------
@@ -71,8 +71,12 @@ from jigsawpy.extrude import extrude
 from jigsawpy.tools.predicate import trivol2, trivol3, \
     normal1, normal2, orient1, orient2
 
+from jigsawpy.tools.orthoball import tribal1, tribal2, \
+    tribal3, pwrbal1, pwrbal2, pwrbal3
+
 from jigsawpy.tools.scorecard import triscr2, triscr3, \
-    trideg2, trideg3, triang2, triang3
+    trideg2, trideg3, triang2, triang3, \
+    pwrscr2, pwrscr3, centre2, centre3
 
 from jigsawpy.tools.projector import stereo3
 

@@ -10,7 +10,7 @@ NAME = "jigsawpy"
 DESCRIPTION = \
     "Python interface for the JIGSAW meshing library."
 AUTHOR = "Darren Engwirda"
-AUTHOR_EMAIL = "darren.engwirda@columbia.edu"
+AUTHOR_EMAIL = "d.engwirda@gmail.com"
 URL = "https://github.com/dengwirda/"
 VERSION = "0.3.1"
 REQUIRES_PYTHON = ">=3.6.0"
@@ -21,11 +21,12 @@ REQUIRED = [
 ]
 
 CLASSIFY = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Operating System :: OS Independent",
     "Intended Audience :: Science/Research",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
+    "Programming Language :: C++",
     "Topic :: Scientific/Engineering",
     "Topic :: Scientific/Engineering :: Mathematics",
     "Topic :: Scientific/Engineering :: Physics",

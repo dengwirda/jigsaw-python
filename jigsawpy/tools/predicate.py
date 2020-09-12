@@ -199,23 +199,16 @@ def trivol3(ppos, tri3):
     return vol3
 
 
-def normal1(ppos, tri1):
+def nrmvec1(apos, bpos):
     """
-    NORMAL1 normal vec. assoc. with 1-simplex triangulation.
+    NRMVEC1 normal vectors assoc. with points in E^2.
 
     """
 
-    okay = istri_1(ppos, tri1)
-
-#------------------------------------- compute tria. normals
-
-    pos1 = ppos[tri1[:, 0], :]
-    pos2 = ppos[tri1[:, 1], :]
-
-    evec = pos2 - pos1
+    evec = apos - bpos
 
     nvec = np.empty(
-        (np.size(tri1, 0), 2), dtype=ppos.dtype)
+        (np.size(apos, 0), 2), dtype=apos.dtype)
 
     nvec[:, 0] = - evec[:, 1]
     nvec[:, 1] = + evec[:, 0]
@@ -223,25 +216,17 @@ def normal1(ppos, tri1):
     return nvec
 
 
-def normal2(ppos, tri2):
+def nrmvec2(apos, bpos, cpos):
     """
-    NORMAL2 normal vec. assoc. with 2-simplex triangulation.
+    NRMVEC2 normal vectors assoc. with points in E^3.
 
     """
 
-    okay = istri_2(ppos, tri2)
-
-#------------------------------------- compute tria. normals
-
-    pos1 = ppos[tri2[:, 0], :]
-    pos2 = ppos[tri2[:, 1], :]
-    pos3 = ppos[tri2[:, 2], :]
-
-    ee12 = pos2 - pos1
-    ee13 = pos3 - pos1
+    ee12 = bpos - apos
+    ee13 = cpos - apos
 
     nvec = np.empty(
-        (np.size(tri2, 0), 3), dtype=ppos.dtype)
+        (np.size(apos, 0), 3), dtype=apos.dtype)
 
     nvec[:, 0] = \
         ee12[:, 1] * ee13[:, 2] - \
@@ -256,6 +241,37 @@ def normal2(ppos, tri2):
         ee12[:, 1] * ee13[:, 0]
 
     return nvec
+
+
+def normal1(ppos, tri1):
+    """
+    NORMAL1 normal vec. assoc. with 1-simplex triangulation.
+
+    """
+
+    okay = istri_1(ppos, tri1)
+
+#------------------------------------- compute tria. normals
+
+    return nrmvec1(
+        ppos[tri1[:, 0], :], 
+        ppos[tri1[:, 1], :])
+
+    
+def normal2(ppos, tri2):
+    """
+    NORMAL2 normal vec. assoc. with 2-simplex triangulation.
+
+    """
+
+    okay = istri_2(ppos, tri2)
+
+#------------------------------------- compute tria. normals
+
+    return nrmvec2(
+        ppos[tri2[:, 0], :],
+        ppos[tri2[:, 1], :], 
+        ppos[tri2[:, 2], :])
 
 
 def orient1(ppos, apos, bpos):

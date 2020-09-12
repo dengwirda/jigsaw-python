@@ -116,7 +116,7 @@ def bisect(mesh):
         cell = mesh.quad4["index"]
 
         quad = np.concatenate(
-            (quad, cell[:, +0: +3]), axis=0)
+            (quad, cell[:, +0: +4]), axis=0)
 
         edge = np.concatenate(
             (edge, cell[:, (0, 1)]), axis=0)

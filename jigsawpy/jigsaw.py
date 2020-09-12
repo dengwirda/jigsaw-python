@@ -9,7 +9,8 @@ import numpy as np
 
 from pathlib import Path
 
-from jigsawpy.tools.scorecard import trideg2, trideg3
+from jigsawpy.tools.scorecard import trideg2, trideg3, \
+    triscr2, triscr3
 from jigsawpy.tools.mathutils import S2toR3
 
 from jigsawpy.bisect import bisect
@@ -230,6 +231,41 @@ def marche(opts, ffun=None):
     return
 
 
+def metric(mesh):
+    """
+    METRIC assemble combined "cost" metric for a given mesh.
+
+    """
+
+    cost = np.empty((+0), dtype=mesh.REALS_t)
+
+    if (mesh.tria3 is not None and \
+            mesh.tria3.size > +0):
+#--------------------------------------- append TRIA3 scores
+        COST = triscr2(
+            mesh.point["coord"],
+            mesh.tria3["index"]
+        )
+
+        cost = np.append(cost, COST)
+
+    if (mesh.tria4 is not None and \
+            mesh.tria4.size > +0):
+#--------------------------------------- append TRIA4 scores
+        COST = triscr3(
+            mesh.point["coord"],
+            mesh.tria4["index"]
+        )
+
+        cost = np.append(cost, COST)
+
+    if (cost.size == 0): return +0.0
+    
+    norm = np.sum((1.0 / cost) ** 3)
+
+    return np.cbrt(cost.size / norm)
+
+
 def jitter(opts, imax, ibad, mesh=None):
     """
     JITTER call JIGSAW iteratively; try to improve topology.
@@ -248,14 +284,14 @@ def jitter(opts, imax, ibad, mesh=None):
 #--------- call JIGSAW iteratively; try to improve topology.
     OPTS = copy.deepcopy(opts)
 
-    done = False
+    best = metric(mesh); next = mesh; done = False
 
     for iter in range(imax):
 
-        if (mesh.point is not None and
-                mesh.point.size != +0):
+        if (next.point is not None and
+                next.point.size != +0):
 
-            nvrt = mesh.point.size
+            nvrt = next.point.size
 
             keep = np.full(
                 (nvrt), True, dtype=bool)
@@ -271,28 +307,28 @@ def jitter(opts, imax, ibad, mesh=None):
 
             OPTS.init_file = str(path / name)
 
-            if (mesh.tria3 is not None and
-                    mesh.tria3.size != +0):
+            if (next.tria3 is not None and
+                    next.tria3.size != +0):
 
     #------------------------------ mark any irregular nodes
                 vdeg = trideg2(
-                    mesh.point["coord"],
-                    mesh.tria3["index"])
+                    next.point["coord"],
+                    next.tria3["index"])
 
                 ierr = np.abs(vdeg - 6)  # err in topo. deg.
 
                 ierr[vdeg > 6] = ierr[vdeg > 6] * 2
 
-                ierr = ierr[mesh.tria3["index"]]
+                ierr = ierr[next.tria3["index"]]
 
                 M = np.sum(ierr, axis=1) >= ibad
 
-                keep[mesh.tria3["index"][M, :]] = False
+                keep[next.tria3["index"][M, :]] = False
 
-            if (mesh.edge2 is not None and
-                    mesh.edge2.size != +0):
+            if (next.edge2 is not None and
+                    next.edge2.size != +0):
 
-                keep[mesh.edge2["index"][:, :]] = True
+                keep[next.edge2["index"][:, :]] = True
 
     #------------------------------ don't delete everything!
             if (np.count_nonzero(keep) <= +8):
@@ -304,12 +340,19 @@ def jitter(opts, imax, ibad, mesh=None):
 
     #------------------------------ keep nodes far from seam
             init = jigsaw_msh_t()
-            init.point = mesh.point[keep]
+            init.point = next.point[keep]
 
             savemsh(OPTS.init_file, init)
 
     #------------------------------ call JIGSAW with new ICs
-        jigsaw(OPTS, mesh)
+        jigsaw (OPTS, next)
+ 
+        cost = metric(next)
+
+        if (cost > best):
+    #------------------------------ keep "best" mesh so far!
+            mesh = copy.deepcopy(next)
+            best = cost
 
         if (done): return
 
@@ -327,10 +370,30 @@ def attach(mesh):
 
         mesh.point["IDtag"][mesh.tria4["index"]] = 3
 
+    if (mesh.hexa8 is not None and
+            mesh.hexa8.size != +0):
+
+        mesh.point["IDtag"][mesh.hexa8["index"]] = 3
+
+    if (mesh.pyra5 is not None and
+            mesh.pyra5.size != +0):
+
+        mesh.point["IDtag"][mesh.pyra5["index"]] = 3
+
+    if (mesh.wedg6 is not None and
+            mesh.wedg6.size != +0):
+
+        mesh.point["IDtag"][mesh.wedg6["index"]] = 3
+
     if (mesh.tria3 is not None and
             mesh.tria3.size != +0):
 
         mesh.point["IDtag"][mesh.tria3["index"]] = 2
+
+    if (mesh.quad4 is not None and
+            mesh.quad4.size != +0):
+
+        mesh.point["IDtag"][mesh.quad4["index"]] = 2
 
     if (mesh.edge2 is not None and
             mesh.edge2.size != +0):
@@ -359,6 +422,25 @@ def tetris(opts, nlev, mesh=None):
     OPTS = copy.deepcopy(opts)
 
     while (nlev >= +0):
+
+        if (opts.optm_qlim is not None):
+
+    #------------------------ create/write current QLIM data
+            scal = min(
+                2.0, (nlev + 1) ** (1. / 4.))
+
+            QLIM = opts.optm_qlim
+
+            OPTS.optm_qlim = QLIM / scal
+
+        else:
+
+            scal = min(
+                2.0, (nlev + 1) ** (1. / 4.))
+
+            QLIM = 0.93750
+
+            OPTS.optm_qlim = QLIM / scal
 
         if (opts.optm_dual is not None):
 
@@ -399,19 +481,17 @@ def tetris(opts, nlev, mesh=None):
             savemsh(OPTS.hfun_file, HFUN)
 
     #------------------------ call JIGSAW kernel at this lev
-        if (nlev >= NLEV):
+        if (nlev % 2 != 0):
+        
+            ninc = nlev * (-1 + nlev) 
 
-            njit = round(
-                3 * (nlev + 1) ** (+5. / 4.))
-
-            jitter(OPTS, njit, +2, mesh)
+            jitter(OPTS, 3 + ninc, 2, mesh)
 
         else:
 
-            njit = round(
-                3 * (nlev + 1) ** (+5. / 4.))
+            ninc = nlev * (-1 + nlev)
 
-            jitter(OPTS, njit, +3, mesh)
+            jitter(OPTS, 3 + ninc, 3, mesh)
 
         nlev = nlev - 1
         SCAL = SCAL / 2.
@@ -527,7 +607,8 @@ def icosahedron(opts, nlev, mesh):
     loadmsh(opts.geom_file, geom)
 
 #-------------------------------- setup icosahedron geometry
-    la = math.atan(1.0 / 2.0)
+    la = math.atan(0.5)
+
     lo = 2.0 / 10.0 * np.pi
 
     PI = np.pi
@@ -552,31 +633,33 @@ def icosahedron(opts, nlev, mesh):
     mesh.vert3["coord"] = \
         S2toR3(geom.radii, apos)
 
-    mesh.vert3["IDtag"] = +2
+    mesh.vert3["IDtag"] = -1                # fix "corners"
 
 #-------------------------------- setup icosahedron topology
     mesh.tria3 = np.array([
         ((0,  3,  5),  0),
-        ((0,  5,  7),  0),
-        ((0,  7,  9),  0),
-        ((0,  9, 11),  0),
-        ((0, 11,  3),  0),
-        ((1,  2,  4),  0),
-        ((1,  4,  6),  0),
-        ((1,  6,  8),  0),
-        ((1,  8, 10),  0),
-        ((1, 10,  2),  0),
-        ((3,  2,  4),  0),
-        ((5,  4,  6),  0),
-        ((7,  6,  8),  0),
-        ((9,  8, 10),  0),
-       ((11, 10,  2),  0),
-        ((4,  3,  5),  0),
-        ((6,  5,  7),  0),
-        ((8,  7,  9),  0),
-       ((10,  9, 11),  0),
-        ((2, 11,  3),  0)],
+        ((0,  5,  7),  1),
+        ((0,  7,  9),  2),
+        ((0,  9, 11),  3),
+        ((0, 11,  3),  4),
+        ((1,  2,  4),  5),
+        ((1,  4,  6),  6),
+        ((1,  6,  8),  7),
+        ((1,  8, 10),  8),
+        ((1, 10,  2),  9),
+        ((3,  2,  4), 10),
+        ((5,  4,  6), 11),
+        ((7,  6,  8), 12),
+        ((9,  8, 10), 13),
+       ((11, 10,  2), 14),
+        ((4,  3,  5), 15),
+        ((6,  5,  7), 16),
+        ((8,  7,  9), 17),
+       ((10,  9, 11), 18),
+        ((2, 11,  3), 19)],
         dtype=mesh.TRIA3_t)
+
+    if (nlev <= +0): return
 
     opts.init_file = opts.mesh_file
 
@@ -604,7 +687,8 @@ def cubedsphere(opts, nlev, mesh):
     loadmsh(opts.geom_file, geom)
 
 #-------------------------------- setup cubedsphere geometry
-    aval = +0.19592 * np.pi
+    aval = math.atan(
+        +math.sqrt(+2.0) / +2.0)
 
     mesh.mshID = "euclidean-mesh"
     apos = np.array([
@@ -618,27 +702,29 @@ def cubedsphere(opts, nlev, mesh):
         (-0.25 * np.pi, +aval)])
 
     mesh.vert3 = np.zeros(
-        +12, dtype=mesh.VERT3_t)
+        + 8, dtype=mesh.VERT3_t)
 
     mesh.vert3["coord"] = \
         S2toR3(geom.radii, apos)
 
-    mesh.vert3["IDtag"] = +2
+    mesh.vert3["IDtag"] = -1                # fix "corners"
 
 #-------------------------------- setup cubedsphere topology
     mesh.quad4 = np.array([
         ((0,  1,  2,  3),  0),
-        ((0,  1,  5,  4),  0),
-        ((1,  2,  6,  5),  0),
-        ((2,  3,  7,  6),  0),
-        ((3,  0,  4,  7),  0),
-        ((4,  5,  6,  7),  0)],
+        ((0,  1,  5,  4),  1),
+        ((1,  2,  6,  5),  2),
+        ((2,  3,  7,  6),  3),
+        ((3,  0,  4,  7),  4),
+        ((4,  5,  6,  7),  5)],
         dtype=mesh.QUAD4_t)
+
+    if (nlev <= +0): return
 
     opts.init_file = opts.mesh_file
 
     savemsh(opts.init_file, mesh)
 
-#   refine(opts, nlev, mesh)
+    refine(opts, nlev, mesh)
 
     return

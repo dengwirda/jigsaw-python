@@ -135,6 +135,10 @@ def put_jig_t(jigt, jigl):
             jigl.optm_kern = \
                 defs.JIGSAW_KERN_CVT_DQDX
 
+        if (jigt.optm_kern.lower() == "h95+dqdx"):
+            jigl.optm_kern = \
+                defs.JIGSAW_KERN_H95_DQDX
+
     elif (jigt.optm_kern is not None):
         raise Exception("OPTM-KERN type")
 
