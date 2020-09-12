@@ -49,3 +49,4 @@ class jigsaw_def_t:
 
     JIGSAW_KERN_ODT_DQDX = +404
     JIGSAW_KERN_CVT_DQDX = +405
+    JIGSAW_KERN_H95_DQDX = +406

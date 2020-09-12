@@ -1,4 +1,6 @@
 
+# CAREFUL -- MUST STAY COMPATIBLE WITH ../INC/JIGSAW_MSH_T.H
+
 import ctypes as ct
 
 from jigsawpy.def_t import indx_t, real_t
@@ -248,6 +250,20 @@ class libsaw_msh_t(ct.Structure):
     # BOUND.DATA[:].ITAG is an array of associated ID tags.
 
     ("bound", libsaw_BOUND_array_t),
+
+    # SEED2 - 2-dim. "seed" coordinates
+    # SEED2 is an array of libsaw_VERT2_t struct.'s, where:
+    # SEED2.DATA[:].PPOS is an array of coordinate values,
+    # SEED2.DATA[:].ITAG is an array of associated ID tags.
+
+    ("seed2", libsaw_VERT2_array_t),
+
+    # SEED3 - 3-dim. "seed" coordinates
+    # SEED3 is an array of libsaw_VERT3_t struct.'s, where:
+    # SEED3.DATA[:].PPOS is an array of coordinate values,
+    # SEED3.DATA[:].ITAG is an array of associated ID tags.
+
+    ("seed3", libsaw_VERT3_array_t),
 
     # RADII - 3-by-1 array of principal ellipsoid radii.
 

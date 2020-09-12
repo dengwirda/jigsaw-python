@@ -44,25 +44,7 @@ def loadradii(mesh, fptr, ltag):
     return
 
 
-def loadpoint(mesh, fptr, ltag):
-    """
-    LOADPOINT: load the POINT data segment from file.
-
-    """
-    if   (mesh.ndims == +2):
-        loadvert2(mesh, fptr, ltag)
-
-    elif (mesh.ndims == +3):
-        loadvert3(mesh, fptr, ltag)
-
-    else:
-        raise Exception(
-            "Invalid NDIMS: " + ltag)
-
-    return
-
-
-def loadvert2(mesh, fptr, ltag):
+def loadvert2(fptr, ltag):
     """
     LOADVERT2: load the 2-dim. vertex pos. from file.
 
@@ -70,11 +52,11 @@ def loadvert2(mesh, fptr, ltag):
     lnum = int(ltag[1])
     lpos = +0
 
-    mesh.vert2 = np.empty(
+    vert = np.empty(
         lnum, dtype=jigsaw_msh_t.VERT2_t)
 
-    vpts = mesh.vert2["coord"]
-    itag = mesh.vert2["IDtag"]
+    vpts = vert["coord"]
+    itag = vert["IDtag"]
 
     while (lnum >= +1):
         data = fptr.readline()
@@ -92,10 +74,10 @@ def loadvert2(mesh, fptr, ltag):
         lnum -= +1
         lpos += +1
 
-    return
+    return vert
 
 
-def loadvert3(mesh, fptr, ltag):
+def loadvert3(fptr, ltag):
     """
     LOADVERT3: load the 3-dim. vertex pos. from file.
 
@@ -103,11 +85,11 @@ def loadvert3(mesh, fptr, ltag):
     lnum = int(ltag[1])
     lpos = +0
 
-    mesh.vert3 = np.empty(
+    vert = np.empty(
         lnum, dtype=jigsaw_msh_t.VERT3_t)
 
-    vpts = mesh.vert3["coord"]
-    itag = mesh.vert3["IDtag"]
+    vpts = vert["coord"]
+    itag = vert["IDtag"]
 
     while (lnum >= +1):
         data = fptr.readline()
@@ -125,6 +107,42 @@ def loadvert3(mesh, fptr, ltag):
 
         lnum -= +1
         lpos += +1
+
+    return vert
+
+
+def loadpoint(mesh, fptr, ltag):
+    """
+    LOADPOINT: load the POINT data segment from file.
+
+    """
+    if   (mesh.ndims == +2):
+        mesh.vert2 = loadvert2(fptr, ltag)
+
+    elif (mesh.ndims == +3):
+        mesh.vert3 = loadvert3(fptr, ltag)
+
+    else:
+        raise Exception(
+            "Invalid NDIMS: " + ltag)
+
+    return
+
+
+def loadseeds(mesh, fptr, ltag):
+    """
+    LOADSEEDS: load the SEEDS data segment from file.
+
+    """
+    if   (mesh.ndims == +2):
+        mesh.seed2 = loadvert2(fptr, ltag)
+
+    elif (mesh.ndims == +3):
+        mesh.seed3 = loadvert3(fptr, ltag)
+
+    else:
+        raise Exception(
+            "Invalid NDIMS: " + ltag)
 
     return
 
@@ -541,6 +559,11 @@ def loadlines(mesh, fptr, line):
 
     #----------------------------------- parse POINT struct.
             loadpoint(mesh, fptr, ltag)
+
+        elif (kind == "SEEDS"):
+
+    #----------------------------------- parse SEEDS struct.
+            loadseeds(mesh, fptr, ltag)
 
         elif (kind == "POWER"):
 

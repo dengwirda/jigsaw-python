@@ -125,6 +125,16 @@ def certifymesht(mesh):
         certifypoint(mesh.vert3, "MESH.VERT3",
                      jigsaw_msh_t.VERT3_t)
 
+    if (certifyarray(mesh.seed2, "MESH.SEED2")):
+
+        certifypoint(mesh.seed2, "MESH.SEED2",
+                     jigsaw_msh_t.VERT2_t)
+
+    if (certifyarray(mesh.seed3, "MESH.SEED3")):
+
+        certifypoint(mesh.seed3, "MESH.SEED3",
+                     jigsaw_msh_t.VERT3_t)
+
     if (certifyarray(mesh.power, "MESH.POWER")):
 
         certifyvalue(mesh.power, "MESH.POWER")

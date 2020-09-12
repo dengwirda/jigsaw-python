@@ -62,7 +62,8 @@ if (JLIBNAME == Path()):
 if (JLIBNAME == Path()):
 #---------------------------- search machine path for binary
     if   (platform.system() == WIN):
-        JLIBNAME = Path(ctypes.util.find_library("jigsaw.dll"))
+        JLIBNAME = Path(
+            ctypes.util.find_library("jigsaw.dll"))
 
     elif (platform.system() == LNX):
         JLIBNAME = Path("libjigsaw.so")
@@ -133,6 +134,10 @@ def put_jig_t(jigt, jigl):
         if (jigt.optm_kern.lower() == "cvt+dqdx"):
             jigl.optm_kern = \
                 defs.JIGSAW_KERN_CVT_DQDX
+
+        if (jigt.optm_kern.lower() == "h95+dqdx"):
+            jigl.optm_kern = \
+                defs.JIGSAW_KERN_H95_DQDX
 
     elif (jigt.optm_kern is not None):
         raise Exception("OPTM-KERN type")
@@ -357,6 +362,20 @@ def put_msh_t(msht, mshl):
         mshl.vert3.data = put_ptr_t(
             msht.vert3, libsaw_VERT3_t)
 
+    if (msht.seed2 is not None and
+            msht.seed2.size != +0):
+    #--------------------------------- assign ptrs for SEED2
+        mshl.seed2.size = msht.seed2.size
+        mshl.seed2.data = put_ptr_t(
+            msht.seed2, libsaw_VERT2_t)
+
+    if (msht.seed3 is not None and
+            msht.seed3.size != +0):
+    #--------------------------------- assign ptrs for SEED3
+        mshl.seed3.size = msht.seed3.size
+        mshl.seed3.data = put_ptr_t(
+            msht.seed3, libsaw_VERT3_t)
+
     if (msht.power is not None and
             msht.power.size != +0):
     #--------------------------------- assign ptrs for POWER
@@ -532,6 +551,24 @@ def get_msh_t(msht, mshl):
             mshl.vert3, jigsaw_msh_t.VERT3_t)
 
         ptrl = ct.byref(mshl.vert3)
+
+        JLIB.jigsaw_free_vert3(ptrl)
+
+    if (mshl.seed2.size >= +1):
+    #--------------------------------- copy buffer for SEED2
+        msht.seed2 = get_ptr_t(
+            mshl.seed2, jigsaw_msh_t.VERT2_t)
+
+        ptrl = ct.byref(mshl.seed2)
+
+        JLIB.jigsaw_free_vert2(ptrl)
+
+    if (mshl.seed3.size >= +1):
+    #--------------------------------- copy buffer for SEED3
+        msht.seed3 = get_ptr_t(
+            mshl.seed3, jigsaw_msh_t.VERT3_t)
+
+        ptrl = ct.byref(mshl.seed3)
 
         JLIB.jigsaw_free_vert3(ptrl)
 
