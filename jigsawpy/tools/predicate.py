@@ -254,10 +254,10 @@ def normal1(ppos, tri1):
 #------------------------------------- compute tria. normals
 
     return nrmvec1(
-        ppos[tri1[:, 0], :], 
+        ppos[tri1[:, 0], :],
         ppos[tri1[:, 1], :])
 
-    
+
 def normal2(ppos, tri2):
     """
     NORMAL2 normal vec. assoc. with 2-simplex triangulation.
@@ -270,7 +270,7 @@ def normal2(ppos, tri2):
 
     return nrmvec2(
         ppos[tri2[:, 0], :],
-        ppos[tri2[:, 1], :], 
+        ppos[tri2[:, 1], :],
         ppos[tri2[:, 2], :])
 
 

@@ -54,7 +54,7 @@ def jigsaw(opts, mesh=None):
     #       how-do-i-get-the-
     #       path-of-the-current-executed-file-in-python
         filename = \
-            inspect.getsourcefile(lambda:0)
+            inspect.getsourcefile(lambda:0) # noqa
 
         filepath = \
             Path(filename).resolve().parent
@@ -121,7 +121,7 @@ def tripod(opts, tria=None):
     #       how-do-i-get-the-
     #       path-of-the-current-executed-file-in-python
         filename = \
-            inspect.getsourcefile(lambda:0)
+            inspect.getsourcefile(lambda:0) # noqa
 
         filepath = \
             Path(filename).resolve().parent
@@ -195,7 +195,7 @@ def marche(opts, ffun=None):
     #       how-do-i-get-the-
     #       path-of-the-current-executed-file-in-python
         filename = \
-            inspect.getsourcefile(lambda:0)
+            inspect.getsourcefile(lambda:0) # noqa
 
         filepath = \
             Path(filename).resolve().parent
@@ -239,7 +239,7 @@ def metric(mesh):
 
     cost = np.empty((+0), dtype=mesh.REALS_t)
 
-    if (mesh.tria3 is not None and \
+    if (mesh.tria3 is not None and
             mesh.tria3.size > +0):
 #--------------------------------------- append TRIA3 scores
         COST = triscr2(
@@ -249,7 +249,7 @@ def metric(mesh):
 
         cost = np.append(cost, COST)
 
-    if (mesh.tria4 is not None and \
+    if (mesh.tria4 is not None and
             mesh.tria4.size > +0):
 #--------------------------------------- append TRIA4 scores
         COST = triscr3(
@@ -260,7 +260,7 @@ def metric(mesh):
         cost = np.append(cost, COST)
 
     if (cost.size == 0): return +0.0
-    
+
     norm = np.sum((1.0 / cost) ** 3)
 
     return np.cbrt(cost.size / norm)
@@ -345,8 +345,8 @@ def jitter(opts, imax, ibad, mesh=None):
             savemsh(OPTS.init_file, init)
 
     #------------------------------ call JIGSAW with new ICs
-        jigsaw (OPTS, next)
- 
+        jigsaw (OPTS, next)       # noqa
+
         cost = metric(next)
 
         if (cost > best):
@@ -418,7 +418,6 @@ def tetris(opts, nlev, mesh=None):
 
 #---------------------------- call JIGSAW via inc. bisection
     SCAL = +2. ** nlev
-    NLEV = nlev
     OPTS = copy.deepcopy(opts)
 
     while (nlev >= +0):
@@ -482,8 +481,8 @@ def tetris(opts, nlev, mesh=None):
 
     #------------------------ call JIGSAW kernel at this lev
         if (nlev % 2 != 0):
-        
-            ninc = nlev * (-1 + nlev) 
+
+            ninc = nlev * (-1 + nlev)
 
             jitter(OPTS, 3 + ninc, 2, mesh)
 
@@ -556,7 +555,7 @@ def refine(opts, nlev, mesh=None):
     opts.optm_div_ = False
     opts.optm_zip_ = False
 
-    for ilev in reversed(range(nlev+1)):
+    for ilev in reversed(range(nlev + 1)):
 
         if (opts.optm_dual is not None):
 
@@ -564,7 +563,6 @@ def refine(opts, nlev, mesh=None):
             opts.optm_dual = ilev == 0
 
     #------------------------ call JIGSAW kernel at this lev
-
         jigsaw(opts, mesh)
 
         if (ilev <= +0): break
@@ -637,26 +635,26 @@ def icosahedron(opts, nlev, mesh):
 
 #-------------------------------- setup icosahedron topology
     mesh.tria3 = np.array([
-        ((0,  3,  5),  0),
-        ((0,  5,  7),  1),
-        ((0,  7,  9),  2),
-        ((0,  9, 11),  3),
-        ((0, 11,  3),  4),
-        ((1,  2,  4),  5),
-        ((1,  4,  6),  6),
-        ((1,  6,  8),  7),
-        ((1,  8, 10),  8),
-        ((1, 10,  2),  9),
-        ((3,  2,  4), 10),
-        ((5,  4,  6), 11),
-        ((7,  6,  8), 12),
-        ((9,  8, 10), 13),
-       ((11, 10,  2), 14),
-        ((4,  3,  5), 15),
-        ((6,  5,  7), 16),
-        ((8,  7,  9), 17),
-       ((10,  9, 11), 18),
-        ((2, 11,  3), 19)],
+        ((0,  3,  5),  0),                  # noqa
+        ((0,  5,  7),  1),                  # noqa
+        ((0,  7,  9),  2),                  # noqa
+        ((0,  9, 11),  3),                  # noqa
+        ((0, 11,  3),  4),                  # noqa
+        ((1,  2,  4),  5),                  # noqa
+        ((1,  4,  6),  6),                  # noqa
+        ((1,  6,  8),  7),                  # noqa
+        ((1,  8, 10),  8),                  # noqa
+        ((1, 10,  2),  9),                  # noqa
+        ((3,  2,  4), 10),                  # noqa
+        ((5,  4,  6), 11),                  # noqa
+        ((7,  6,  8), 12),                  # noqa
+        ((9,  8, 10), 13),                  # noqa
+       ((11, 10,  2), 14),                  # noqa
+        ((4,  3,  5), 15),                  # noqa
+        ((6,  5,  7), 16),                  # noqa
+        ((8,  7,  9), 17),                  # noqa
+       ((10,  9, 11), 18),                  # noqa
+        ((2, 11,  3), 19)],                 # noqa
         dtype=mesh.TRIA3_t)
 
     if (nlev <= +0): return
@@ -711,12 +709,12 @@ def cubedsphere(opts, nlev, mesh):
 
 #-------------------------------- setup cubedsphere topology
     mesh.quad4 = np.array([
-        ((0,  1,  2,  3),  0),
-        ((0,  1,  5,  4),  1),
-        ((1,  2,  6,  5),  2),
-        ((2,  3,  7,  6),  3),
-        ((3,  0,  4,  7),  4),
-        ((4,  5,  6,  7),  5)],
+        ((0,  1,  2,  3),  0),              # noqa
+        ((0,  1,  5,  4),  1),              # noqa
+        ((1,  2,  6,  5),  2),              # noqa
+        ((2,  3,  7,  6),  3),              # noqa
+        ((3,  0,  4,  7),  4),              # noqa
+        ((4,  5,  6,  7),  5)],             # noqa
         dtype=mesh.QUAD4_t)
 
     if (nlev <= +0): return
