@@ -1,21 +1,21 @@
 language: python
 jobs:
   include:
-    - name: "Linux py35:py38"
+    - name: "Linux py36:py38"
       services: docker
       sudo: required
       language: python
       python: 3.8
       env:
-        - CIBW_BUILD="cp35-* cp36-* cp37-* cp38-*"
+        - CIBW_BUILD="cp36-* cp37-* cp38-*"
 
-    - name: "MacOS py35:py38"
+    - name: "MacOS py36:py38"
       os: osx
       language: shell
       env:
-        - CIBW_BUILD="cp35-* cp36-* cp37-* cp38-*"
+        - CIBW_BUILD="cp36-* cp37-* cp38-*"
 
-    - name: "Windows py35:py38"
+    - name: "Windows py36:py38"
       os: windows
       language: shell
       before_install:
@@ -24,7 +24,7 @@ jobs:
         # make sure it's on PATH as 'python3'
         - ln -s /c/Python38/python.exe /c/Python38/python3.exe
       env:
-        - CIBW_BUILD="cp35-* cp36-* cp37-* cp38-*"
+        - CIBW_BUILD="cp36-* cp37-* cp38-*"
 env:
   global:
     - TWINE_USERNAME=__token__
