@@ -223,10 +223,12 @@ class jigsaw_jig_t:
 
     #------------------------------------------ INIT options
         self.init_file = None
+        self.init_tags = None
         self.init_near = None
 
     #------------------------------------------ GEOM options
         self.geom_file = None
+        self.geom_tags = None
 
         self.geom_seed = None
 
@@ -240,6 +242,7 @@ class jigsaw_jig_t:
 
     #------------------------------------------ HFUN options
         self.hfun_file = None
+        self.hfun_tags = None
 
         self.hfun_scal = None
 
@@ -248,6 +251,7 @@ class jigsaw_jig_t:
 
     #------------------------------------------ MESH options
         self.mesh_file = None
+        self.mesh_tags = None
 
         self.mesh_kern = None
         self.bnds_kern = None

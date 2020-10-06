@@ -1,8 +1,62 @@
 
 import warnings
 from pathlib import Path
+
 from jigsawpy.msh_t import jigsaw_msh_t
 from jigsawpy.certify import certify
+
+
+def savepoint(data, fptr, ndim):
+    """
+    SAVEPOINT: save the POINT data structure to *.off file.
+
+    """
+    rmax = 2 ** 19; next = 0
+
+    while (next < data.shape[0]):
+
+        nrow = min(rmax, data.shape[0] - next)
+        nend = next + nrow
+
+        sfmt = " ".join(["%.17g"] * ndim)
+
+        if (ndim < 3): sfmt = sfmt + " 0"
+
+        sfmt = sfmt + "\n"
+        sfmt = sfmt * nrow
+
+        fdat = sfmt % tuple(data[next:nend, :].ravel())
+
+        fptr.write(fdat)
+
+        next = next + nrow
+
+    return
+
+
+def savecells(data, fptr, nnod):
+    """
+    SAVECELLS: save the CELLS data structure to *.off file.
+
+    """
+    rmax = 2 ** 19; next = 0
+
+    while (next < data.shape[0]):
+
+        nrow = min(rmax, data.shape[0] - next)
+        nend = next + nrow
+
+        sfmt = " ".join(["%d"] * nnod) + "\n"
+        sfmt = str(nnod) + " " + sfmt
+        sfmt = sfmt * nrow
+
+        fdat = sfmt % tuple(data[next:nend, :].ravel())
+
+        fptr.write(fdat)
+
+        next = next + nrow
+
+    return
 
 
 def save_mesh_file(mesh, fptr):
@@ -44,26 +98,18 @@ def save_mesh_file(mesh, fptr):
 
     nnode = nnum["PT"]
     nedge = +0
-    nface = nnum["T4"] + nnum["Q4"]
+    nface = nnum["T3"] + nnum["Q4"]
 
     fptr.write(str(nnode) + " " +
                str(nface) + " " + str(nedge) + "\n")
 
     if (mesh.vert2 is not None):
-        xpts = mesh.vert2["coord"]
-        for ipos in range(mesh.vert2.size):
-            fptr.write(
-                f"{xpts[ipos, 0]:.18G} "
-                f"{xpts[ipos, 1]:.18G} "
-                f"{0.E+0:.18G}\n")
+        savepoint(
+            mesh.vert2["coord"], fptr, +2)
 
     if (mesh.vert3 is not None):
-        xpts = mesh.vert3["coord"]
-        for ipos in range(mesh.vert3.size):
-            fptr.write(
-                f"{xpts[ipos, 0]:.18G} "
-                f"{xpts[ipos, 1]:.18G} "
-                f"{xpts[ipos, 2]:.18G}\n")
+        savepoint(
+            mesh.vert3["coord"], fptr, +3)
 
     if (mesh.edge2 is not None and
             mesh.edge2.size != +0):
@@ -71,23 +117,12 @@ def save_mesh_file(mesh, fptr):
             "EDGE2 elements not supported", Warning)
 
     if (mesh.tria3 is not None):
-        cell = mesh.tria3["index"]
-        for ipos in range(mesh.tria3.size):
-            fptr.write(
-                "3 "
-                f"{cell[ipos, 0]} "
-                f"{cell[ipos, 1]} "
-                f"{cell[ipos, 2]}\n")
+        savecells(
+            mesh.tria3["index"], fptr, +3)
 
     if (mesh.quad4 is not None):
-        cell = mesh.quad4["index"]
-        for ipos in range(mesh.quad4.size):
-            fptr.write(
-                "4 "
-                f"{cell[ipos, 0]} "
-                f"{cell[ipos, 1]} "
-                f"{cell[ipos, 2]} "
-                f"{cell[ipos, 3]}\n")
+        savecells(
+            mesh.quad4["index"], fptr, +4)
 
     if (mesh.tria4 is not None and
             mesh.tria4.size != +0):
@@ -136,8 +171,7 @@ def saveoff(name, mesh):
 
     fext = Path(name).suffix
 
-    if (fext.strip() != ".off"):
-        name = name + ".off"
+    if (fext.strip() != ".off"): name += ".off"
 
     kind = mesh.mshID.lower()
 
