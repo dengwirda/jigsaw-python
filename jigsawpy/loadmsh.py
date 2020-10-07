@@ -1,6 +1,8 @@
 
 from pathlib import Path
 import numpy as np
+from numpy.lib import recfunctions as rfn
+
 from jigsawpy.msh_t import jigsaw_msh_t
 
 
@@ -38,8 +40,7 @@ def loadradii(mesh, fptr, ltag):
         mesh.radii[2] = float(rtag[2])
 
     else:
-        raise Exception(
-            "Invalid RADII: " + ltag)
+        raise Exception("Invalid RADII: " + ltag)
 
     return
 
@@ -49,30 +50,22 @@ def loadvert2(fptr, ltag):
     LOADVERT2: load the 2-dim. vertex pos. from file.
 
     """
-    lnum = int(ltag[1])
-    lpos = +0
+    lnum = int(ltag[1]); vnum = 3
 
-    vert = np.empty(
-        lnum, dtype=jigsaw_msh_t.VERT2_t)
+    data = []
+    for line in range(lnum):
+        data.append(fptr.readline())
 
-    vpts = vert["coord"]
-    itag = vert["IDtag"]
+    data = " ".join(data).replace("\n", ";")
 
-    while (lnum >= +1):
-        data = fptr.readline()
-        dtag = data.split(";")
+    vert = np.fromstring(
+        data, dtype=np.float64, sep=";")
 
-        if (len(dtag) == +3):
-            vpts[lpos, 0] = float(dtag[0])
-            vpts[lpos, 1] = float(dtag[1])
+    vert = np.reshape(
+        vert, (lnum, vnum, ), order="C")
 
-            itag[lpos] = int(dtag[2])
-        else:
-            raise Exception(
-                "Invalid POINT: " + data)
-
-        lnum -= +1
-        lpos += +1
+    vert = rfn.unstructured_to_structured(
+        vert, dtype=jigsaw_msh_t.VERT2_t, align=True)
 
     return vert
 
@@ -82,31 +75,22 @@ def loadvert3(fptr, ltag):
     LOADVERT3: load the 3-dim. vertex pos. from file.
 
     """
-    lnum = int(ltag[1])
-    lpos = +0
+    lnum = int(ltag[1]); vnum = 4
 
-    vert = np.empty(
-        lnum, dtype=jigsaw_msh_t.VERT3_t)
+    data = []
+    for line in range(lnum):
+        data.append(fptr.readline())
 
-    vpts = vert["coord"]
-    itag = vert["IDtag"]
+    data = " ".join(data).replace("\n", ";")
 
-    while (lnum >= +1):
-        data = fptr.readline()
-        dtag = data.split(";")
+    vert = np.fromstring(
+        data, dtype=np.float64, sep=";")
 
-        if (len(dtag) == +4):
-            vpts[lpos, 0] = float(dtag[0])
-            vpts[lpos, 1] = float(dtag[1])
-            vpts[lpos, 2] = float(dtag[2])
+    vert = np.reshape(
+        vert, (lnum, vnum, ), order="C")
 
-            itag[lpos] = int(dtag[3])
-        else:
-            raise Exception(
-                "Invalid POINT: " + data)
-
-        lnum -= +1
-        lpos += +1
+    vert = rfn.unstructured_to_structured(
+        vert, dtype=jigsaw_msh_t.VERT3_t, align=True)
 
     return vert
 
@@ -123,8 +107,7 @@ def loadpoint(mesh, fptr, ltag):
         mesh.vert3 = loadvert3(fptr, ltag)
 
     else:
-        raise Exception(
-            "Invalid NDIMS: " + ltag)
+        raise Exception("Invalid NDIMS: " + ltag)
 
     return
 
@@ -141,8 +124,7 @@ def loadseeds(mesh, fptr, ltag):
         mesh.seed3 = loadvert3(fptr, ltag)
 
     else:
-        raise Exception(
-            "Invalid NDIMS: " + ltag)
+        raise Exception("Invalid NDIMS: " + ltag)
 
     return
 
@@ -156,20 +138,18 @@ def loadarray(fptr, ltag):
 
     lnum = int(vtag[0])
     vnum = int(vtag[1])
-    lpos = +0
 
-    vals = np.empty(
-        [lnum, vnum], dtype=jigsaw_msh_t.REALS_t)
+    data = []
+    for line in range(lnum):
+        data.append(fptr.readline())
 
-    while (lnum >= +1):
-        data = fptr.readline()
-        dtag = data.split(";")
+    data = " ".join(data).replace("\n", ";")
 
-        for dpos in range(len(dtag)):
-            vals[lpos, dpos] = float(dtag[dpos])
+    vals = np.fromstring(
+        data, dtype=np.float64, sep=";")
 
-        lnum -= +1
-        lpos += +1
+    vals = np.reshape(
+        vals, (lnum, vnum, ), order="F")
 
     return vals
 
@@ -209,30 +189,24 @@ def loadedge2(mesh, fptr, ltag):
     LOADEDGE2: load the EDGE2 data segment from file.
 
     """
-    lnum = int(ltag[1])
-    lpos = +0
+    lnum = int(ltag[1]); vnum = 3
 
-    mesh.edge2 = np.empty(
-        lnum, dtype=jigsaw_msh_t.EDGE2_t)
+    data = []
+    for line in range(lnum):
+        data.append(fptr.readline())
 
-    cell = mesh.edge2["index"]
-    itag = mesh.edge2["IDtag"]
+    data = " ".join(data).replace("\n", ";")
 
-    while (lnum >= +1):
-        data = fptr.readline()
-        dtag = data.split(";")
+    cell = np.fromstring(
+        data, dtype=np.int32, sep=";")
 
-        if (len(dtag) == +3):
-            cell[lpos, 0] = int(dtag[0])
-            cell[lpos, 1] = int(dtag[1])
+    cell = np.reshape(
+        cell, (lnum, vnum), order="C")
 
-            itag[lpos] = int(dtag[2])
-        else:
-            raise Exception(
-                "Invalid EDGE2: " + data)
+    cell = rfn.unstructured_to_structured(
+        cell, dtype=jigsaw_msh_t.EDGE2_t, align=True)
 
-        lnum -= +1
-        lpos += +1
+    mesh.edge2 = cell
 
     return
 
@@ -242,31 +216,24 @@ def loadtria3(mesh, fptr, ltag):
     LOADTRIA3: load the TRIA3 data segment from file.
 
     """
-    lnum = int(ltag[1])
-    lpos = +0
+    lnum = int(ltag[1]); vnum = 4
 
-    mesh.tria3 = np.empty(
-        lnum, dtype=jigsaw_msh_t.TRIA3_t)
+    data = []
+    for line in range(lnum):
+        data.append(fptr.readline())
 
-    cell = mesh.tria3["index"]
-    itag = mesh.tria3["IDtag"]
+    data = " ".join(data).replace("\n", ";")
 
-    while (lnum >= +1):
-        data = fptr.readline()
-        dtag = data.split(";")
+    cell = np.fromstring(
+        data, dtype=np.int32, sep=";")
 
-        if (len(dtag) == +4):
-            cell[lpos, 0] = int(dtag[0])
-            cell[lpos, 1] = int(dtag[1])
-            cell[lpos, 2] = int(dtag[2])
+    cell = np.reshape(
+        cell, (lnum, vnum), order="C")
 
-            itag[lpos] = int(dtag[3])
-        else:
-            raise Exception(
-                "Invalid TRIA3: " + data)
+    cell = rfn.unstructured_to_structured(
+        cell, dtype=jigsaw_msh_t.TRIA3_t, align=True)
 
-        lnum -= +1
-        lpos += +1
+    mesh.tria3 = cell
 
     return
 
@@ -276,32 +243,24 @@ def loadquad4(mesh, fptr, ltag):
     LOADUAD4: load the QUAD4 data segment from file.
 
     """
-    lnum = int(ltag[1])
-    lpos = +0
+    lnum = int(ltag[1]); vnum = 5
 
-    mesh.quad4 = np.empty(
-        lnum, dtype=jigsaw_msh_t.QUAD4_t)
+    data = []
+    for line in range(lnum):
+        data.append(fptr.readline())
 
-    cell = mesh.quad4["index"]
-    itag = mesh.quad4["IDtag"]
+    data = " ".join(data).replace("\n", ";")
 
-    while (lnum >= +1):
-        data = fptr.readline()
-        dtag = data.split(";")
+    cell = np.fromstring(
+        data, dtype=np.int32, sep=";")
 
-        if (len(dtag) == +5):
-            cell[lpos, 0] = int(dtag[0])
-            cell[lpos, 1] = int(dtag[1])
-            cell[lpos, 2] = int(dtag[2])
-            cell[lpos, 3] = int(dtag[3])
+    cell = np.reshape(
+        cell, (lnum, vnum), order="C")
 
-            itag[lpos] = int(dtag[4])
-        else:
-            raise Exception(
-                "Invalid QUAD4: " + data)
+    cell = rfn.unstructured_to_structured(
+        cell, dtype=jigsaw_msh_t.QUAD4_t, align=True)
 
-        lnum -= +1
-        lpos += +1
+    mesh.quad4 = cell
 
     return
 
@@ -311,32 +270,24 @@ def loadtria4(mesh, fptr, ltag):
     LOADTRIA4: load the TRIA4 data segment from file.
 
     """
-    lnum = int(ltag[1])
-    lpos = +0
+    lnum = int(ltag[1]); vnum = 5
 
-    mesh.tria4 = np.empty(
-        lnum, dtype=jigsaw_msh_t.TRIA4_t)
+    data = []
+    for line in range(lnum):
+        data.append(fptr.readline())
 
-    cell = mesh.tria4["index"]
-    itag = mesh.tria4["IDtag"]
+    data = " ".join(data).replace("\n", ";")
 
-    while (lnum >= +1):
-        data = fptr.readline()
-        dtag = data.split(";")
+    cell = np.fromstring(
+        data, dtype=np.int32, sep=";")
 
-        if (len(dtag) == +5):
-            cell[lpos, 0] = int(dtag[0])
-            cell[lpos, 1] = int(dtag[1])
-            cell[lpos, 2] = int(dtag[2])
-            cell[lpos, 3] = int(dtag[3])
+    cell = np.reshape(
+        cell, (lnum, vnum), order="C")
 
-            itag[lpos] = int(dtag[4])
-        else:
-            raise Exception(
-                "Invalid TRIA4: " + data)
+    cell = rfn.unstructured_to_structured(
+        cell, dtype=jigsaw_msh_t.TRIA4_t, align=True)
 
-        lnum -= +1
-        lpos += +1
+    mesh.tria4 = cell
 
     return
 
@@ -346,36 +297,24 @@ def loadhexa8(mesh, fptr, ltag):
     LOADHEXA8: load the HEXA8 data segment from file.
 
     """
-    lnum = int(ltag[1])
-    lpos = +0
+    lnum = int(ltag[1]); vnum = 9
 
-    mesh.hexa8 = np.empty(
-        lnum, dtype=jigsaw_msh_t.HEXA8_t)
+    data = []
+    for line in range(lnum):
+        data.append(fptr.readline())
 
-    cell = mesh.hexa8["index"]
-    itag = mesh.hexa8["IDtag"]
+    data = " ".join(data).replace("\n", ";")
 
-    while (lnum >= +1):
-        data = fptr.readline()
-        dtag = data.split(";")
+    cell = np.fromstring(
+        data, dtype=np.int32, sep=";")
 
-        if (len(dtag) == +9):
-            cell[lpos, 0] = int(dtag[0])
-            cell[lpos, 1] = int(dtag[1])
-            cell[lpos, 2] = int(dtag[2])
-            cell[lpos, 3] = int(dtag[3])
-            cell[lpos, 4] = int(dtag[4])
-            cell[lpos, 5] = int(dtag[5])
-            cell[lpos, 6] = int(dtag[6])
-            cell[lpos, 7] = int(dtag[7])
+    cell = np.reshape(
+        cell, (lnum, vnum), order="C")
 
-            itag[lpos] = int(dtag[8])
-        else:
-            raise Exception(
-                "Invalid HEXA8: " + data)
+    cell = rfn.unstructured_to_structured(
+        cell, dtype=jigsaw_msh_t.HEXA8_t, align=True)
 
-        lnum -= +1
-        lpos += +1
+    mesh.hexa8 = cell
 
     return
 
@@ -385,33 +324,24 @@ def loadpyra5(mesh, fptr, ltag):
     LOADPYRA5: load the PYRA5 data segment from file.
 
     """
-    lnum = int(ltag[1])
-    lpos = +0
+    lnum = int(ltag[1]); vnum = 6
 
-    mesh.pyra5 = np.empty(
-        lnum, dtype=jigsaw_msh_t.PYRA5_t)
+    data = []
+    for line in range(lnum):
+        data.append(fptr.readline())
 
-    cell = mesh.pyra5["index"]
-    itag = mesh.pyra5["IDtag"]
+    data = " ".join(data).replace("\n", ";")
 
-    while (lnum >= +1):
-        data = fptr.readline()
-        dtag = data.split(";")
+    cell = np.fromstring(
+        data, dtype=np.int32, sep=";")
 
-        if (len(dtag) == +6):
-            cell[lpos, 0] = int(dtag[0])
-            cell[lpos, 1] = int(dtag[1])
-            cell[lpos, 2] = int(dtag[2])
-            cell[lpos, 3] = int(dtag[3])
-            cell[lpos, 4] = int(dtag[4])
+    cell = np.reshape(
+        cell, (lnum, vnum), order="C")
 
-            itag[lpos] = int(dtag[5])
-        else:
-            raise Exception(
-                "Invalid PYRA5: " + data)
+    cell = rfn.unstructured_to_structured(
+        cell, dtype=jigsaw_msh_t.PYRA5_t, align=True)
 
-        lnum -= +1
-        lpos += +1
+    mesh.pyra5 = cell
 
     return
 
@@ -421,34 +351,24 @@ def loadwedg6(mesh, fptr, ltag):
     LOADWEDG6: load the WEDG6 data segment from file.
 
     """
-    lnum = int(ltag[1])
-    lpos = +0
+    lnum = int(ltag[1]); vnum = 7
 
-    mesh.wedg6 = np.empty(
-        lnum, dtype=jigsaw_msh_t.WEDG6_t)
+    data = []
+    for line in range(lnum):
+        data.append(fptr.readline())
 
-    cell = mesh.wedg6["index"]
-    itag = mesh.wedg6["IDtag"]
+    data = " ".join(data).replace("\n", ";")
 
-    while (lnum >= +1):
-        data = fptr.readline()
-        dtag = data.split(";")
+    cell = np.fromstring(
+        data, dtype=np.int32, sep=";")
 
-        if (len(dtag) == +7):
-            cell[lpos, 0] = int(dtag[0])
-            cell[lpos, 1] = int(dtag[1])
-            cell[lpos, 2] = int(dtag[2])
-            cell[lpos, 3] = int(dtag[3])
-            cell[lpos, 4] = int(dtag[4])
-            cell[lpos, 5] = int(dtag[5])
+    cell = np.reshape(
+        cell, (lnum, vnum), order="C")
 
-            itag[lpos] = int(dtag[6])
-        else:
-            raise Exception(
-                "Invalid WEDG6: " + data)
+    cell = rfn.unstructured_to_structured(
+        cell, dtype=jigsaw_msh_t.WEDG6_t, align=True)
 
-        lnum -= +1
-        lpos += +1
+    mesh.wedg6 = cell
 
     return
 
@@ -458,30 +378,24 @@ def loadbound(mesh, fptr, ltag):
     LOADBOUND: load the BOUND data segment from file.
 
     """
-    lnum = int(ltag[1])
-    lpos = +0
+    lnum = int(ltag[1]); vnum = 3
 
-    mesh.bound = np.empty(
-        lnum, dtype=jigsaw_msh_t.BOUND_t)
+    data = []
+    for line in range(lnum):
+        data.append(fptr.readline())
 
-    itag = mesh.bound["IDtag"]
-    indx = mesh.bound["index"]
-    kind = mesh.bound["cells"]
+    data = " ".join(data).replace("\n", ";")
 
-    while (lnum >= +1):
-        data = fptr.readline()
-        dtag = data.split(";")
+    bnds = np.fromstring(
+        data, dtype=np.int32, sep=";")
 
-        if (len(dtag) == +3):
-            itag[lpos] = int(dtag[0])
-            indx[lpos] = int(dtag[1])
-            kind[lpos] = int(dtag[2])
-        else:
-            raise Exception(
-                "Invalid BOUND: " + data)
+    bnds = np.reshape(
+        bnds, (lnum, vnum), order="C")
 
-        lnum -= +1
-        lpos += +1
+    bnds = rfn.unstructured_to_structured(
+        bnds, dtype=jigsaw_msh_t.BOUND_t, align=True)
+
+    mesh.bound = bnds
 
     return
 
@@ -495,33 +409,29 @@ def loadcoord(mesh, fptr, ltag):
 
     idim = int(ctag[0])
     lnum = int(ctag[1])
-    lpos = +0
 
     mesh.ndims = max(mesh.ndims, idim)
 
-    if   (idim == +1):
-        mesh.xgrid = np.empty(
-            lnum, dtype=jigsaw_msh_t.REALS_t)
+    data = []
+    for line in range(lnum):
+        data.append(fptr.readline())
 
-        data = mesh.xgrid[:]
+    data = " ".join(data).replace("\n", ";")
+
+    vals = np.fromstring(
+        data, dtype=np.float64, sep=";")
+
+    if   (idim == +1):
+        mesh.xgrid = np.reshape(
+            vals, (lnum, ), order="C")
 
     elif (idim == +2):
-        mesh.ygrid = np.empty(
-            lnum, dtype=jigsaw_msh_t.REALS_t)
-
-        data = mesh.ygrid[:]
+        mesh.ygrid = np.reshape(
+            vals, (lnum, ), order="C")
 
     elif (idim == +3):
-        mesh.zgrid = np.empty(
-            lnum, dtype=jigsaw_msh_t.REALS_t)
-
-        data = mesh.zgrid[:]
-
-    while (lnum >= +1):
-        data[lpos] = float(fptr.readline())
-
-        lnum -= +1
-        lpos += +1
+        mesh.zgrid = np.reshape(
+            vals, (lnum, ), order="C")
 
     return
 

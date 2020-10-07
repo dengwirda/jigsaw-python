@@ -1,8 +1,66 @@
 
 import warnings
 from pathlib import Path
+import numpy as np
+
 from jigsawpy.msh_t import jigsaw_msh_t
 from jigsawpy.certify import certify
+
+
+def savepoint(data, fptr, ndim, ctag):
+    """
+    SAVEPOINT: save the POINT data structure to *.obj file.
+
+    """
+    rmax = 2 ** 19; next = 0
+
+    while (next < data.shape[0]):
+
+        nrow = min(rmax, data.shape[0] - next)
+        nend = next + nrow
+
+        sfmt = " ".join(["%.17g"] * ndim)
+
+        if (ndim < 3): sfmt = sfmt + " 0"
+
+        sfmt = ctag + sfmt
+        sfmt = sfmt + "\n"
+        sfmt = sfmt * nrow
+
+        fdat = sfmt % tuple(data[next:nend, :].ravel())
+
+        fptr.write(fdat)
+
+        next = next + nrow
+
+    return
+
+
+def savecells(data, fptr, nnod, ctag):
+    """
+    SAVECELLS: save the CELLS data structure to *.obj file.
+
+    """
+    rmax = 2 ** 19; next = 0
+
+    indx = np.array(data[:, :]) + 1
+
+    while (next < data.shape[0]):
+
+        nrow = min(rmax, data.shape[0] - next)
+        nend = next + nrow
+
+        sfmt = " ".join(["%d"] * nnod) + "\n"
+        sfmt = ctag + sfmt
+        sfmt = sfmt * nrow
+
+        fdat = sfmt % tuple(indx[next:nend, :].ravel())
+
+        fptr.write(fdat)
+
+        next = next + nrow
+
+    return
 
 
 def save_mesh_file(mesh, fptr):
@@ -10,56 +68,29 @@ def save_mesh_file(mesh, fptr):
     SAVE-MESH-FILE: save a JIGSAW mesh object to *.OBJ file.
 
     """
-    ZERO_PT_COORD = +0.E+00
-
     fptr.write(
         "# " + Path(fptr.name).name
         + "; created by JIGSAW's Python interface \n")
 
     if (mesh.vert2 is not None):
-        xpts = mesh.vert2["coord"]
-        for ipos in range(mesh.vert2.size):
-            fptr.write(
-                "v "
-                f"{xpts[ipos, 0]:.18G} "
-                f"{xpts[ipos, 1]:.18G} "
-                f"{ZERO_PT_COORD:.18G}\n")
+        savepoint(
+            mesh.vert2["coord"], fptr, 2, "v ")
 
     if (mesh.vert3 is not None):
-        xpts = mesh.vert3["coord"]
-        for ipos in range(mesh.vert3.size):
-            fptr.write(
-                "v "
-                f"{xpts[ipos, 0]:.18G} "
-                f"{xpts[ipos, 1]:.18G} "
-                f"{xpts[ipos, 2]:.18G}\n")
+        savepoint(
+            mesh.vert3["coord"], fptr, 3, "v ")
 
     if (mesh.edge2 is not None):
-        cell = mesh.edge2["index"]
-        for ipos in range(mesh.edge2.size):
-            fptr.write(
-                "l "
-                f"{cell[ipos, 0] + 1} "
-                f"{cell[ipos, 1] + 1}\n")
+        savecells(
+            mesh.edge2["index"], fptr, 2, "l ")
 
     if (mesh.tria3 is not None):
-        cell = mesh.tria3["index"]
-        for ipos in range(mesh.tria3.size):
-            fptr.write(
-                "f "
-                f"{cell[ipos, 0] + 1} "
-                f"{cell[ipos, 1] + 1} "
-                f"{cell[ipos, 2] + 1}\n")
+        savecells(
+            mesh.tria3["index"], fptr, 3, "f ")
 
     if (mesh.quad4 is not None):
-        cell = mesh.quad4["index"]
-        for ipos in range(mesh.quad4.size):
-            fptr.write(
-                "f "
-                f"{cell[ipos, 0] + 1} "
-                f"{cell[ipos, 1] + 1} "
-                f"{cell[ipos, 2] + 1} "
-                f"{cell[ipos, 3] + 1}\n")
+        savecells(
+            mesh.quad4["index"], fptr, 4, "f ")
 
     if (mesh.tria4 is not None and
             mesh.tria4.size != +0):
@@ -108,8 +139,7 @@ def savewav(name, mesh):
 
     fext = Path(name).suffix
 
-    if (fext.strip() != ".obj"):
-        name = name + ".obj"
+    if (fext.strip() != ".obj"): name += ".obj"
 
     kind = mesh.mshID.lower()
 

@@ -309,7 +309,6 @@ def jitter(opts, imax, ibad, mesh=None):
 
             if (next.tria3 is not None and
                     next.tria3.size != +0):
-
     #------------------------------ mark any irregular nodes
                 vdeg = trideg2(
                     next.point["coord"],
@@ -330,9 +329,8 @@ def jitter(opts, imax, ibad, mesh=None):
 
                 keep[next.edge2["index"][:, :]] = True
 
-    #------------------------------ don't delete everything!
             if (np.count_nonzero(keep) <= +8):
-
+    #------------------------------ don't delete everything!
                 keep = np.full(
                     (nvrt), True, dtype=bool)
 
@@ -342,7 +340,8 @@ def jitter(opts, imax, ibad, mesh=None):
             init = jigsaw_msh_t()
             init.point = next.point[keep]
 
-            savemsh(OPTS.init_file, init)
+            savemsh(OPTS.init_file, init,
+                    OPTS.mesh_tags)
 
     #------------------------------ call JIGSAW with new ICs
         jigsaw (OPTS, next)       # noqa
@@ -419,11 +418,11 @@ def tetris(opts, nlev, mesh=None):
 #---------------------------- call JIGSAW via inc. bisection
     SCAL = +2. ** nlev
     OPTS = copy.deepcopy(opts)
+    flag = +1
 
     while (nlev >= +0):
 
         if (opts.optm_qlim is not None):
-
     #------------------------ create/write current QLIM data
             scal = min(
                 2.0, (nlev + 1) ** (1. / 4.))
@@ -433,7 +432,6 @@ def tetris(opts, nlev, mesh=None):
             OPTS.optm_qlim = QLIM / scal
 
         else:
-
             scal = min(
                 2.0, (nlev + 1) ** (1. / 4.))
 
@@ -442,24 +440,20 @@ def tetris(opts, nlev, mesh=None):
             OPTS.optm_qlim = QLIM / scal
 
         if (opts.optm_dual is not None):
-
     #------------------------ create/write current DUAL data
             OPTS.optm_dual = nlev == 0
 
         if (opts.hfun_hmax is not None):
-
     #------------------------ create/write current HMAX data
             OPTS.hfun_hmax = \
                 opts.hfun_hmax * SCAL
 
         if (opts.hfun_hmin is not None):
-
     #------------------------ create/write current HMIN data
             OPTS.hfun_hmin = \
                 opts.hfun_hmin * SCAL
 
         if (opts.hfun_file is not None):
-
     #------------------------ create/write current HFUN data
             path = Path(opts.hfun_file).parent
             name = Path(opts.hfun_file).stem
@@ -477,20 +471,24 @@ def tetris(opts, nlev, mesh=None):
 
             HFUN.value = HFUN.value * SCAL
 
-            savemsh(OPTS.hfun_file, HFUN)
+            savemsh(OPTS.hfun_file, HFUN,
+                    OPTS.hfun_tags)
 
+        if (nlev == 0 or flag == 0):
     #------------------------ call JIGSAW kernel at this lev
-        if (nlev % 2 != 0):
+            ninc = min(64, nlev * nlev)
 
-            ninc = nlev * (-1 + nlev)
+            flag = +1
 
-            jitter(OPTS, 3 + ninc, 2, mesh)
+            jitter(OPTS, 3 + ninc, 3, mesh)
 
         else:
 
-            ninc = nlev * (-1 + nlev)
+            ninc = min(64, nlev * nlev)
 
-            jitter(OPTS, 3 + ninc, 3, mesh)
+            flag = +0
+
+            jitter(OPTS, 3 + ninc, 2, mesh)
 
         nlev = nlev - 1
         SCAL = SCAL / 2.
@@ -498,7 +496,6 @@ def tetris(opts, nlev, mesh=None):
         if (nlev < +0): break
 
         if (opts.init_file is not None):
-
     #------------------------ create/write current INIT data
             path = Path(opts.init_file).parent
             name = Path(opts.init_file).stem
@@ -513,10 +510,10 @@ def tetris(opts, nlev, mesh=None):
             bisect(mesh)
             attach(mesh)
 
-            savemsh(OPTS.init_file, mesh)
+            savemsh(OPTS.init_file, mesh,
+                    OPTS.init_tags)
 
         else:
-
     #------------------------ create/write current INIT data
             path = Path(opts.mesh_file).parent
             name = Path(opts.mesh_file).stem
@@ -531,7 +528,8 @@ def tetris(opts, nlev, mesh=None):
             bisect(mesh)
             attach(mesh)
 
-            savemsh(OPTS.init_file, mesh)
+            savemsh(OPTS.init_file, mesh,
+                    OPTS.mesh_tags)
 
     return
 
@@ -550,7 +548,6 @@ def refine(opts, nlev, mesh=None):
         raise Exception("Incorrect type: MESH.")
 
 #---------------------------- call JIGSAW via inc. bisection
-
     opts.mesh_iter = +0
     opts.optm_div_ = False
     opts.optm_zip_ = False
@@ -558,7 +555,6 @@ def refine(opts, nlev, mesh=None):
     for ilev in reversed(range(nlev + 1)):
 
         if (opts.optm_dual is not None):
-
     #------------------------ create/write current DUAL data
             opts.optm_dual = ilev == 0
 
@@ -568,7 +564,6 @@ def refine(opts, nlev, mesh=None):
         if (ilev <= +0): break
 
         if (opts.mesh_file is not None):
-
     #------------------------ create/write current INIT data
             path = Path(opts.mesh_file).parent
             name = Path(opts.mesh_file).stem
@@ -583,7 +578,8 @@ def refine(opts, nlev, mesh=None):
             bisect(mesh)
             attach(mesh)
 
-            savemsh(opts.init_file, mesh)
+            savemsh(opts.init_file, mesh,
+                    opts.mesh_tags)
 
     return
 
@@ -625,13 +621,11 @@ def icosahedron(opts, nlev, mesh):
         (+8.0 * lo, +1.0 * la),
         (+9.0 * lo, -1.0 * la)])
 
-    mesh.vert3 = np.zeros(
-        +12, dtype=mesh.VERT3_t)
+    mesh.vert3 = np.zeros(+12, dtype=mesh.VERT3_t)
 
-    mesh.vert3["coord"] = \
-        S2toR3(geom.radii, apos)
+    mesh.vert3["coord"] = S2toR3(geom.radii, apos)
 
-    mesh.vert3["IDtag"] = -1                # fix "corners"
+    mesh.vert3["IDtag"] = - 1               # fix "corners"
 
 #-------------------------------- setup icosahedron topology
     mesh.tria3 = np.array([
@@ -699,13 +693,11 @@ def cubedsphere(opts, nlev, mesh):
         (-0.75 * np.pi, +aval),
         (-0.25 * np.pi, +aval)])
 
-    mesh.vert3 = np.zeros(
-        + 8, dtype=mesh.VERT3_t)
+    mesh.vert3 = np.zeros(+ 8, dtype=mesh.VERT3_t)
 
-    mesh.vert3["coord"] = \
-        S2toR3(geom.radii, apos)
+    mesh.vert3["coord"] = S2toR3(geom.radii, apos)
 
-    mesh.vert3["IDtag"] = -1                # fix "corners"
+    mesh.vert3["IDtag"] = - 1               # fix "corners"
 
 #-------------------------------- setup cubedsphere topology
     mesh.quad4 = np.array([

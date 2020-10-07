@@ -1,8 +1,88 @@
 
 from pathlib import Path
 import numpy as np
+
 from jigsawpy.msh_t import jigsaw_msh_t
 from jigsawpy.certify import certify
+
+
+def savepoint(data, fptr, ndim):
+    """
+    SAVEPOINT: save the POINT data structure to *.vtk file.
+
+    """
+    rmax = 2 ** 19; next = 0
+
+    while (next < data.shape[0]):
+
+        nrow = min(rmax, data.shape[0] - next)
+        nend = next + nrow
+
+        sfmt = " ".join(["%.17g"] * ndim)
+
+        if (ndim < 3): sfmt = sfmt + " 0"
+
+        sfmt = sfmt + "\n"
+        sfmt = sfmt * nrow
+
+        fdat = sfmt % tuple(data[next:nend, :].ravel())
+
+        fptr.write(fdat)
+
+        next = next + nrow
+
+    return
+
+
+def savecells(data, fptr, nnod):
+    """
+    SAVECELLS: save the CELLS data structure to *.vtk file.
+
+    """
+    rmax = 2 ** 19; next = 0
+
+    while (next < data.shape[0]):
+
+        nrow = min(rmax, data.shape[0] - next)
+        nend = next + nrow
+
+        sfmt = " ".join(["%d"] * nnod) + "\n"
+        sfmt = str(nnod) + " " + sfmt
+        sfmt = sfmt * nrow
+
+        fdat = sfmt % tuple(data[next:nend, :].ravel())
+
+        fptr.write(fdat)
+
+        next = next + nrow
+
+    return
+
+
+def savearray(data, fptr):
+    """
+    SAVEARRAY: save the ARRAY data structure to *.vtk file.
+
+    """
+    dptr = data.reshape(-1, order="F")
+
+    rmax = 2 ** 19; next = 0
+
+    while (next < dptr.shape[0]):
+
+        nrow = min(rmax, dptr.shape[0] - next)
+        nend = next + nrow
+
+        sfmt = "%.9g\n"
+        sfmt = sfmt * nrow
+
+        fdat = sfmt % tuple(dptr[next:nend].ravel())
+
+        fptr.write(fdat)
+
+        next = next + nrow
+
+    return
 
 
 def save_mesh_file(mesh, fptr):
@@ -56,26 +136,16 @@ def save_mesh_file(mesh, fptr):
 
     #----------------------------------- write POINT dataset
 
-    ZERO_PT_COORD = +0.E+00
-
     fptr.write("POINTS " +
                str(nnum["PT"]) + " double \n")
 
     if (mesh.vert2 is not None):
-        xpts = mesh.vert2["coord"]
-        for ipos in range(mesh.vert2.size):
-            fptr.write(
-                f"{xpts[ipos, 0]:.18G} "
-                f"{xpts[ipos, 1]:.18G} "
-                f"{ZERO_PT_COORD:.18G}\n")
+        savepoint(
+            mesh.vert2["coord"], fptr, +2)
 
     if (mesh.vert3 is not None):
-        xpts = mesh.vert3["coord"]
-        for ipos in range(mesh.vert3.size):
-            fptr.write(
-                f"{xpts[ipos, 0]:.18G} "
-                f"{xpts[ipos, 1]:.18G} "
-                f"{xpts[ipos, 2]:.18G}\n")
+        savepoint(
+            mesh.vert3["coord"], fptr, +3)
 
     #----------------------------------- write CELLS dataset
 
@@ -84,78 +154,32 @@ def save_mesh_file(mesh, fptr):
         str(nline) + " " + str(nints) + " \n")
 
     if (mesh.edge2 is not None):
-        cell = mesh.edge2["index"]
-        for ipos in range(mesh.edge2.size):
-            fptr.write(
-                "2 "
-                f"{cell[ipos, 0]} "
-                f"{cell[ipos, 1]}\n")
+        savecells(
+            mesh.edge2["index"], fptr, +2)
 
     if (mesh.tria3 is not None):
-        cell = mesh.tria3["index"]
-        for ipos in range(mesh.tria3.size):
-            fptr.write(
-                "3 "
-                f"{cell[ipos, 0]} "
-                f"{cell[ipos, 1]} "
-                f"{cell[ipos, 2]}\n")
+        savecells(
+            mesh.tria3["index"], fptr, +3)
 
     if (mesh.quad4 is not None):
-        cell = mesh.quad4["index"]
-        for ipos in range(mesh.quad4.size):
-            fptr.write(
-                "4 "
-                f"{cell[ipos, 0]} "
-                f"{cell[ipos, 1]} "
-                f"{cell[ipos, 2]} "
-                f"{cell[ipos, 3]}\n")
+        savecells(
+            mesh.quad4["index"], fptr, +4)
 
     if (mesh.tria4 is not None):
-        cell = mesh.tria4["index"]
-        for ipos in range(mesh.tria4.size):
-            fptr.write(
-                "4 "
-                f"{cell[ipos, 0]} "
-                f"{cell[ipos, 1]} "
-                f"{cell[ipos, 2]} "
-                f"{cell[ipos, 3]}\n")
+        savecells(
+            mesh.tria4["index"], fptr, +4)
 
     if (mesh.hexa8 is not None):
-        cell = mesh.hexa8["index"]
-        for ipos in range(mesh.hexa8.size):
-            fptr.write(
-                "8 "
-                f"{cell[ipos, 0]} "
-                f"{cell[ipos, 1]} "
-                f"{cell[ipos, 2]} "
-                f"{cell[ipos, 3]} "
-                f"{cell[ipos, 4]} "
-                f"{cell[ipos, 5]} "
-                f"{cell[ipos, 6]} "
-                f"{cell[ipos, 7]}\n")
+        savecells(
+            mesh.hexa8["index"], fptr, +8)
 
     if (mesh.wedg6 is not None):
-        cell = mesh.wedg6["index"]
-        for ipos in range(mesh.wedg6.size):
-            fptr.write(
-                "6 "
-                f"{cell[ipos, 0]} "
-                f"{cell[ipos, 1]} "
-                f"{cell[ipos, 2]} "
-                f"{cell[ipos, 3]} "
-                f"{cell[ipos, 4]} "
-                f"{cell[ipos, 5]}\n")
+        savecells(
+            mesh.wedg6["index"], fptr, +6)
 
     if (mesh.pyra5 is not None):
-        cell = mesh.pyra5["index"]
-        for ipos in range(mesh.pyra5.size):
-            fptr.write(
-                "5 "
-                f"{cell[ipos, 0]} "
-                f"{cell[ipos, 1]} "
-                f"{cell[ipos, 2]} "
-                f"{cell[ipos, 3]} "
-                f"{cell[ipos, 4]}\n")
+        savecells(
+            mesh.pyra5["index"], fptr, +5)
 
     #----------------------------------- write TYPES dataset
 
@@ -191,8 +215,7 @@ def save_mesh_file(mesh, fptr):
             fptr.write("14\n")
 
     if (mesh.value is not None and
-            mesh.value.size ==
-            mesh.point.size):
+            mesh.value.size == nnum["PT"]):
     #----------------------------------- write VALUE attrib.
         fptr.write(
             "POINT_DATA " +
@@ -200,13 +223,10 @@ def save_mesh_file(mesh, fptr):
         fptr.write("SCALARS value float 1\n")
         fptr.write("LOOKUP_TABLE default \n")
 
-        for iptr in np.nditer(mesh.value,
-                              order="F"):
-            fptr.write(f"{iptr: .8G}\n")
+        savearray(mesh.value, fptr)
 
     if (mesh.slope is not None and
-            mesh.slope.size ==
-            mesh.point.size):
+            mesh.slope.size == nnum["PT"]):
     #----------------------------------- write SLOPE attrib.
         fptr.write(
             "POINT_DATA " +
@@ -214,9 +234,7 @@ def save_mesh_file(mesh, fptr):
         fptr.write("SCALARS slope float 1\n")
         fptr.write("LOOKUP_TABLE default \n")
 
-        for iptr in np.nditer(mesh.slope,
-                              order="F"):
-            fptr.write(f"{iptr: .8G}\n")
+        savearray(mesh.slope, fptr)
 
     return
 
@@ -254,46 +272,37 @@ def save_grid_file(mesh, fptr):
             mesh.xgrid.size != +0):
         fptr.write(
             "X_COORDINATES "
-            + str(dims[0]) + " double\n")
-        coord = mesh.xgrid[:]
-        for ipos in range(mesh.xgrid.size):
-            fptr.write(
-                f"{coord [ipos]:.18G}\n")
+            + str(dims[0]) + " float\n")
+        savearray(mesh.xgrid, fptr)
     else:
         fptr.write(
             "X_COORDINATES "
-            + str(dims[0]) + " double\n")
-        fptr.write(f"{0.000E+00:.18G}\n")
+            + str(dims[0]) + " float\n")
+        fptr.write(f"{0.000e+00:.9g}\n")
 
     if (mesh.ygrid is not None and
             mesh.ygrid.size != +0):
         fptr.write(
             "Y_COORDINATES "
-            + str(dims[1]) + " double\n")
-        coord = mesh.ygrid[:]
-        for ipos in range(mesh.ygrid.size):
-            fptr.write(
-                f"{coord [ipos]:.18G}\n")
+            + str(dims[1]) + " float\n")
+        savearray(mesh.ygrid, fptr)
     else:
         fptr.write(
             "Y_COORDINATES "
-            + str(dims[1]) + " double\n")
-        fptr.write(f"{0.000E+00:.18G}\n")
+            + str(dims[1]) + " float\n")
+        fptr.write(f"{0.000e+00:.9g}\n")
 
     if (mesh.zgrid is not None and
             mesh.zgrid.size != +0):
         fptr.write(
             "Z_COORDINATES "
-            + str(dims[2]) + " double\n")
-        coord = mesh.zgrid[:]
-        for ipos in range(mesh.zgrid.size):
-            fptr.write(
-                f"{coord [ipos]:.18G}\n")
+            + str(dims[2]) + " float\n")
+        savearray(mesh.zgrid, fptr)
     else:
         fptr.write(
             "Z_COORDINATES "
-            + str(dims[2]) + " double\n")
-        fptr.write(f"{0.000E+00:.18G}\n")
+            + str(dims[2]) + " float\n")
+        fptr.write(f"{0.000e+00:.9g}\n")
 
     if (mesh.value is not None and
             mesh.value.size != +0 and
@@ -310,9 +319,7 @@ def save_grid_file(mesh, fptr):
 
         data = np.transpose(mesh.value, perm)
 
-        for iptr in np.nditer(data,
-                              order="F"):
-            fptr.write(f"{iptr: .8G}\n")
+        savearray(data, fptr)
 
     if (mesh.slope is not None and
             mesh.slope.size != +0 and
@@ -329,9 +336,7 @@ def save_grid_file(mesh, fptr):
 
         data = np.transpose(mesh.slope, perm)
 
-        for iptr in np.nditer(data,
-                              order="F"):
-            fptr.write(f"{iptr: .8G}\n")
+        savearray(data, fptr)
 
     return
 
@@ -360,8 +365,7 @@ def savevtk(name, mesh):
 
     fext = Path(name).suffix
 
-    if (fext.strip() != ".vtk"):
-        name = name + ".vtk"
+    if (fext.strip() != ".vtk"): name += ".vtk"
 
     kind = mesh.mshID.lower()
 
