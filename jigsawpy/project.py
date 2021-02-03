@@ -181,12 +181,12 @@ def project(mesh, proj, sign):
             dim2 = mesh.ygrid.size
             mesh.ygrid = None
 
+            tset = []
             for jpos in range(dim2 - 1):
 
     #----------------------------------- 1st tria. per column
                 triaA = np.empty(
-                    (dim1 - 1),
-                    dtype=jigsaw_msh_t.TRIA3_t)
+                    dim1 - 1, dtype=mesh.TRIA3_t)
 
                 triaA["IDtag"] = 0
 
@@ -200,13 +200,11 @@ def project(mesh, proj, sign):
                 index[:, 2] = range(1, dim1 - 0)
                 index[:, 2] += (jpos + 1) * dim1
 
-                mesh.tria3 = np.append(
-                    mesh.tria3, triaA, axis=+0)
+                tset.append(triaA)
 
     #----------------------------------- 2nd tria. per column
                 triaB = np.empty(
-                    (dim1 - 1),
-                    dtype=jigsaw_msh_t.TRIA3_t)
+                    dim1 - 1, dtype=mesh.TRIA3_t)
 
                 triaB["IDtag"] = 0
 
@@ -220,8 +218,10 @@ def project(mesh, proj, sign):
                 index[:, 2] = range(0, dim1 - 1)
                 index[:, 2] += (jpos + 1) * dim1
 
-                mesh.tria3 = np.append(
-                    mesh.tria3, triaB, axis=+0)
+                tset.append(triaB)
+
+            mesh.tria3 = \
+                np.concatenate(tset, axis=0)
 
     #----------------------------------- setup proj.'d extras
             if (mesh.slope is not None and

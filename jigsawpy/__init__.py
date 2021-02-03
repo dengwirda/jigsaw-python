@@ -82,6 +82,8 @@ from jigsawpy.tools.projector import stereo3
 
 from jigsawpy.tools.mathutils import R3toS2, S2toR3
 
+from jigsawpy.tools.meshutils import attach, jumble
+
 from jigsawpy.parse.saveoff import saveoff
 from jigsawpy.parse.savewav import savewav
 from jigsawpy.parse.savevtk import savevtk

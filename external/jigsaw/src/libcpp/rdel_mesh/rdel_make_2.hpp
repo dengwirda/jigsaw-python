@@ -31,9 +31,9 @@
      *
     --------------------------------------------------------
      *
-     * Last updated: 05 March, 2020
+     * Last updated: 02 Feb., 2021
      *
-     * Copyright 2013-2020
+     * Copyright 2013-2021
      * Darren Engwirda
      * d.engwirda@gmail.com
      * https://github.com/dengwirda/
@@ -609,6 +609,8 @@
         _tria.node(+1)->topo() = +0 ;
         _mesh.
         _tria.node(+2)->topo() = +0 ;
+
+        _geom.seed_root (_mesh, _opts);
 
     /*------------------------------ seed mesh from init. */
         init_init(_init, _geom, _mesh);
