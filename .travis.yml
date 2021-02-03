@@ -3,6 +3,7 @@ python:
   - 3.6
   - 3.7
   - 3.8
+  - 3.9
   
 os: linux
 addons:
@@ -16,6 +17,7 @@ addons:
 script:
   - export CC=gcc-8
   - export CXX=g++-8
+  - python3 -m pip3 install --user numpy scipy
   - python3 setup.py build_external
   - python3 setup.py install
   - python3 example.py --IDnumber=0
