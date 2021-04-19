@@ -4,6 +4,7 @@ from scipy.sparse import csr_matrix
 
 from jigsawpy.tools.predicate import trivol2, trivol3
 from jigsawpy.tools.orthoball import tribal2, tribal3
+from jigsawpy.tools.scorecard import triscr2, triscr3
 
 from jigsawpy.jig_t import jigsaw_jig_t
 from jigsawpy.msh_t import jigsaw_msh_t

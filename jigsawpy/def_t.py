@@ -2,6 +2,7 @@
 import ctypes as ct
 
 indx_t = ct.c_int32
+fp32_t = ct.c_float
 real_t = ct.c_double
 
 

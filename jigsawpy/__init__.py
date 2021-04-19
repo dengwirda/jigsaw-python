@@ -13,9 +13,9 @@ r"""
  * JIGSAW: Interface to the JIGSAW meshing library.
 ------------------------------------------------------------
  *
- * Last updated: 23 September, 2020
+ * Last updated: 14 Apr., 2021
  *
- * Copyright 2019-2020
+ * Copyright 2019-2021
  * Darren Engwirda
  * d.engwirda@gmail.com
  * https://github.com/dengwirda

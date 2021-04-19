@@ -12,8 +12,7 @@ from pathlib import Path
 from jigsawpy.tools.mathutils import S2toR3
 from jigsawpy.tools.meshutils import attach, metric
 
-from jigsawpy.tools.scorecard import trideg2, trideg3, \
-    triscr2, triscr3
+from jigsawpy.tools.scorecard import trideg2, trideg3
 from jigsawpy.tools.predicate import trivol2, trivol3
 
 from jigsawpy.bisect import bisect
@@ -24,8 +23,6 @@ from jigsawpy.msh_t import jigsaw_msh_t
 from jigsawpy.loadmsh import loadmsh
 from jigsawpy.savemsh import savemsh
 from jigsawpy.savejig import savejig
-
-from jigsawpy.parse.savevtk import savevtk
 
 
 def jigsaw(opts, mesh=None):
@@ -297,7 +294,7 @@ def jitter(opts, imax, ibad, mesh=None):
             if (next.edge2 is not None and
                     next.edge2.size != +0):
 
-                keep[next.edge2["index"][:, :]] = True
+                keep[next.edge2["index"][:, :]] = False
 
             if (np.count_nonzero(keep) <= +8):
     #------------------------------ don't delete everything!
@@ -406,7 +403,7 @@ def tetris(opts, nlev, mesh=None):
 
             flag = +1
 
-            jitter(OPTS, 3 + ninc, 3, mesh)
+            jitter(OPTS, 2 + ninc, 3, mesh)
 
         else:
 
@@ -414,7 +411,7 @@ def tetris(opts, nlev, mesh=None):
 
             flag = +0
 
-            jitter(OPTS, 3 + ninc, 2, mesh)
+            jitter(OPTS, 2 + ninc, 2, mesh)
 
         nlev = nlev - 1
         SCAL = SCAL / 2.

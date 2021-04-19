@@ -129,7 +129,7 @@ def loadseeds(mesh, fptr, ltag):
     return
 
 
-def loadarray(fptr, ltag):
+def loadarray(fptr, ltag, kind):
     """
     LOADARRAY: load the ARRAY data segment from file.
 
@@ -146,7 +146,7 @@ def loadarray(fptr, ltag):
     data = " ".join(data).replace("\n", ";")
 
     vals = np.fromstring(
-        data, dtype=np.float64, sep=";")
+        data, dtype=kind, sep=";")
 
     vals = np.reshape(
         vals, (lnum, vnum, ), order="F")
@@ -159,7 +159,7 @@ def loadpower(mesh, fptr, ltag):
     LOADPOWER: load the POWER data segment from file.
 
     """
-    mesh.power = loadarray(fptr, ltag)
+    mesh.power = loadarray(fptr, ltag, mesh.REALS_t)
 
     return
 
@@ -169,7 +169,7 @@ def loadvalue(mesh, fptr, ltag):
     LOADVALUE: load the VALUE data segment from file.
 
     """
-    mesh.value = loadarray(fptr, ltag)
+    mesh.value = loadarray(fptr, ltag, mesh.FLT32_t)
 
     return
 
@@ -179,7 +179,7 @@ def loadslope(mesh, fptr, ltag):
     LOADSLOPE: load the SLOPE data segment from file.
 
     """
-    mesh.slope = loadarray(fptr, ltag)
+    mesh.slope = loadarray(fptr, ltag, mesh.FLT32_t)
 
     return
 
@@ -444,11 +444,12 @@ def loadlines(mesh, fptr, line):
 
     #------------------------------ skip any 'comment' lines
 
-    if (line[0] != '#'):
+    line = line.strip()
+    if (line[0] != "#"):
 
     #------------------------------ split about '=' charact.
         ltag = line.split("=")
-        kind = ltag[0].upper()
+        kind = ltag[0].upper().strip()
 
         if   (kind == "MSHID"):
 
@@ -548,7 +549,7 @@ def sanitise_grid(mesh, data):
 
     F = "F"                    # use fortran matrix ordering
 
-    if (data is not None and data.size != +0):
+    if (data is not None and data.size > +1):
     #--------------------------- finalise VALUE.shape layout
         if (mesh.ndims == +2):
     #--------------------------- reshape data to 2-dim array

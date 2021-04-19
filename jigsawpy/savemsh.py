@@ -36,14 +36,14 @@ def savevert2(ftag, data, fptr, args):
     """
     fptr.write(ftag + "=" + str(data.size) + "\n")
 
-    rmax = 2 ** 19; next = 0
+    rmax = 2 ** 19; next = 0; prec = 17
 
     while (next < data.size):
 
         nrow = min(rmax, data.size - next)
         nend = next + nrow
 
-        sfmt = "%%.%ug" % args.prec
+        sfmt = "%%.%ug" % prec
 
         sfmt = ";".join([sfmt] * 2) + ";%d\n"
         sfmt = sfmt * nrow
@@ -66,14 +66,14 @@ def savevert3(ftag, data, fptr, args):
     """
     fptr.write(ftag + "=" + str(data.size) + "\n")
 
-    rmax = 2 ** 19; next = 0
+    rmax = 2 ** 19; next = 0; prec = 17
 
     while (next < data.size):
 
         nrow = min(rmax, data.size - next)
         nend = next + nrow
 
-        sfmt = "%%.%ug" % args.prec
+        sfmt = "%%.%ug" % prec
 
         sfmt = ";".join([sfmt] * 3) + ";%d\n"
         sfmt = sfmt * nrow
@@ -103,14 +103,17 @@ def savevalue(ftag, data, fptr, args):
     fptr.write(
         ftag + "=" + str(npos) + ";" + str(nval) + "\n")
 
-    rmax = 2 ** 19; next = 0
+    rmax = 2 ** 19; next = 0; prec = 17
+
+    if (data.dtype == np.float32):
+        prec = 9
 
     while (next < data.shape[0]):
 
         nrow = min(rmax, data.shape[0] - next)
         nend = next + nrow
 
-        sfmt = "%%.%ug" % args.prec
+        sfmt = "%%.%ug" % prec
 
         sfmt = ";".join([sfmt] * nval) + "\n"
         sfmt = sfmt * nrow
@@ -357,13 +360,13 @@ def savecoord(data, fptr, args, inum):
     fptr.write(
         "COORD=" + str(inum) + ";" + str(nnum) + "\n")
 
-    rmax = 2 ** 19; next = 0
+    rmax = 2 ** 19; next = 0; prec = 17
 
     while (next < data.shape[0]):
 
         nrow = min(rmax, data.shape[0] - next)
 
-        sfmt = "%%.%ug\n" % args.prec
+        sfmt = "%%.%ug\n" % prec
         sfmt = sfmt * nrow
 
         fdat = sfmt % tuple(data[next:next+nrow].ravel())
@@ -386,13 +389,16 @@ def savendmat(ftag, data, fptr, args):
 
     dptr = data.reshape(-1, order="F")
 
-    rmax = 2 ** 19; next = 0
+    rmax = 2 ** 19; next = 0; prec = 17
+
+    if (dptr.dtype == np.float32):
+        prec = 9
 
     while (next < dptr.shape[0]):
 
         nrow = min(rmax, dptr.shape[0] - next)
 
-        sfmt = "%%.%ug\n" % args.prec
+        sfmt = "%%.%ug\n" % prec
         sfmt = sfmt * nrow
 
         fdat = sfmt % tuple(dptr[next:next+nrow].ravel())
@@ -616,9 +622,6 @@ def savemsh(name, mesh, tags=None):
     args = stub()                           ## savmsh params
     args.kind = "ascii"
     args.nver = + 3
-    args.prec = + 17
-    args.real = "f64"
-    args.ints = "i32"
 
     fext = Path(name).suffix
 
@@ -630,16 +633,6 @@ def savemsh(name, mesh, tags=None):
     #----------------------------------- parse savmsh params
         stag = tags.lower().split(";")
         for this in stag:
-            if "precision" in this:
-                args.prec = this.split("=")[1]
-                args.prec = int(args.prec)
-
-            if "real:type" in this:
-                args.real = this.split("=")[1]
-
-            if "ints:type" in this:
-                args.ints = this.split("=")[1]
-
             if "binary" in this:
                 args.kind = "binary"
 

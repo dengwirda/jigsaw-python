@@ -65,6 +65,8 @@ def pwrbal1(ppos, ppwr, tri1):
 
     if   (ppos.shape[1] == 2):
     #-------------------------------------------- lin offset
+        ppwr = np.reshape(ppwr, (ppos.shape[0], 1))
+
         pp12 = \
             ppos[tri1[:, 0], :] - \
             ppos[tri1[:, 1], :]
@@ -97,6 +99,8 @@ def pwrbal1(ppos, ppwr, tri1):
 
     elif (ppos.shape[1] == 3):
     #-------------------------------------------- lin offset
+        ppwr = np.reshape(ppwr, (ppos.shape[0], 1))
+
         pp12 = \
             ppos[tri1[:, 0], :] - \
             ppos[tri1[:, 1], :]
@@ -152,6 +156,8 @@ def pwrbal2(ppos, ppwr, tri2):
         amat = np.zeros((2, 2, tri2.shape[0]))
         vrhs = np.zeros((2, 1, tri2.shape[0]))
         ball = np.zeros((tri2.shape[0], 3))
+
+        ppwr = np.reshape(ppwr, (ppos.shape[0], 1))
 
     #-------------------------------------------- lhs matrix
         ab = ppos[tri2[:, 1], :] - ppos[tri2[:, 0], :]
@@ -215,6 +221,8 @@ def pwrbal2(ppos, ppwr, tri2):
         amat = np.zeros((3, 3, tri2.shape[0]))
         vrhs = np.zeros((3, 1, tri2.shape[0]))
         ball = np.zeros((tri2.shape[0], 4))
+
+        ppwr = np.reshape(ppwr, (ppos.shape[0], 1))
 
     #-------------------------------------------- lhs matrix
         ab = ppos[tri2[:, 1], :] - ppos[tri2[:, 0], :]
@@ -314,6 +322,8 @@ def pwrbal3(ppos, ppwr, tri3):
         amat = np.zeros((3, 3, tri3.shape[0]))
         vrhs = np.zeros((3, 1, tri3.shape[0]))
         ball = np.zeros((tri3.shape[0], 4))
+
+        ppwr = np.reshape(ppwr, (ppos.shape[0], 1))
 
     #-------------------------------------------- lhs matrix
         ab = ppos[tri3[:, 1], :] - ppos[tri3[:, 0], :]
