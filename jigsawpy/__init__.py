@@ -13,7 +13,7 @@ r"""
  * JIGSAW: Interface to the JIGSAW meshing library.
 ------------------------------------------------------------
  *
- * Last updated: 14 Apr., 2021
+ * Last updated: 19 Apr., 2021
  *
  * Copyright 2019-2021
  * Darren Engwirda
@@ -66,7 +66,6 @@ from jigsawpy.certify import certify
 
 from jigsawpy.project import project
 from jigsawpy.bisect import bisect
-from jigsawpy.extrude import extrude
 
 from jigsawpy.tools.predicate import trivol2, trivol3, \
     normal1, normal2, orient1, orient2
