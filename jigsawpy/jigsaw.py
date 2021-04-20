@@ -9,9 +9,11 @@ import numpy as np
 
 from pathlib import Path
 
-from jigsawpy.tools.scorecard import trideg2, trideg3, \
-    triscr2, triscr3
 from jigsawpy.tools.mathutils import S2toR3
+from jigsawpy.tools.meshutils import attach, metric
+
+from jigsawpy.tools.scorecard import trideg2, trideg3
+from jigsawpy.tools.predicate import trivol2, trivol3
 
 from jigsawpy.bisect import bisect
 
@@ -231,41 +233,6 @@ def marche(opts, ffun=None):
     return
 
 
-def metric(mesh):
-    """
-    METRIC assemble combined "cost" metric for a given mesh.
-
-    """
-
-    cost = np.empty((+0), dtype=mesh.REALS_t)
-
-    if (mesh.tria3 is not None and
-            mesh.tria3.size > +0):
-#--------------------------------------- append TRIA3 scores
-        COST = triscr2(
-            mesh.point["coord"],
-            mesh.tria3["index"]
-        )
-
-        cost = np.append(cost, COST)
-
-    if (mesh.tria4 is not None and
-            mesh.tria4.size > +0):
-#--------------------------------------- append TRIA4 scores
-        COST = triscr3(
-            mesh.point["coord"],
-            mesh.tria4["index"]
-        )
-
-        cost = np.append(cost, COST)
-
-    if (cost.size == 0): return +0.0
-
-    norm = np.sum((1.0 / cost) ** 3)
-
-    return np.cbrt(cost.size / norm)
-
-
 def jitter(opts, imax, ibad, mesh=None):
     """
     JITTER call JIGSAW iteratively; try to improve topology.
@@ -323,11 +290,11 @@ def jitter(opts, imax, ibad, mesh=None):
                 M = np.sum(ierr, axis=1) >= ibad
 
                 keep[next.tria3["index"][M, :]] = False
-
+                
             if (next.edge2 is not None and
                     next.edge2.size != +0):
 
-                keep[next.edge2["index"][:, :]] = True
+                keep[next.edge2["index"][:, :]] = False
 
             if (np.count_nonzero(keep) <= +8):
     #------------------------------ don't delete everything!
@@ -354,50 +321,6 @@ def jitter(opts, imax, ibad, mesh=None):
             best = cost
 
         if (done): return
-
-    return
-
-
-def attach(mesh):
-    """
-    ATTACH mark points attached to the underlying geom. rep.
-
-    """
-
-    if (mesh.tria4 is not None and
-            mesh.tria4.size != +0):
-
-        mesh.point["IDtag"][mesh.tria4["index"]] = 3
-
-    if (mesh.hexa8 is not None and
-            mesh.hexa8.size != +0):
-
-        mesh.point["IDtag"][mesh.hexa8["index"]] = 3
-
-    if (mesh.pyra5 is not None and
-            mesh.pyra5.size != +0):
-
-        mesh.point["IDtag"][mesh.pyra5["index"]] = 3
-
-    if (mesh.wedg6 is not None and
-            mesh.wedg6.size != +0):
-
-        mesh.point["IDtag"][mesh.wedg6["index"]] = 3
-
-    if (mesh.tria3 is not None and
-            mesh.tria3.size != +0):
-
-        mesh.point["IDtag"][mesh.tria3["index"]] = 2
-
-    if (mesh.quad4 is not None and
-            mesh.quad4.size != +0):
-
-        mesh.point["IDtag"][mesh.quad4["index"]] = 2
-
-    if (mesh.edge2 is not None and
-            mesh.edge2.size != +0):
-
-        mesh.point["IDtag"][mesh.edge2["index"]] = 1
 
     return
 
@@ -474,21 +397,21 @@ def tetris(opts, nlev, mesh=None):
             savemsh(OPTS.hfun_file, HFUN,
                     OPTS.hfun_tags)
 
-        if (nlev == 0 or flag == 0):
+        if (nlev <= 1 or flag == 0):
     #------------------------ call JIGSAW kernel at this lev
-            ninc = min(64, nlev * nlev)
+            ninc = min(64, nlev ** 2)
 
             flag = +1
 
-            jitter(OPTS, 3 + ninc, 3, mesh)
+            jitter(OPTS, 2 + ninc, 3, mesh)
 
         else:
 
-            ninc = min(64, nlev * nlev)
+            ninc = min(64, nlev ** 2)
 
             flag = +0
 
-            jitter(OPTS, 3 + ninc, 2, mesh)
+            jitter(OPTS, 2 + ninc, 2, mesh)
 
         nlev = nlev - 1
         SCAL = SCAL / 2.

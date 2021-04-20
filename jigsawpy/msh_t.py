@@ -112,6 +112,8 @@ import numpy as np
 class jigsaw_msh_t:
     #------------------------------------------ MESH typedef
     REALS_t = np.float64
+    FLT64_t = np.float64
+    FLT32_t = np.float32
     INDEX_t = np.int32
 
     T = True
@@ -196,10 +198,10 @@ class jigsaw_msh_t:
             DIM1, dtype=jigsaw_msh_t.REALS_t)
 
         self.value = np.empty(
-            DIM2, dtype=jigsaw_msh_t.REALS_t)
+            DIM2, dtype=jigsaw_msh_t.FLT32_t)
 
         self.slope = np.empty(
-            DIM2, dtype=jigsaw_msh_t.REALS_t)
+            DIM2, dtype=jigsaw_msh_t.FLT32_t)
 
     @property
     def point(self):

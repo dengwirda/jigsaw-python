@@ -54,7 +54,8 @@ def certifypoint(data, stag, KIND):
 
 def certifyvalue(vals, stag):
 
-    if (vals.dtype != jigsaw_msh_t.REALS_t):
+    if (vals.dtype != jigsaw_msh_t.REALS_t and
+        vals.dtype != jigsaw_msh_t.FLT32_t):
         raise Exception("Invalid " + stag + " type.")
 
     if (not np.isfinite(vals).all()):
@@ -206,13 +207,16 @@ def certifycoord(data, stag):
 
 def certifyNDmat(data, stag, dims):
 
-    if (data.ndim != len(dims)):
+    if (data.size > 1 and 
+            data.ndim != len(dims)):
         raise Exception("Invalid " + stag + " size.")
 
-    if (data.size != np.prod(dims)):
+    if (data.size > 1 and 
+            data.size != np.prod(dims)):
         raise Exception("Invalid " + stag + " size.")
 
-    if (data.dtype != jigsaw_msh_t.REALS_t):
+    if (data.dtype != jigsaw_msh_t.REALS_t and 
+        data.dtype != jigsaw_msh_t.FLT32_t):
         raise Exception("Invalid " + stag + " type.")
 
     if (not np.isfinite(data).all()):

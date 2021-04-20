@@ -3,7 +3,7 @@
 
 import ctypes as ct
 
-from jigsawpy.def_t import indx_t, real_t
+from jigsawpy.def_t import indx_t, real_t, fp32_t
 
 
 #------------------------------------------- POINT struct.'s
@@ -150,12 +150,18 @@ class libsaw_BOUND_array_t(ct.Structure):
 #------------------------------------------- MISC. struct.'s
 
 libsaw_REALS_p = ct.POINTER(real_t)
+libsaw_FLT32_p = ct.POINTER(fp32_t)
 libsaw_INDEX_p = ct.POINTER(indx_t)
 
 
 class libsaw_REALS_array_t(ct.Structure):
     _fields_ = [("size", indx_t),
                 ("data", libsaw_REALS_p)]
+
+
+class libsaw_FLT32_array_t(ct.Structure):
+    _fields_ = [("size", indx_t),
+                ("data", libsaw_FLT32_p)]
 
 
 class libsaw_INDEX_array_t(ct.Structure):
@@ -279,9 +285,9 @@ class libsaw_msh_t(ct.Structure):
     # VALUE - "values" associated with the vertices of the
     # mesh object.
 
-    ("value", libsaw_REALS_array_t),
+    ("value", libsaw_FLT32_array_t),
 
     # SLOPE - "slopes" associated with the vertices of the
     # mesh object.
 
-    ("slope", libsaw_REALS_array_t)]
+    ("slope", libsaw_FLT32_array_t)]

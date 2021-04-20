@@ -7,7 +7,7 @@ import platform
 
 from pathlib import Path
 
-from jigsawpy.def_t import indx_t, real_t
+from jigsawpy.def_t import indx_t, real_t, fp32_t
 
 from jigsawpy.msh_l import libsaw_VERT2_t, libsaw_VERT3_t, \
     libsaw_EDGE2_t, libsaw_TRIA3_t, \
@@ -79,6 +79,13 @@ else:
     raise Exception("JIGSAW lib. not found!")
 
 
+def is_type_t(data, kind):
+
+    base = getattr(data, "tolist", lambda: data)()
+
+    return isinstance(base, kind)
+
+
 def put_jig_t(jigt, jigl):
     """
     PUT-JIG_t: Assign data from python-to-ctypes objects.
@@ -143,162 +150,162 @@ def put_jig_t(jigt, jigl):
         raise Exception("OPTM-KERN type")
 
     #--------------------------------- assign MISC user-opt.
-    if (isinstance(jigt.verbosity, int)):
+    if (is_type_t(jigt.verbosity, int)):
         jigl.verbosity = indx_t(jigt.verbosity)
     elif (jigt.verbosity is not None):
         raise Exception("VERBOSITY type")
 
     #--------------------------------- assign GEOM user-opt.
-    if (isinstance(jigt.geom_seed, int)):
+    if (is_type_t(jigt.geom_seed, int)):
         jigl.geom_seed = indx_t(jigt.geom_seed)
     elif (jigt.geom_seed is not None):
         raise Exception("GEOM-SEED type")
 
-    if (isinstance(jigt.geom_feat, bool)):
+    if (is_type_t(jigt.geom_feat, bool)):
         jigl.geom_feat = indx_t(jigt.geom_feat)
     elif (jigt.geom_feat is not None):
         raise Exception("GEOM-FEAT type")
 
-    if (isinstance(jigt.geom_eta1, float)):
+    if (is_type_t(jigt.geom_eta1, float)):
         jigl.geom_eta1 = real_t(jigt.geom_eta1)
     elif (jigt.geom_eta1 is not None):
         raise Exception("GEOM-ETA1 type")
 
-    if (isinstance(jigt.geom_eta2, float)):
+    if (is_type_t(jigt.geom_eta2, float)):
         jigl.geom_eta2 = real_t(jigt.geom_eta2)
     elif (jigt.geom_eta2 is not None):
         raise Exception("GEOM-ETA2 type")
 
     #--------------------------------- assign INIT user-opt.
-    if (isinstance(jigt.init_near, float)):
+    if (is_type_t(jigt.init_near, float)):
         jigl.init_near = real_t(jigt.init_near)
     elif (jigt.init_near is not None):
         raise Exception("INIT-NEAR type")
 
     #--------------------------------- assign HFUN user-opt.
-    if (isinstance(jigt.hfun_hmax, float)):
+    if (is_type_t(jigt.hfun_hmax, float)):
         jigl.hfun_hmax = real_t(jigt.hfun_hmax)
     elif (jigt.hfun_hmax is not None):
         raise Exception("HFUN-HMAX type")
 
-    if (isinstance(jigt.hfun_hmin, float)):
+    if (is_type_t(jigt.hfun_hmin, float)):
         jigl.hfun_hmin = real_t(jigt.hfun_hmin)
     elif (jigt.hfun_hmin is not None):
         raise Exception("HFUN-HMIN type")
 
     #--------------------------------- assign MESH user-opt.
-    if (isinstance(jigt.mesh_dims, int)):
+    if (is_type_t(jigt.mesh_dims, int)):
         jigl.mesh_dims = indx_t(jigt.mesh_dims)
     elif (jigt.mesh_dims is not None):
         raise Exception("MESH-DIMS type")
 
-    if (isinstance(jigt.mesh_iter, int)):
+    if (is_type_t(jigt.mesh_iter, int)):
         jigl.mesh_iter = indx_t(jigt.mesh_iter)
     elif (jigt.mesh_iter is not None):
         raise Exception("MESH-ITER type")
 
-    if (isinstance(jigt.mesh_top1, bool)):
+    if (is_type_t(jigt.mesh_top1, bool)):
         jigl.mesh_top1 = indx_t(jigt.mesh_top1)
     elif (jigt.mesh_top1 is not None):
         raise Exception("MESH-TOP1 type")
 
-    if (isinstance(jigt.mesh_top2, bool)):
+    if (is_type_t(jigt.mesh_top2, bool)):
         jigl.mesh_top2 = indx_t(jigt.mesh_top2)
     elif (jigt.mesh_top2 is not None):
         raise Exception("MESH-TOP2 type")
 
-    if (isinstance(jigt.mesh_rad2, float)):
+    if (is_type_t(jigt.mesh_rad2, float)):
         jigl.mesh_rad2 = real_t(jigt.mesh_rad2)
     elif (jigt.mesh_rad2 is not None):
         raise Exception("MESH-RAD2 type")
 
-    if (isinstance(jigt.mesh_rad3, float)):
+    if (is_type_t(jigt.mesh_rad3, float)):
         jigl.mesh_rad3 = real_t(jigt.mesh_rad3)
     elif (jigt.mesh_rad3 is not None):
         raise Exception("MESH-RAD3 type")
 
-    if (isinstance(jigt.mesh_siz1, float)):
+    if (is_type_t(jigt.mesh_siz1, float)):
         jigl.mesh_siz1 = real_t(jigt.mesh_siz1)
     elif (jigt.mesh_siz1 is not None):
         raise Exception("MESH-SIZ1 type")
 
-    if (isinstance(jigt.mesh_siz2, float)):
+    if (is_type_t(jigt.mesh_siz2, float)):
         jigl.mesh_siz2 = real_t(jigt.mesh_siz2)
     elif (jigt.mesh_siz2 is not None):
         raise Exception("MESH-SIZ2 type")
 
-    if (isinstance(jigt.mesh_siz3, float)):
+    if (is_type_t(jigt.mesh_siz3, float)):
         jigl.mesh_siz3 = real_t(jigt.mesh_siz3)
     elif (jigt.mesh_siz3 is not None):
         raise Exception("MESH-SIZ3 type")
 
-    if (isinstance(jigt.mesh_off2, float)):
+    if (is_type_t(jigt.mesh_off2, float)):
         jigl.mesh_off2 = real_t(jigt.mesh_off2)
     elif (jigt.mesh_off2 is not None):
         raise Exception("MESH-OFF2 type")
 
-    if (isinstance(jigt.mesh_off3, float)):
+    if (is_type_t(jigt.mesh_off3, float)):
         jigl.mesh_off3 = real_t(jigt.mesh_off3)
     elif (jigt.mesh_off3 is not None):
         raise Exception("MESH-OFF3 type")
 
-    if (isinstance(jigt.mesh_snk2, float)):
+    if (is_type_t(jigt.mesh_snk2, float)):
         jigl.mesh_snk2 = real_t(jigt.mesh_snk2)
     elif (jigt.mesh_snk2 is not None):
         raise Exception("MESH-SNK2 type")
 
-    if (isinstance(jigt.mesh_snk3, float)):
+    if (is_type_t(jigt.mesh_snk3, float)):
         jigl.mesh_snk3 = real_t(jigt.mesh_snk3)
     elif (jigt.mesh_snk3 is not None):
         raise Exception("MESH-SNK3 type")
 
-    if (isinstance(jigt.mesh_eps1, float)):
+    if (is_type_t(jigt.mesh_eps1, float)):
         jigl.mesh_eps1 = real_t(jigt.mesh_eps1)
     elif (jigt.mesh_eps1 is not None):
         raise Exception("MESH-EPS1 type")
 
-    if (isinstance(jigt.mesh_eps2, float)):
+    if (is_type_t(jigt.mesh_eps2, float)):
         jigl.mesh_eps2 = real_t(jigt.mesh_eps2)
     elif (jigt.mesh_eps2 is not None):
         raise Exception("MESH-EPS2 type")
 
-    if (isinstance(jigt.mesh_vol3, float)):
+    if (is_type_t(jigt.mesh_vol3, float)):
         jigl.mesh_vol3 = real_t(jigt.mesh_vol3)
     elif (jigt.mesh_vol3 is not None):
         raise Exception("MESH-VOL3 type")
 
     #--------------------------------- assign OPTM user-opt.
-    if (isinstance(jigt.optm_iter, int)):
+    if (is_type_t(jigt.optm_iter, int)):
         jigl.optm_iter = indx_t(jigt.optm_iter)
     elif (jigt.optm_iter is not None):
         raise Exception("OPTM-ITER type")
 
-    if (isinstance(jigt.optm_qtol, float)):
+    if (is_type_t(jigt.optm_qtol, float)):
         jigl.optm_qtol = real_t(jigt.optm_qtol)
     elif (jigt.optm_qtol is not None):
         raise Exception("OPTM-QTOL type")
 
-    if (isinstance(jigt.optm_qlim, float)):
+    if (is_type_t(jigt.optm_qlim, float)):
         jigl.optm_qlim = real_t(jigt.optm_qlim)
     elif (jigt.optm_qlim is not None):
         raise Exception("OPTM-QLIM type")
 
-    if (isinstance(jigt.optm_tria, bool)):
+    if (is_type_t(jigt.optm_tria, bool)):
         jigl.optm_tria = indx_t(jigt.optm_tria)
     elif (jigt.optm_tria is not None):
         raise Exception("OPTM-TRIA type")
 
-    if (isinstance(jigt.optm_dual, bool)):
+    if (is_type_t(jigt.optm_dual, bool)):
         jigl.optm_dual = indx_t(jigt.optm_dual)
     elif (jigt.optm_dual is not None):
         raise Exception("OPTM-DUAL type")
 
-    if (isinstance(jigt.optm_zip_, bool)):
+    if (is_type_t(jigt.optm_zip_, bool)):
         jigl.optm_zip_ = indx_t(jigt.optm_zip_)
     elif (jigt.optm_zip_ is not None):
         raise Exception("OPTM-ZIP_ type")
 
-    if (isinstance(jigt.optm_div_, bool)):
+    if (is_type_t(jigt.optm_div_, bool)):
         jigl.optm_div_ = indx_t(jigt.optm_div_)
     elif (jigt.optm_div_ is not None):
         raise Exception("OPTM-DIV_ type")
@@ -466,22 +473,26 @@ def put_msh_t(msht, mshl):
     if (msht.value is not None and
             msht.value.size != +0):
     #--------------------------------- assign ptrs for VALUE
-        msht.value = \
-            np.asfortranarray(msht.value)
+        msht.value = np.asfortranarray(
+            msht.value, dtype=np.float32)
 
         mshl.value.size = msht.value.size
         mshl.value.data = \
-            put_ptr_t(msht.value, real_t)
+            put_ptr_t(msht.value, fp32_t)
 
     if (msht.slope is not None and
             msht.slope.size != +0):
     #--------------------------------- assign ptrs for SLOPE
-        msht.slope = \
-            np.asfortranarray(msht.slope)
+        msht.slope = np.asfortranarray(
+            msht.slope, dtype=np.float32)
+
+        print(msht.slope.shape)
 
         mshl.slope.size = msht.slope.size
         mshl.slope.data = \
-            put_ptr_t(msht.slope, real_t)
+            put_ptr_t(msht.slope, fp32_t)
+
+        print(mshl.slope.size)
 
     return
 
@@ -643,51 +654,6 @@ def get_msh_t(msht, mshl):
         ptrl = ct.byref(mshl.pyra5)
 
         JLIB.jigsaw_free_pyra5(ptrl)
-
-    if (mshl.xgrid.size >= +1):
-    #--------------------------------- copy buffer for XGRID
-        msht.xgrid = get_ptr_t(
-            mshl.xgrid, jigsaw_msh_t.REALS_t)
-
-        ptrl = ct.byref(mshl.xgrid)
-
-        JLIB.jigsaw_free_reals(ptrl)
-
-    if (mshl.ygrid.size >= +1):
-    #--------------------------------- copy buffer for YGRID
-        msht.ygrid = get_ptr_t(
-            mshl.ygrid, jigsaw_msh_t.REALS_t)
-
-        ptrl = ct.byref(mshl.ygrid)
-
-        JLIB.jigsaw_free_reals(ptrl)
-
-    if (mshl.zgrid.size >= +1):
-    #--------------------------------- copy buffer for ZGRID
-        msht.zgrid = get_ptr_t(
-            mshl.zgrid, jigsaw_msh_t.REALS_t)
-
-        ptrl = ct.byref(mshl.zgrid)
-
-        JLIB.jigsaw_free_reals(ptrl)
-
-    if (mshl.value.size >= +1):
-    #--------------------------------- copy buffer for VALUE
-        msht.value = get_ptr_t(
-            mshl.value, jigsaw_msh_t.REALS_t)
-
-        ptrl = ct.byref(mshl.value)
-
-        JLIB.jigsaw_free_reals(ptrl)
-
-    if (mshl.value.size >= +1):
-    #--------------------------------- copy buffer for SLOPE
-        msht.slope = get_ptr_t(
-            mshl.slope, jigsaw_msh_t.REALS_t)
-
-        ptrl = ct.byref(mshl.slope)
-
-        JLIB.jigsaw_free_reals(ptrl)
 
     return
 

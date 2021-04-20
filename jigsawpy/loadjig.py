@@ -32,7 +32,8 @@ def loadjig(name, opts):
             if (len(line) != +0):
 
         #----------------------- parse next non-null section
-                if (line[0] == " "):
+                line = line.strip()
+                if (line[0] == "#"):
                     continue
 
                 ltag = line.split("=")

@@ -13,9 +13,9 @@ r"""
  * JIGSAW: Interface to the JIGSAW meshing library.
 ------------------------------------------------------------
  *
- * Last updated: 23 September, 2020
+ * Last updated: 19 Apr., 2021
  *
- * Copyright 2019-2020
+ * Copyright 2019-2021
  * Darren Engwirda
  * d.engwirda@gmail.com
  * https://github.com/dengwirda
@@ -66,7 +66,6 @@ from jigsawpy.certify import certify
 
 from jigsawpy.project import project
 from jigsawpy.bisect import bisect
-from jigsawpy.extrude import extrude
 
 from jigsawpy.tools.predicate import trivol2, trivol3, \
     normal1, normal2, orient1, orient2
@@ -81,6 +80,8 @@ from jigsawpy.tools.scorecard import triscr2, triscr3, \
 from jigsawpy.tools.projector import stereo3
 
 from jigsawpy.tools.mathutils import R3toS2, S2toR3
+
+from jigsawpy.tools.meshutils import attach, jumble
 
 from jigsawpy.parse.saveoff import saveoff
 from jigsawpy.parse.savewav import savewav
