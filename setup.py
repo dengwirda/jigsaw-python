@@ -132,7 +132,7 @@ setup(
     python_requires=REQUIRES_PYTHON,
     keywords=KEYWORDS,
     url=URL,
-    packages=find_packages(),
+    packages=find_packages(exclude=["tests",]),
     cmdclass={"build_external": build_external},
     package_data={"jigsawpy": ["_bin/*", "_lib/*"]},
     install_requires=REQUIRED,
