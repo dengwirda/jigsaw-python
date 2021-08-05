@@ -60,6 +60,13 @@ if (JLIBNAME == Path()):
     if (not JLIBNAME.is_file()):
         JLIBNAME = Path()
 
+if not JLIBNAME.is_file():
+#---------------------------- search python environment for library
+    SYSLIB = {"Windows": "jigsaw.dll", "Linux": "libjigsaw.so", "Darwin": "libjigsaw.dylib"}
+    JLIBNAME = Path("/".join(sys.executable.split("/")[:-2])) / "lib" / SYSLIB[platform.system()]
+    if not JLIBNAME.is_file():
+        JLIBNAME = Path()
+
 if (JLIBNAME == Path()):
 #---------------------------- search machine path for binary
     if   (platform.system() == WIN):
@@ -72,12 +79,6 @@ if (JLIBNAME == Path()):
     elif (platform.system() == MAC):
         JLIBNAME = Path("libjigsaw.dylib")
 
-if not JLIBNAME.is_file():
-#---------------------------- search python environment for library
-    SYSLIB = {"Windows": "jigsaw.dll", "Linux": "libjigsaw.so", "Darwin": "libjigsaw.dylib"}
-    JLIBNAME = Path("/".join(sys.executable.split("/")[:-2])) / "lib" / SYSLIB[platform.system()]
-    if not JLIBNAME.is_file():
-        JLIBNAME = Path()
 
 if (JLIBNAME != Path()):
 #---------------------------- load jigsaw library via ctypes
