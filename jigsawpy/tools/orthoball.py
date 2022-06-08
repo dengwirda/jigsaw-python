@@ -132,7 +132,7 @@ def pwrbal1(ppos, ppwr, tri1):
             np.squeeze((rad1 + rad2) / +2.00)
 
     else:
-        raise Exception("Unsupported dimension.")
+        raise ValueError("Unsupported dimension.")
 
     return ball
 
@@ -298,7 +298,7 @@ def pwrbal2(ppos, ppwr, tri2):
         )
 
     else:
-        raise Exception("Unsupported dimension.")
+        raise ValueError("Unsupported dimension.")
 
     return ball
 
@@ -407,6 +407,6 @@ def pwrbal3(ppos, ppwr, tri3):
         )
 
     else:
-        raise Exception("Unsupported dimension.")
+        raise ValueError("Unsupported dimension.")
 
     return ball

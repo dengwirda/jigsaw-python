@@ -40,7 +40,7 @@ def loadradii(mesh, fptr, ltag):
         mesh.radii[2] = float(rtag[2])
 
     else:
-        raise Exception("Invalid RADII: " + ltag)
+        raise ValueError("Invalid RADII: " + ltag)
 
     return
 
@@ -107,7 +107,7 @@ def loadpoint(mesh, fptr, ltag):
         mesh.vert3 = loadvert3(fptr, ltag)
 
     else:
-        raise Exception("Invalid NDIMS: " + ltag)
+        raise ValueError("Invalid NDIMS: " + ltag)
 
     return
 
@@ -124,7 +124,7 @@ def loadseeds(mesh, fptr, ltag):
         mesh.seed3 = loadvert3(fptr, ltag)
 
     else:
-        raise Exception("Invalid NDIMS: " + ltag)
+        raise ValueError("Invalid NDIMS: " + ltag)
 
     return
 
@@ -555,11 +555,11 @@ def sanitise_grid(mesh, data):
     #--------------------------- reshape data to 2-dim array
             if (mesh.xgrid is None or
                     mesh.xgrid.size == 0):
-                raise Exception("Invalid XGRID")
+                raise ValueError("Invalid XGRID")
 
             if (mesh.ygrid is None or
                     mesh.ygrid.size == 0):
-                raise Exception("Invalid YGRID")
+                raise ValueError("Invalid YGRID")
 
             num1 = mesh.ygrid.size
             num2 = mesh.xgrid.size
@@ -577,15 +577,15 @@ def sanitise_grid(mesh, data):
     #--------------------------- reshape data to 3-dim array
             if (mesh.xgrid is None or
                     mesh.xgrid.size == 0):
-                raise Exception("Invalid XGRID")
+                raise ValueError("Invalid XGRID")
 
             if (mesh.ygrid is None or
                     mesh.ygrid.size == 0):
-                raise Exception("Invalid YGRID")
+                raise ValueError("Invalid YGRID")
 
             if (mesh.zgrid is None or
                     mesh.zgrid.size == 0):
-                raise Exception("Invalid ZGRID")
+                raise ValueError("Invalid ZGRID")
 
             num1 = mesh.ygrid.size
             num2 = mesh.xgrid.size
@@ -618,10 +618,10 @@ def loadmsh(name, mesh):
     """
 
     if (not isinstance(name, str)):
-        raise Exception("Incorrect type: NAME.")
+        raise TypeError("Incorrect type: NAME.")
 
     if (not isinstance(mesh, jigsaw_msh_t)):
-        raise Exception("Incorrect type: MESH.")
+        raise TypeError("Incorrect type: MESH.")
 
     with Path(name).open("r") as fptr:
         while (True):

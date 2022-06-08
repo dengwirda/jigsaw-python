@@ -18,10 +18,10 @@ def loadjig(name, opts):
     """
 
     if (not isinstance(name, str)):
-        raise Exception("Incorrect type: NAME.")
+        raise TypeError("Incorrect type: NAME.")
 
     if (not isinstance(opts, jigsaw_jig_t)):
-        raise Exception("Incorrect type: OPTS.")
+        raise TypeError("Incorrect type: OPTS.")
 
     with Path(name).open("r") as fptr:
         while (True):
@@ -141,6 +141,8 @@ def loadjig(name, opts):
         #-------------------------------------- OPTM options
                 if (item == "OPTM_KERN"):
                     opts.optm_kern = ltag[1].strip()
+                if (item == "OPTM_COST"):
+                    opts.optm_cost = ltag[1].strip()
 
                 if (item == "OPTM_ITER"):
                     opts.optm_iter = int(ltag[1])

@@ -613,7 +613,7 @@ def centre2(ppos, ppwr, tri2):
         sgn3 = np.sum(nrm3 * nrm1, axis=1)
 
     else:
-        raise Exception("Unsupported dimension.")
+        raise ValueError("Unsupported dimension.")
 
 #------------------------------------- interior if same sign
     return np.logical_and.reduce((
@@ -671,7 +671,7 @@ def centre3(ppos, ppwr, tri3):
             ppos[tri3[:, 0], :], ball)
 
     else:
-        raise Exception("Unsupported dimension.")
+        raise ValueError("Unsupported dimension.")
 
 #------------------------------------- interior if same sign
     return np.logical_and.reduce((

@@ -229,7 +229,7 @@ class jigsaw_msh_t:
 
             self.vert3 = verts; return
 
-        raise Exception("Invalid POINT type")
+        raise TypeError("Invalid POINT type")
 
     @property
     def seeds(self):
@@ -257,4 +257,4 @@ class jigsaw_msh_t:
 
             self.seed3 = seeds; return
 
-        raise Exception("Invalid SEEDS type")
+        raise TypeError("Invalid SEEDS type")

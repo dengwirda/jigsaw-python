@@ -356,10 +356,10 @@ def savevtk(name, mesh):
     """
 
     if (not isinstance(name, str)):
-        raise Exception("Incorrect type: NAME.")
+        raise TypeError("Incorrect type: NAME.")
 
     if (not isinstance(mesh, jigsaw_msh_t)):
-        raise Exception("Incorrect type: MESH.")
+        raise TypeError("Incorrect type: MESH.")
 
     certify(mesh)
 
@@ -388,7 +388,7 @@ def savevtk(name, mesh):
             save_grid_file(mesh, fptr)
 
         else:
-            raise Exception(
+            raise ValueError(
                 "MESH.mshID is not supported!!")
 
     return

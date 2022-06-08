@@ -27,13 +27,13 @@ def project(mesh, proj, sign):
     """
 
     if (not isinstance(mesh, jigsaw_msh_t)):
-        raise Exception("Incorrect type: MESH.")
+        raise TypeError("Incorrect type: MESH.")
 
     if (not isinstance(proj, jigsaw_prj_t)):
-        raise Exception("Incorrect type: PROJ.")
+        raise TypeError("Incorrect type: PROJ.")
 
     if (not isinstance(sign, str)):
-        raise Exception("Incorrect type: SIGN.")
+        raise TypeError("Incorrect type: SIGN.")
 
     certify(mesh)
 
@@ -67,7 +67,7 @@ def project(mesh, proj, sign):
 
             else:
 
-                raise Exception(
+                raise ValueError(
                     "Projection operator not suppoted.")
 
     #----------------------------------- setup proj.'d object
@@ -88,7 +88,7 @@ def project(mesh, proj, sign):
 
             else:
 
-                raise Exception(
+                raise ValueError(
                     "Incorrect projection PRJID flags.")
 
             mesh.point["coord"][:, 0] = XNEW
@@ -140,7 +140,7 @@ def project(mesh, proj, sign):
 
             else:
 
-                raise Exception(
+                raise ValueError(
                     "Projection operator not suppoted.")
 
     #----------------------------------- setup proj.'d object
@@ -164,7 +164,7 @@ def project(mesh, proj, sign):
 
             else:
 
-                raise Exception(
+                raise ValueError(
                     "Incorrect projection PRJID flags.")
 
             mesh.point["IDtag"] = +0
