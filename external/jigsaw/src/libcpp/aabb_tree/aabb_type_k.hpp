@@ -31,7 +31,7 @@
  *
 ------------------------------------------------------------
  *
- * Last updated: 10 September, 2017
+ * Last updated: 10 Sept., 2017
  *
  * Copyright 2013-2017
  * Darren Engwirda
@@ -57,9 +57,9 @@
 
 
     template <
-    typename R,
-    typename I,
-    size_t   K
+    typename R,  // reals typedef
+    typename I,  // integer typedef
+    size_t   K   // number of geometric dimensions
              >
     class aabb_item_rect_k
     {
@@ -128,9 +128,9 @@
 
 
     template <
-    typename R,
-    typename I,
-    size_t   K
+    typename R,  // reals typedef
+    typename I,  // integer typedef
+    size_t   K   // number of geometric dimensions
              >
     class aabb_item_node_k
     {

@@ -589,15 +589,12 @@
         geometry::dot_2d(
             _vv31, _vv12) / _ll31 / _ll12 ;
 
-        _dd11 = (real_type)-2./3. * (
-            _dd11 + (real_type)+.5) ;
-        _dd22 = (real_type)-2./3. * (
-            _dd22 + (real_type)+.5) ;
-        _dd33 = (real_type)-2./3. * (
-            _dd33 + (real_type)+.5) ;
+        _dd11 = _dd11 + (real_type)+.5 ;
+        _dd22 = _dd22 + (real_type)+.5 ;
+        _dd33 = _dd33 + (real_type)+.5 ;
 
         real_type _skew =
-            (real_type) +9. / 11. * (
+            (real_type) +4. / 11. * (
             std::pow(_dd11, 2) +
             std::pow(_dd22, 2) +
             std::pow(_dd33, 2) )  ;
@@ -608,14 +605,15 @@
         tria_quality_2d(_p1, _p2, _p3) ;
 
         return
-       (real_type)(1. - 1./2.) * _skew +
-       (real_type)(0. + 1./2.) * _alen ;
+       (real_type)(1. - 1./3.) * _skew +
+       (real_type)(0. + 1./3.) * _alen ;
     }
 
     template <
     typename      real_type
              >
     __inline_call
+
         real_type tria_skewcos_3d (
     __const_ptr  (real_type) _p1,
     __const_ptr  (real_type) _p2,
@@ -646,15 +644,12 @@
         geometry::dot_3d(
             _vv31, _vv12) / _ll31 / _ll12 ;
 
-        _dd11 = (real_type)-2./3. * (
-            _dd11 + (real_type)+.5) ;
-        _dd22 = (real_type)-2./3. * (
-            _dd22 + (real_type)+.5) ;
-        _dd33 = (real_type)-2./3. * (
-            _dd33 + (real_type)+.5) ;
+        _dd11 = _dd11 + (real_type)+.5 ;
+        _dd22 = _dd22 + (real_type)+.5 ;
+        _dd33 = _dd33 + (real_type)+.5 ;
 
         real_type _skew =
-            (real_type) +9. / 11. * (
+            (real_type) +4. / 11. * (
             std::pow(_dd11, 2) +
             std::pow(_dd22, 2) +
             std::pow(_dd33, 2) )  ;
@@ -665,8 +660,8 @@
         tria_quality_3d(_p1, _p2, _p3) ;
 
         return
-       (real_type)(1. - 1./2.) * _skew +
-       (real_type)(0. + 1./2.) * _alen ;
+       (real_type)(1. - 1./3.) * _skew +
+       (real_type)(0. + 1./3.) * _alen ;
     }
 
     /*

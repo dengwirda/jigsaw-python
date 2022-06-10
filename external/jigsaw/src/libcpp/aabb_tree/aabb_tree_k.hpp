@@ -31,9 +31,9 @@
  *
 ------------------------------------------------------------
  *
- * Last updated: 12 Jul., 2021
+ * Last updated: 10 Jun., 2022
  *
- * Copyright 2013-2021
+ * Copyright 2013-2022
  * Darren Engwirda
  * d.engwirda@gmail.com
  * https://github.com/dengwirda/
@@ -49,9 +49,9 @@
     namespace geom_tree {
 
     template <
-    typename I ,
-    size_t   K ,
-    typename N = aabb_node_base_k,
+    typename I ,  // item-to-be-stored typedef
+    size_t   K ,  // number of geometric dimensions
+    typename N = aabb_node_base_k,  // inner node typedef
     typename A = allocators::basic_alloc
              >
     class aabb_tree
@@ -458,6 +458,7 @@
             push_tail(this->_root);
 
     /*--- refine tree until all nodes satisfy constraints */
+        containers::array<real_type> _sort;
         for( ; !this->_work.empty() ; )
         {
             node_type *_pnod = nullptr;
@@ -510,7 +511,8 @@
 
             if (_cnum == +0) continue ;
 
-        /*---------- split pos. - mean of non-long aabb's */
+        /*---------- split pos. - middle of items in node */
+            /*
             double _SPOS = +0. ;
             for(item_data *_iptr  = _cptr ;
                            _iptr != nullptr ;
@@ -524,6 +526,32 @@
 
             real_type _spos =
                 (real_type)(_SPOS / _cnum);
+            */
+
+        /*---------- split pos. - median of items in node */
+            _sort.clear () ;
+
+            real_type _spos = (real_type)+0.;
+            
+            for(item_data *_iptr  = _cptr ;
+                           _iptr != nullptr ;
+                           _iptr  = _next )
+            {
+                _next = _iptr-> _next ;
+
+                _sort.push_tail(
+                    _iptr->_data.pmid(_bdim)) ;
+            }
+
+            if(!_sort.empty())
+            {
+            algorithms::qsort(
+                _sort.head(), _sort.tend(), 
+                    std::less<real_type>()) ;
+
+            _spos = _sort[_sort.count() / 2 + 1] ;
+            }
+
 
         /*---------- partition list - split on left|right */
             for(item_data *_iptr  = _cptr ;
@@ -705,6 +733,57 @@
                 if (++_inum>_ilim) break;
             }
         }
+        }
+    }
+
+/*-------- get items-per-nodes, as a sparse list-of-lists */
+    template <
+        typename  lptr_list,
+        typename  iptr_list
+             >
+    __normal_call void_type dcmp (
+        lptr_list &_lptr,  // ith list: _lp[i]:_lp[i+1]-1
+        iptr_list &_iset   // unrolled list of item index
+        )
+    {
+        if (this->_root == nullptr) return;
+
+        this->_work.set_count( +0) ;
+        this->_work.
+            push_tail(this->_root) ;
+
+        _lptr.push_tail(_iset.count () )  ;
+
+        for ( ; !this->_work.empty() ; )
+        {
+            node_type *_node = nullptr ;
+            this->_work.
+                _pop_tail(_node) ;
+
+    /*---------------------------- push items to CCS list */
+            if (_node->items () != nullptr)
+            {
+                for (auto 
+                    _item  = _node->items() ;
+                          _item != nullptr;
+                    _item  = _item->_next )
+                {
+                    _iset.push_tail(
+                        _item->_data.ipos());
+                }
+                _lptr.
+                 push_tail(_iset.count () ) ;
+            }
+
+    /*---------------------------- descend to child nodes */
+            if (_node->lower(0) != nullptr)
+            {
+                this->_work.push_tail (
+                    _node->lower( 0)) ;
+
+                this->_work.push_tail (
+                    _node->lower( 1)) ;
+            }
         }
     }
 
