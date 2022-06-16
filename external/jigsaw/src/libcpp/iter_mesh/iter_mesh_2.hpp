@@ -549,7 +549,6 @@
             auto s = 0;
             for (size_t i = 0; i < num_threads; ++ i)                
                 s += multi_nset[i].count();
-            std::cout << std::endl;
 
             if (s > 0)
                 for (size_t cycle = 2; cycle <= num_threads; cycle *= 2) {
