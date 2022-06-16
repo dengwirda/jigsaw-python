@@ -113,8 +113,8 @@
     #include "iter_node_2.inc"
 
     template <
-        typename  node_iter
-             >
+    	typename  node_iter
+    >
     __static_call
     __inline_call void_type move_node (
         geom_type &_geom ,
@@ -131,6 +131,7 @@
         real_type  _QMIN ,
         real_type  _QLIM ,
         iter_stat &_tcpu
+
         )
     {
     /*---------------- try variational; fallback on dQ/dx */
@@ -764,7 +765,7 @@
         hfun_type &_hfun ,
         char_type  _kern ,
         real_list &_hval ,
-        iptr_list &_nset ,
+        containers::array< iptr_list> &_nset ,
         iptr_list &_lset ,
         iptr_list &_aset ,
         iptr_list &_amrk ,
@@ -775,7 +776,10 @@
         iptr_type &_nmov ,
         real_type  _QLIM ,
         real_type  _DLIM ,
-        iter_stat &_tcpu
+        iter_stat &_tcpu ,
+	    size_t    &_rank ,
+    	part_sets &_prts
+	
         )
     {
     #   define MARK(_NODE) _mark._node[_NODE]
@@ -784,12 +788,13 @@
                            _aset.head() :   \
                            _aset.tail())
 
+
+
     #   define STOP(_PASS)(_PASS == +0 ?    \
                            _aset.tend() :   \
                            _aset.hend())
 
     #   define ITER(_PASS)(_PASS == +0 ? +1 : -1)
-
         conn_list _conn;
         real_list _qold, _qnew, _dold, _dnew;
 
@@ -810,12 +815,12 @@
         _ttic = _time.now() ;
     #   endif//__use_timers
 
-        _aset.set_count(+0) ;
+//        _aset.set_count(+0) ;
 
-        sort_node(_mesh, _CONN, _lset, _aset,
-            _mark._node, _amrk, _iout, _isub,
-            _QLIM,_DLIM, _opts) ;
-
+//        sort_node(_mesh, _CONN, _lset, _aset,
+//            _mark._node, _amrk, _iout, _isub,
+//            _QLIM,_DLIM, _opts) ;
+        
         _nmov = (iptr_type)0;
 
     #   ifdef  __use_timers
@@ -833,68 +838,118 @@
 
         if (_opts .tria())  // 1=>GS, 2=>SGS
         {
+
         for (auto _pass  = 0; _pass < 2; ++_pass)
-        for (auto _apos  = HEAD(_pass) ;
-                  _apos != STOP(_pass) ;
-                  _apos += ITER(_pass) )
-        {
-             auto _node  =
-            _mesh.node().head()+ *_apos ;
+            for (auto _ape = _prts._lptr[_rank]; _ape < _prts._lptr[_rank + 1]; ++ _ape) {
+                auto _apos = _prts._list[_ape];
+                auto _node = _mesh.node().head() + _apos;
+                _conn.set_count( +0) ; // extract set of adj. tri3’s for this node
+                _conn.push_tail(
+                _CONN._adj2.head()+_CONN._idx2[_apos+0],
+                _CONN._adj2.head()+_CONN._idx2[_apos+1]
+                     ) ;
+                if (_conn.empty()) continue ; // skip any unattached nodes
 
-        /*---------------- assemble a local tria. stencil */
-            _conn.set_count( +0) ;
-            _conn.push_tail(
-            _CONN._adj2.head()+_CONN._idx2[*_apos+0],
-            _CONN._adj2.head()+_CONN._idx2[*_apos+1]
-                ) ;
+                if (_mark._node[_apos] >= +0 && _prts._itfc[_apos] == 0) // skip nodes not allowed to move
+                {                             // perhaps also skip interface nodes here too?]
+                    _qold.set_count( +0) ;
+                    _qnew.set_count( +0) ; // lists of adj. tri3 “scores”
 
-            if (_conn.empty()) continue ;
+                    // get tri3 scores given current node position
+                    real_type _QMIN = loop_cost(_mesh, _conn, _qold, cell_kind());
 
-            if (_mark._node[*_apos] >= +0)
-            {
-        /*---------------- attempt to optimise CELL geom. */
-            _qold.set_count( +0) ;
-            _qnew.set_count( +0) ;
+                    // call kernel to optimise single node position
+                    iptr_type _move = -1 ; // haven’t moved yet
+                    move_node( _geom, _mesh,
+                               _hfun, _hval,
+                               _opts, _node, _kern,
+                               _move, _conn,
+                               _qold, _qnew,
+                               _QMIN, _QLIM, _tcpu) ;
 
-            real_type  _QMIN =
-            loop_cost( _mesh,
-                _conn, _qold, cell_kind());
+                    if (_move > +0)  // if node has been successfully optimised
+                    {
+                        _hval[_apos] = (real_type)-1; // to force a recalc. of internal data
 
-            iptr_type _move = -1 ;
+                        if (std::abs(MARK( _apos )) !=_iout) // keep track of moving nodes
+                        {
+                            if (MARK( _apos ) >= 0)
+                                MARK( _apos ) = +_iout;
+                            else
+                                MARK( _apos ) = -_iout;
+                            _nset[_rank].push_tail (_apos) ; // array of nodes that have moved
+                        }
+                        _nmov += +1 ;
+                    }
+                }
+            } 
+            
+            // here
 
-            if (_move < +0 )
-            {
-        /*---------------- do optimisation of node coord. */
-                move_node( _geom, _mesh,
-                    _hfun, _hval,
-                    _opts, _node, _kern,
-                    _move, _conn,
-                    _qold, _qnew,
-                    _QMIN, _QLIM, _tcpu) ;
-            }
 
-            if (_move > +0 )
-            {
-        /*---------------- update when state is improving */
-            _hval[*_apos] = (real_type)-1;
 
-            if (std::abs(
-                MARK( *_apos )) !=_iout)
-            {
-                if (MARK( *_apos ) >= 0)
-                MARK( *_apos ) = +_iout;
-                else
-                MARK( *_apos ) = -_iout;
-
-                _nset.push_tail (*_apos) ;
-            }
-
-            _lset.push_tail (*_apos) ;
-
-            _nmov += +1 ;
-            }
-            }
-        }
+//        for (auto _apos  = HEAD(_pass) ;
+//                  _apos != STOP(_pass) ;
+//                  _apos += ITER(_pass) )
+//        {
+//             std::cout << *_apos << std::endl;
+//             auto _node  =
+//            _mesh.node().head()+ *_apos ;
+//
+//        /*---------------- assemble a local tria. stencil */
+//            _conn.set_count( +0) ;
+//            _conn.push_tail(
+//            _CONN._adj2.head()+_CONN._idx2[*_apos+0],
+//            _CONN._adj2.head()+_CONN._idx2[*_apos+1]
+//                ) ;
+//
+//            if (_conn.empty()) continue ;
+//
+//            if (_mark._node[*_apos] >= +0)
+//            {
+//        /*---------------- attempt to optimise CELL geom. */
+//            _qold.set_count( +0) ;
+//            _qnew.set_count( +0) ;
+//
+//            real_type  _QMIN =
+//            loop_cost( _mesh,
+//                _conn, _qold, cell_kind());
+//
+//            iptr_type _move = -1 ;
+//
+//            if (_move < +0 )
+//            {
+//        /*---------------- do optimisation of node coord. */
+//                move_node( _geom, _mesh,
+//                    _hfun, _hval,
+//                    _opts, _node, _kern,
+//                    _move, _conn,
+//                    _qold, _qnew,
+//                    _QMIN, _QLIM, _tcpu) ;
+//            }
+//
+//            if (_move > +0 )
+//            {
+//        /*---------------- update when state is improving */
+//            _hval[*_apos] = (real_type)-1;
+//
+//            if (std::abs(
+//                MARK( *_apos )) !=_iout)
+//            {
+//                if (MARK( *_apos ) >= 0)
+//                MARK( *_apos ) = +_iout;
+//                else
+//                MARK( *_apos ) = -_iout;
+//
+//                _nset.push_tail (*_apos) ;
+//            }
+//
+//            _lset.push_tail (*_apos) ;
+//
+//            _nmov += +1 ;
+//            }
+//            }
+//        }
         }
 
     #   ifdef  __use_timers
