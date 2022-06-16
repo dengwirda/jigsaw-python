@@ -120,6 +120,8 @@
             ::array< size_t    >        uint_list ;
     typedef containers
             ::array< real_type >        real_list ;
+    typedef containers
+            ::array< bool      >        bool_list ;
 
     class mark_list                 // integer cell markers
         {
@@ -136,6 +138,7 @@
         uint_list                      _lptr;
         iptr_list                      _list;
         iptr_list                      _part;
+        bool_list                      _itfc; 
         } ;
 
     typedef typename
@@ -385,8 +388,8 @@
         text_dump &_dump
         )
     {
-        iter_stat  _tcpu ;
-
+	
+    
     /*------------------------------ push log-file header */
         if (_opts.verb() >= 0 )
         {
@@ -396,7 +399,9 @@
     "#------------------------------------------------------------\n"
                     ) ;
         }
-
+        size_t num_threads = 4;
+        iter_stat  _tcpu ;
+        BS::thread_pool pool(num_threads);
     #   ifdef  __use_timers
         typename std ::chrono::
         high_resolution_clock::time_point  _ttic ;
@@ -412,9 +417,9 @@
         std::srand( +1 ) ;
 
     /*------------------------------ push boundary marker */
-        iptr_list _nset ;
+        
         mark_list _mark ;
-
+        containers::array< iptr_list >        multi_nset;
         init_mark(_mesh, _mark) ;
         init_bnds(_mesh, _mark) ;        
 
@@ -430,7 +435,7 @@
         static constexpr ITER_MAX_ = max_subit ;
 
         real_type _QMIN = init_cost (_mesh, _opts) ;
-
+	
         for (auto _iter = +1 ;
             _iter <= _opts.iter(); ++_iter)
         {
@@ -443,7 +448,6 @@
                 _mesh. node().count(),
         containers::tight_alloc, (real_type) -1.0) ;
 
-            _nset.set_count(  +0);
 
             iptr_type _nmov = +0 ;
             iptr_type _nflp = +0 ;
@@ -484,9 +488,8 @@
         //!! here, just hard code npart=4 for initial testing
             part_sets _part;
             part_mesh(_mesh, _part, 4) ;
-
-
-
+	        
+            
             iptr_list _amrk, _aset, _lset ;
             _amrk.set_count(
                 _mesh.node().count() ,
@@ -498,25 +501,62 @@
                 _mesh.node().count()) ;
 
             conn_sets _conn ;
-            for (auto _isub = + 0 ;
-                _isub != _nsub; ++_isub )
-            {
-                if (_opts.verb() >= +3)
-                    _dump.push(
-                "**CALL MOVE-NODE...\n" ) ;
+            
+            pull_conn(_mesh, _conn);
 
-                iptr_type  _nloc;
-                move_node( _geom, _mesh , _conn ,
-                    _hfun, _kern, _hval ,
-                    _nset, _lset, _aset ,
-                    _amrk, _mark,
-                    _iter, _isub, _opts ,
-                    _nloc, _QLIM, _DLIM , _tcpu);
-
-                _nloc = _nloc / 2 ;
-
-                _nmov = std::max (_nmov , _nloc);
+            
+            multi_nset.set_count(num_threads);
+            for (size_t i = 0; i < num_threads; ++ i) {
+                multi_nset[i].set_count(+0);
             }
+            std::cout << multi_nset.count() << std::endl;
+        
+	        auto task = [&](size_t rank) {  
+                for (auto _isub = + 0; _isub != _nsub; ++_isub ) {
+	                if (_opts.verb() >= +3)
+            	       _dump.push("**CALL MOVE-NODE...\n" );
+
+	                iptr_type  _nloc;
+            	    move_node( _geom, _mesh , _conn ,
+                        _hfun, _kern, _hval ,
+	                    multi_nset, _lset, _aset ,
+            	        _amrk, _mark,
+                        _iter, _isub, _opts ,
+	                    _nloc, _QLIM, _DLIM , _tcpu, rank, _part);
+
+            	    _nloc = _nloc / 2 ;
+
+                    _nmov = std::max (_nmov , _nloc);
+	            }                  
+	        };
+	        for (size_t r = 0; r < num_threads; ++r)
+   	            pool.push_task(task, r);
+            pool.wait_for_tasks();
+            
+            // These defined items don't work, not sure why
+            #define RT_HEAD(r, c)    \
+                multi_nset[r + c / 2].head();
+            #define RT_TAIL(r, c)    \
+                multi_nset[r + c / 2].tail();
+
+            auto reduction_task = [&](auto r, auto c) {
+                std::cout << r << std::endl;
+                if (multi_nset[r + (c / 2)].count() > +0)
+                    for (auto it = multi_nset[r + (c / 2)].head(); it != multi_nset[r + (c / 2)].tail(); ++ it)
+                        multi_nset[r].push_tail(* it);
+            };
+            
+            auto s = 0;
+            for (size_t i = 0; i < num_threads; ++ i)                
+                s += multi_nset[i].count();
+            std::cout << std::endl;
+
+            if (s > 0)
+                for (size_t cycle = 2; cycle <= num_threads; cycle *= 2) {
+                    for (size_t rank = 0; rank < num_threads; rank += cycle)
+                        pool.push_task(reduction_task, rank, cycle);
+                    pool.wait_for_tasks();
+                }
 
     #       ifdef  __use_timers
             _ttoc = _time.now() ;
@@ -537,7 +577,7 @@
 
                 iptr_type  _nloc;
                 flip_mesh( _geom, _mesh , _hfun ,
-                    _conn, _nset, _mark ,
+                    _conn, multi_nset[0], _mark ,
                 +3 * _iter - 2  , _nloc ) ;
 
                 _nflp +=   _nloc;
@@ -582,7 +622,7 @@
                 iptr_type  _nloc;
                 move_dual( _geom, _mesh , _conn ,
                     _hfun, _hval,
-                    _nset, _lset, _aset ,
+                    multi_nset[0], _lset, _aset ,
                     _amrk, _mark,
                     _iter, _isub, _opts ,
                     _nloc, _QLIM, _DLIM , _tcpu);
@@ -591,9 +631,6 @@
 
                 _nmov = std::max (_nmov , _nloc);
             }
-
-    #       ifdef  __use_timers
-            _ttoc = _time.now() ;
             _tcpu._move_dual +=
                   _tcpu.time_span(_ttic , _ttoc);
     #       endif//__use_timers
@@ -611,7 +648,7 @@
 
                 iptr_type  _nloc;
                 flip_mesh( _geom, _mesh , _hfun ,
-                    _conn, _nset, _mark ,
+                    _conn, multi_nset[0], _mark ,
                 +3 * _iter - 1  , _nloc ) ;
 
                 _nflp +=   _nloc;
@@ -634,7 +671,7 @@
             _ttic = _time.now() ;
     #       endif//__use_timers
 
-            _nset.set_count(+0) ;    // don't flip twice!
+            multi_nset[0].set_count(+0) ;    // don't flip twice!
 
             if (_opts.zip_ () ||
                 _opts.div_ () )
@@ -644,7 +681,7 @@
                 "**CALL _ZIP-MESH...\n" ) ;
 
                 _zip_mesh( _geom, _mesh , _hfun ,
-                    _kern, _hval, _nset ,
+                    _kern, _hval, multi_nset[0] ,
                     _mark, _iter, _opts ,
                     _QLIM, _DLIM,
                     _nzip, _ndiv, _tcpu ) ;
@@ -670,7 +707,7 @@
 
                 iptr_type  _nloc;
                 flip_mesh( _geom, _mesh , _hfun ,
-                    _nset, _mark,
+                    multi_nset[0], _mark,
                 +3 * _iter - 0  , _nloc ) ;
 
                 _nflp +=   _nloc;
@@ -774,8 +811,6 @@
 
 
     }
-
-#   endif   //__ITER_MESH_2__
 
 
 
