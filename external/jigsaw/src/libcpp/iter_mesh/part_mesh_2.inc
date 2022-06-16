@@ -32,7 +32,7 @@
                   _iter != _mesh.node().tend();
                 ++_iter, ++_ipos)
         {
-            if (_iter->mark() >= 0)
+            if (_iter->mark() >= 0 && _iter->ndeg(TRIA3_tag) > 0)
             {
                 _item.push_tail();
                 _item.tail()->ipos() = _ipos;
@@ -59,6 +59,7 @@
         _part._lptr.clear();
         _part._list.clear();
         _part._part.clear();
+        _part._itfc.clear();
 
         _tree.dcmp(_part._lptr , _part._list) ;
 
@@ -81,8 +82,22 @@
                     ++_iptr )
             _part._part[_part._list[_iptr]] = _list ;
         }
+        _part._itfc.set_count(_mesh.node().count(), containers::tight_alloc, (bool_type) 0);
 
-
+        for (auto _iter = _mesh.tri3().head(); _iter != _mesh.tri3().tail(); ++_iter) {
+            if (_iter->mark() >= 0) {
+                auto i = _iter->node(0);
+                auto j = _iter->node(1);
+                auto k = _iter->node(2);
+                auto l = _part._part[j];
+                auto m = _part._part[i] == l && l == _part._part[k];
+                if (!m) {
+                    _part._itfc[i] = 1;
+                    _part._itfc[j] = 1;
+                    _part._itfc[k] = 1;
+                }
+            }        
+        }
 
     // just for temp. debug checks:
     // write partition index to ID space in mesh node
