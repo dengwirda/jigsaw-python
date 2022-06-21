@@ -494,6 +494,7 @@
         real_type  _QLIM ,
         real_type  _DLIM ,
         iter_opts &_opts
+        
         )
     {
     #   define PUSHSORT(_NODE)  \
@@ -777,7 +778,7 @@
         real_type  _QLIM ,
         real_type  _DLIM ,
         iter_stat &_tcpu ,
-	    size_t    &_rank ,
+	    std::int32_t    &_rank ,
     	part_sets &_prts
 	
         )
@@ -839,9 +840,21 @@
         if (_opts .tria())  // 1=>GS, 2=>SGS
         {
 
+        auto limit = _prts._lptr[_rank + 1];
+        auto start = _prts._lptr[_rank];
+         
+        if (_rank < 0) {
+            limit = _prts._ifls.count();
+            start = 0;
+        }
+
         for (auto _pass  = 0; _pass < 2; ++_pass)
-            for (auto _ape = _prts._lptr[_rank]; _ape < _prts._lptr[_rank + 1]; ++ _ape) {
-                auto _apos = _prts._list[_ape];
+            //for (auto _ape = _prts._lptr[_rank]; _ape < _prts._lptr[_rank + 1]; ++ _ape) {
+            for (size_t _ape = start; _ape < limit; ++ _ape) {
+                auto _apos = _prts._list[_ape];                
+                if (_rank < 0)                
+                    _apos = _prts._ifls[_ape];
+                    
                 auto _node = _mesh.node().head() + _apos;
                 _conn.set_count( +0) ; // extract set of adj. tri3’s for this node
                 _conn.push_tail(
@@ -868,7 +881,8 @@
                                _QMIN, _QLIM, _tcpu) ;
 
                     if (_move > +0)  // if node has been successfully optimised
-                    {
+                    {   if (_rank < 0)
+                            std::cout << "still got in here...\n";
                         _hval[_apos] = (real_type)-1; // to force a recalc. of internal data
 
                         if (std::abs(MARK( _apos )) !=_iout) // keep track of moving nodes
@@ -877,22 +891,23 @@
                                 MARK( _apos ) = +_iout;
                             else
                                 MARK( _apos ) = -_iout;
-                            _nset[_rank].push_tail (_apos) ; // array of nodes that have moved
+                            _nset[_rank >= 0 ? _rank : 0].push_tail (_apos) ; // array of nodes that have moved
                         }
                         _nmov += +1 ;
                     }
                 }
             } 
+        }
             
             // here
 
 
-
+//        for (auto _pass = 0; _pass < 2; ++ _pass)
 //        for (auto _apos  = HEAD(_pass) ;
 //                  _apos != STOP(_pass) ;
 //                  _apos += ITER(_pass) )
 //        {
-//             std::cout << *_apos << std::endl;
+//             //std::cout << *_apos << std::endl;
 //             auto _node  =
 //            _mesh.node().head()+ *_apos ;
 //
@@ -941,7 +956,7 @@
 //                else
 //                MARK( *_apos ) = -_iout;
 //
-//                _nset.push_tail (*_apos) ;
+//                _nset[0].push_tail (*_apos) ;
 //            }
 //
 //            _lset.push_tail (*_apos) ;
@@ -950,7 +965,7 @@
 //            }
 //            }
 //        }
-        }
+//        }
 
     #   ifdef  __use_timers
         _ttoc = _time.now() ;
