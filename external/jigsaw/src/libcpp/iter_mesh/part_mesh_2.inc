@@ -60,6 +60,7 @@
         _part._list.clear();
         _part._part.clear();
         _part._itfc.clear();
+        _part._ifls.clear();
 
         _tree.dcmp(_part._lptr , _part._list) ;
 
@@ -83,8 +84,10 @@
             _part._part[_part._list[_iptr]] = _list ;
         }
         _part._itfc.set_count(_mesh.node().count(), containers::tight_alloc, (bool_type) 0);
-
-        for (auto _iter = _mesh.tri3().head(); _iter != _mesh.tri3().tail(); ++_iter) {
+        // 3D Case
+        // Interface Set ..?
+        // --  
+        for (auto _iter = _mesh.tri3().head(); _iter != _mesh.tri3().tend(); ++_iter) {
             if (_iter->mark() >= 0) {
                 auto i = _iter->node(0);
                 auto j = _iter->node(1);
@@ -98,6 +101,8 @@
                 }
             }        
         }
+        for (auto _iter = _part._itfc.head(); _iter != _part._itfc.tend(); ++ _iter)
+            _part._ifls.push_tail(* _iter);
 
     // just for temp. debug checks:
     // write partition index to ID space in mesh node
