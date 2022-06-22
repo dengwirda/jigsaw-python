@@ -48,7 +48,7 @@
 
 #   include "containers.hpp"
 #   include "algorithms.hpp"
-
+#   include "BS_thread_pool.hpp"
 #   include "geometry.hpp"
 
 #   include "geomreps.hpp"

@@ -53,7 +53,9 @@
     __normal_call void_type push_verbosity (
         std::int32_t /*_verb*/
         ) { }
-
+    __normal_call void_type push_numthreads (
+        std::int32_t /*_verb*/
+        ) { }
     __normal_call void_type push_geom_file (
         std::string  /*_file*/
         ) { }
@@ -421,6 +423,11 @@
             if (_stok[0] == "VERBOSITY")
                 {
             __putINTS(push_verbosity, _stok) ;
+                }
+            else
+            if (_stok[0] == "NUM_THREADS")
+                {
+            __putINTS(push_numthreads, _stok) ;
                 }
             else
         /*---------------------------- read GEOM keywords */

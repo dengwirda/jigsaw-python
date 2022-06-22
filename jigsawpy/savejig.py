@@ -186,7 +186,8 @@ def savejig(name, opts):
             savechar(fptr, opts.optm_kern, "OPTM_KERN")
         if (opts.optm_cost is not None):
             savechar(fptr, opts.optm_cost, "OPTM_COST")
-
+        if (opts.num_threads is not None):
+            saveints(fptr, opts.num_threads, "NUM_THREADS")
         if (opts.optm_iter is not None):
             saveints(fptr, opts.optm_iter, "OPTM_ITER")
 

@@ -85,6 +85,12 @@
             this->_jjig->
            _iter_opts.verb() = _verb;
         }
+        __normal_call void_type push_numthreads (
+            std::int32_t  _threads
+            )
+        {
+            this->_jjig->_iter_opts.threads() = _threads ;
+        }
 
     /*------------------------------------- GEOM keywords */
         __normal_call void_type push_geom_file (
@@ -1045,6 +1051,8 @@
             __pushBVAL(_jcfg._iter_opts.tria()));
         _jlog.push("  OPTM-DUAL = " +
             __pushBVAL(_jcfg._iter_opts.dual()));
+        _jlog.push("  NUM_THREADS = " +
+            __pushIVAL(_jcfg._iter_opts.threads()));
 
         _jlog.push("\n") ;
 

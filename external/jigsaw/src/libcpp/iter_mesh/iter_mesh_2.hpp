@@ -400,7 +400,7 @@
     "#------------------------------------------------------------\n"
                     ) ;
         }
-        auto num_threads = 8;
+        auto num_threads = _opts.threads();
         iter_stat  _tcpu ;
         BS::thread_pool pool(num_threads);
     #   ifdef  __use_timers

@@ -294,6 +294,7 @@ class jigsaw_jig_t:
     #------------------------------------------ OPTM options
         self.optm_kern = None
         
+        self.num_threads = None
         self.optm_iter = None
 
         self.optm_cost = None

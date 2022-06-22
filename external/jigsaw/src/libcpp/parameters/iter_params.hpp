@@ -70,7 +70,7 @@
         typedef iter_params<R, I>       self_type ;
 
         iptr_type        _verb ;
-
+        iptr_type        _threads = 2;
         iptr_type        _iter ;
 
         real_type        _qtol ;
@@ -92,7 +92,8 @@
 
             this->_verb =
             iptr_type(_jjig._verbosity) ;
-
+//            this->_threads =
+//            iptr_type(_jjig._numthreads);
             this->_iter =
             iptr_type(_jjig._optm_iter) ;
 
@@ -116,7 +117,10 @@
             )
         {   return  this->_verb ;
         }
-
+        __inline_call iptr_type      & threads (
+            )
+        {   return  this->_threads ;
+        }
         __inline_call iptr_type      & iter (
             )
         {   return  this->_iter ;

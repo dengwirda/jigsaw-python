@@ -863,7 +863,7 @@
                      ) ;
                 if (_conn.empty()) continue ; // skip any unattached nodes
 
-                if (_mark._node[_apos] >= +0 && _prts._itfc[_apos] == 0) // skip nodes not allowed to move
+                if (_mark._node[_apos] >= +0 && (_rank < 0 || _prts._itfc[_apos] == 0)) // skip nodes not allowed to move
                 {                             // perhaps also skip interface nodes here too?]
                     _qold.set_count( +0) ;
                     _qnew.set_count( +0) ; // lists of adj. tri3 “scores”
@@ -897,7 +897,7 @@
                     }
                 }
             } 
-        }
+            }
             
             // here
 
