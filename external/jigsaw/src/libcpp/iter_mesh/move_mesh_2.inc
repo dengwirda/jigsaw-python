@@ -862,8 +862,7 @@
                 _CONN._adj2.head()+_CONN._idx2[_apos+1]
                      ) ;
                 if (_conn.empty()) continue ; // skip any unattached nodes
-                if ((_mark._node[_apos] >= +0 && _prts._itfc[_apos] == 0) || (_mark._node[_apos] >= +0 && _rank < 0))
-//                if (_mark._node[_apos] >= +0 && _rank < 0 || _prts._itfc[_apos] == 0) // skip nodes not allowed to move
+                if (_mark._node[_apos] >= +0 && (_rank < 0 || _prts._itfc[_apos] == 0)) // skip nodes not allowed to move
                 {                             // perhaps also skip interface nodes here too?]
                     
                     _qold.set_count( +0) ;

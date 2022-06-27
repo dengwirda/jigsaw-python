@@ -101,10 +101,9 @@
                 }
             }        
         }
-        for (auto _iter = _part._itfc.head(); _iter != _part._itfc.tend(); ++ _iter) {
+        for (auto _iter = _part._itfc.head(); _iter != _part._itfc.tend(); ++ _iter)
             if (* _iter == 1)
                 _part._ifls.push_tail(_iter - _part._itfc.head());
-        }
 
     // just for temp. debug checks:
     // write partition index to ID space in mesh node

@@ -448,12 +448,15 @@
             _hval.set_count(
                 _mesh. node().count(),
         containers::tight_alloc, (real_type) -1.0) ;
-
-
-            iptr_type _nmov = +0 ;
+            containers::array< iptr_type > multi_nmov;
+            multi_nmov.set_count(num_threads, containers::tight_alloc);
+//            iptr_type _nmov = +0 ;
             iptr_type _nflp = +0 ;
             iptr_type _nzip = +0 ;
             iptr_type _ndiv = +0 ;
+            for (auto i = 0; i < num_threads; ++i)
+                multi_nmov[i] = +0;
+            auto & _nmov = multi_nmov[0]; // alias to first of multi_nmov
 
     /*------------------------------ scale quality thresh */
             iptr_type _nsub = _iter +0 ;
@@ -488,7 +491,7 @@
 //        containers::array< iptr_list >        multi_amrk;
 //        containers::array< iptr_list >        multi_aset;
 //        containers::array< iptr_list >        multi_lset
-
+        
 
         //!! hacking in mesh decomp. here
         //!! considering partition is formed through bisection, assume that
@@ -501,15 +504,16 @@
 
 //            multi_amrk.set_count(num_threads, containers::tight_alloc);    
 //            multi_aset.set_count(num_threads, containers::tight_alloc);    
-//            multi_lset.set_count(num_threads, containers::tight_alloc);            
+//            multi_lset.set_count(num_threads, containers::tight_alloc);  
+            
 //            
 //            for (auto i = 0; i < num_threads; ++ i) {
 //                auto j = _part._lptr[i + 1] - _part._lptr[i];
+                
 //                multi_amrk[i].set_count(j, containers::tight_alloc, -1);
 //                multi_lset[i].set_alloc(j);
 //                multi_aset[i].set_alloc(j);
 //            }
-        
             
             iptr_list _amrk, _aset, _lset ;
             _amrk.set_count(
@@ -529,22 +533,25 @@
             for (auto i = 0; i < num_threads; ++ i) {
                 multi_nset[i].set_count(+0);
             }
-            int32_t varthing = -1;
-            for (auto _isub = + 0; _isub != _nsub; ++_isub ) {
-	            if (_opts.verb() >= +3)
-            	   _dump.push("**CALL MOVE-NODE...\n" );
-	            iptr_type  _nloc;
-            	move_node( _geom, _mesh , _conn ,
-                    _hfun, _kern, _hval ,
-	                multi_nset, _lset, _aset ,
-            	    _amrk, _mark,
-                    _iter, _isub, _opts ,
-	                _nloc, _QLIM, _DLIM , _tcpu, varthing, _part);
+            auto interface_seq = [&](){
+                int32_t varthing = -1;
+                for (auto _isub = + 0; _isub != _nsub; ++_isub ) {
+	                if (_opts.verb() >= +3)
+                	   _dump.push("**CALL MOVE-NODE...\n" );
+	                iptr_type  _nloc;
+                	move_node( _geom, _mesh , _conn ,
+                        _hfun, _kern, _hval ,
+	                    multi_nset, _lset, _aset ,
+                	    _amrk, _mark,
+                        _iter, _isub, _opts ,
+	                    _nloc, _QLIM, _DLIM , _tcpu, varthing, _part);
 
-            	_nloc = _nloc / 2 ;
-                // There's a race condition on _nmov
-                _nmov = std::max (_nmov , _nloc);
-	        }
+                	_nloc = _nloc / 2 ;
+                    // There's a race condition on _nmov
+                    _nmov = std::max (_nmov , _nloc);
+	            }
+            };
+            
 
 	        auto task = [&](auto rank) {  
                 for (auto _isub = + 0; _isub != _nsub; ++_isub ) {
@@ -560,13 +567,16 @@
 
             	    _nloc = _nloc / 2 ;
                     // There's a race condition on _nmov
-                    _nmov = std::max (_nmov , _nloc);
+                    multi_nmov[rank] = std::max (multi_nmov[rank] , _nloc);
 	            }                  
 	        };
 	        for (auto r = 0; r < num_threads; ++r)
    	            pool.push_task(task, r);
             pool.wait_for_tasks();
-            
+
+            for (auto i = 1; i < num_threads; ++i)
+                _nmov += multi_nmov[i];
+
             // These defined items don't work, not sure why
             #define RT_HEAD(r, c)    \
                 multi_nset[r + c / 2].head();
@@ -594,9 +604,9 @@
             
             if (num_threads > 1 && multi_nset[num_threads / 2].count() > 0)
                 for (auto it = multi_nset[num_threads / 2].head(); it != multi_nset[num_threads / 2].tend(); ++ it)
-                        multi_nset[0].push_tail(* it);
+                    multi_nset[0].push_tail(* it);
 
-
+            interface_seq();
     #       ifdef  __use_timers
             _ttoc = _time.now() ;
             _tcpu._move_node +=
