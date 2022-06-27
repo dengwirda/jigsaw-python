@@ -484,13 +484,6 @@
     #       ifdef  __use_timers
             _ttic = _time.now() ;
     #       endif//__use_timers
-
-        
-        
-        // need to remember to clean this up at some point
-//        containers::array< iptr_list >        multi_amrk;
-//        containers::array< iptr_list >        multi_aset;
-//        containers::array< iptr_list >        multi_lset
         
 
         //!! hacking in mesh decomp. here
@@ -501,19 +494,6 @@
             part_mesh(_mesh, _part, num_threads) ;
 
 
-
-//            multi_amrk.set_count(num_threads, containers::tight_alloc);    
-//            multi_aset.set_count(num_threads, containers::tight_alloc);    
-//            multi_lset.set_count(num_threads, containers::tight_alloc);  
-            
-//            
-//            for (auto i = 0; i < num_threads; ++ i) {
-//                auto j = _part._lptr[i + 1] - _part._lptr[i];
-                
-//                multi_amrk[i].set_count(j, containers::tight_alloc, -1);
-//                multi_lset[i].set_alloc(j);
-//                multi_aset[i].set_alloc(j);
-//            }
             
             iptr_list _amrk, _aset, _lset ;
             _amrk.set_count(
@@ -530,9 +510,9 @@
             pull_conn(_mesh, _conn);
 
             multi_nset.set_count(num_threads);
-            for (auto i = 0; i < num_threads; ++ i) {
+            for (auto i = 0; i < num_threads; ++ i)
                 multi_nset[i].set_count(+0);
-            }
+
             auto interface_seq = [&](){
                 int32_t varthing = -1;
                 for (auto _isub = + 0; _isub != _nsub; ++_isub ) {
@@ -570,12 +550,11 @@
                     multi_nmov[rank] = std::max (multi_nmov[rank] , _nloc);
 	            }                  
 	        };
+//            interface_seq();
 	        for (auto r = 0; r < num_threads; ++r)
    	            pool.push_task(task, r);
             pool.wait_for_tasks();
 
-            for (auto i = 1; i < num_threads; ++i)
-                _nmov += multi_nmov[i];
 
             // These defined items don't work, not sure why
             #define RT_HEAD(r, c)    \
@@ -602,9 +581,13 @@
                     }
             }
             
-            if (num_threads > 1 && multi_nset[num_threads / 2].count() > 0)
-                for (auto it = multi_nset[num_threads / 2].head(); it != multi_nset[num_threads / 2].tend(); ++ it)
-                    multi_nset[0].push_tail(* it);
+            if (num_threads > 1) {
+                for (auto i = 1; i < num_threads; ++i)
+                    _nmov += multi_nmov[i];
+                if (multi_nset[num_threads / 2].count() > 0)
+                    for (auto it = multi_nset[num_threads / 2].head(); it != multi_nset[num_threads / 2].tend(); ++ it)
+                        multi_nset[0].push_tail(* it);
+            }
 
             interface_seq();
     #       ifdef  __use_timers

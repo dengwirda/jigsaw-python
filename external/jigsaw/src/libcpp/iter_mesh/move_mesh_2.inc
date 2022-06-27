@@ -849,7 +849,6 @@
         }
 
         for (auto _pass  = 0; _pass < 2; ++_pass)
-            //for (auto _ape = _prts._lptr[_rank]; _ape < _prts._lptr[_rank + 1]; ++ _ape) {
             for (size_t _ape = start; _ape < limit; ++ _ape) {
                 auto _apos = _prts._list[_ape];                
                 if (_rank < 0)                
