@@ -525,13 +525,11 @@
             
             pull_conn(_mesh, _conn);
 
-            
             multi_nset.set_count(num_threads);
             for (auto i = 0; i < num_threads; ++ i) {
                 multi_nset[i].set_count(+0);
             }
-
-            auto varthing = -1;
+            int32_t varthing = -1;
             for (auto _isub = + 0; _isub != _nsub; ++_isub ) {
 	            if (_opts.verb() >= +3)
             	   _dump.push("**CALL MOVE-NODE...\n" );

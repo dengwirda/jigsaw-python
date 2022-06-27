@@ -862,9 +862,10 @@
                 _CONN._adj2.head()+_CONN._idx2[_apos+1]
                      ) ;
                 if (_conn.empty()) continue ; // skip any unattached nodes
-
-                if (_mark._node[_apos] >= +0 && (_rank < 0 || _prts._itfc[_apos] == 0)) // skip nodes not allowed to move
+                if ((_mark._node[_apos] >= +0 && _prts._itfc[_apos] == 0) || (_mark._node[_apos] >= +0 && _rank < 0))
+//                if (_mark._node[_apos] >= +0 && _rank < 0 || _prts._itfc[_apos] == 0) // skip nodes not allowed to move
                 {                             // perhaps also skip interface nodes here too?]
+                    
                     _qold.set_count( +0) ;
                     _qnew.set_count( +0) ; // lists of adj. tri3 “scores”
 
@@ -881,8 +882,7 @@
                                _QMIN, _QLIM, _tcpu) ;
 
                     if (_move > +0)  // if node has been successfully optimised
-                    {   if (_rank < 0)
-                            std::cout << "still got in here...\n";
+                    {  
                         _hval[_apos] = (real_type)-1; // to force a recalc. of internal data
 
                         if (std::abs(MARK( _apos )) !=_iout) // keep track of moving nodes
