@@ -451,7 +451,7 @@
             real_list _hval;
             _hval.set_count(
                 _mesh. node().count(),
-        containers::tight_alloc, (real_type) -1.0) ;
+            containers::tight_alloc, (real_type) -1.0) ;
             containers::array< iptr_type > multi_nmov;
             multi_nmov.set_count(num_threads, containers::tight_alloc);
 //            iptr_type _nmov = +0 ;
@@ -549,51 +549,54 @@
                     multi_nmov[rank] = std::max(multi_nmov[rank], _nloc);
                 }
 	        };
-            for (auto r = 0; r < num_threads; ++ r)
-                if (_part._seqs[r] == 1)
-                    pool.push_task(interface, -1 - r, 0, 1);
-            pool.wait_for_tasks();
 
-            interface(std::numeric_limits<iptr_type>::min() + 1, 0, 1);
-
-	        for (auto r = 0; r < num_threads; ++r)
-   	            pool.push_task(task, r);
-            pool.wait_for_tasks();
-
-            for (auto r = 0; r < num_threads; ++ r)
-                if (_part._seqs[r] == 1)
-                    pool.push_task(interface, -1 - r, 1, 2);
-            pool.wait_for_tasks();
-
-            interface(std::numeric_limits<iptr_type>::min() + 1, 1, 2);
-
-            auto reduction_task = [&](auto r, auto c) {
-                if (multi_nset[r + (c / 2)].count() > +0)
-                    for (auto it = multi_nset[r + (c / 2)].head(); it != multi_nset[r + (c / 2)].tend(); ++ it)
-                        multi_nset[r].push_tail(* it);
-            };
-            
-            if (num_threads > 2) {
-                auto s = 0;
-                for (auto i = 1; i < num_threads; ++ i)
-                    s += multi_nset[i].count();
-                
-                if (s > 0)
-                    for (auto cycle = 2; cycle < num_threads; cycle *= 2) {
-                        for (auto rank = 0; rank < num_threads; rank += cycle)
-                            pool.push_task(reduction_task, rank, cycle);
-                        pool.wait_for_tasks();
-                    }
-            }
-            
             if (num_threads > 1) {
+                for (auto r = 0; r < num_threads; ++r)
+                    if (_part._seqs[r] == 1)
+                        pool.push_task(interface, -1 - r, 0, 1);
+                pool.wait_for_tasks();
+
+                interface(std::numeric_limits<iptr_type>::min() + 1, 0, 1);
+
+                for (auto r = 0; r < num_threads; ++r)
+                    pool.push_task(task, r);
+                pool.wait_for_tasks();
+
+                for (auto r = 0; r < num_threads; ++r)
+                    if (_part._seqs[r] == 1)
+                        pool.push_task(interface, -1 - r, 1, 2);
+                pool.wait_for_tasks();
+
+                interface(std::numeric_limits<iptr_type>::min() + 1, 1, 2);
+
+                auto reduction_task = [&](auto r, auto c) {
+                    if (multi_nset[r + (c / 2)].count() > +0)
+                        for (auto it = multi_nset[r + (c / 2)].head(); it != multi_nset[r + (c / 2)].tend(); ++it)
+                            multi_nset[r].push_tail(*it);
+                };
+
+                if (num_threads > 2) {
+                    auto s = 0;
+                    for (auto i = 1; i < num_threads; ++i)
+                        s += multi_nset[i].count();
+
+                    if (s > 0)
+                        for (auto cycle = 2; cycle < num_threads; cycle *= 2) {
+                            for (auto rank = 0; rank < num_threads; rank += cycle)
+                                pool.push_task(reduction_task, rank, cycle);
+                            pool.wait_for_tasks();
+                        }
+                }
+
                 for (auto i = 1; i < num_threads; ++i)
                     _nmov += multi_nmov[i];
                 if (multi_nset[num_threads / 2].count() > 0)
-                    for (auto it = multi_nset[num_threads / 2].head(); it != multi_nset[num_threads / 2].tend(); ++ it)
-                        multi_nset[0].push_tail(* it);
-            }
+                    for (auto it = multi_nset[num_threads / 2].head();
+                         it != multi_nset[num_threads / 2].tend(); ++it)
+                        multi_nset[0].push_tail(*it);
 
+            } else
+                task(0);
 
     #       ifdef  __use_timers
             _ttoc = _time.now() ;
@@ -636,38 +639,121 @@
             _ttic = _time.now() ;
     #       endif//__use_timers
 
-            iptr_list _amrk, _lset, _aset ;
-            _amrk.set_count(
-                _mesh.node().count() ,
-                    containers::tight_alloc,-1) ;
+             part_sets _part;
+             part_mesh(_mesh, _part, num_threads) ;
 
-            _lset.set_alloc(
-                _mesh.node().count()) ;
-            _aset.set_alloc(
-                _mesh.node().count()) ;
+             iptr_list _amrk;
+             containers::array< iptr_list > multi_aset;
+             containers::array< iptr_list > multi_lset;
 
-            _nsub = std::max(_nsub/2, +1) ;
+             // Possibly global -- _amrk
+             _amrk.set_count(_mesh.node().count(), containers::tight_alloc, -1);
+             multi_aset.set_count(num_threads, containers::tight_alloc);
+             multi_lset.set_count(num_threads, containers::tight_alloc);
+             multi_nset.set_count(num_threads);
 
-            conn_sets _conn ;
-            for (auto _isub = + 0 ;
-                _isub != _nsub; ++_isub )
-            {
-                if (_opts.verb() >= +3)
-                    _dump.push(
-                "**CALL MOVE-DUAL...\n" ) ;
+             for (auto i = 0; i < num_threads; ++i) {
+                 auto j = _part._lptr[i + 1] - _part._lptr[i];
+                 multi_lset[i].set_alloc(j);
+                 multi_aset[i].set_alloc(j);
+                 multi_nset[i].set_count(+0);
+             }
+             _nsub = std::max(_nsub/2, 1);
+             conn_sets _conn ;
 
-                iptr_type  _nloc;
-                move_dual( _geom, _mesh , _conn ,
-                    _hfun, _hval,
-                    multi_nset[0], _lset, _aset ,
-                    _amrk, _mark,
-                    _iter, _isub, _opts ,
-                    _nloc, _QLIM, _DLIM , _tcpu);
+             pull_conn(_mesh, _conn);
 
-                _nloc = _nloc / 2 ;
+             auto interface = [&](auto rank, auto pass_min, auto pass_max) {
+                 auto r = rank == std::numeric_limits<iptr_type>::min() + 1 ?
+                          0 : (rank + 1) * -1;
+                 for (auto _isub = + 0; _isub != _nsub; ++_isub ) {
+                     if (_opts.verb() >= +3)
+                         _dump.push("**CALL MOVE-DUAL...\n");
+                     iptr_type _nloc;
 
-                _nmov = std::max (_nmov , _nloc);
-            }
+                     move_dual( _geom, _mesh , _conn ,
+                                _hfun, _hval,
+                                multi_nset[r], multi_lset[r], multi_aset[r],
+                                _amrk, _mark,
+                                _iter, _isub, _opts ,
+                                _nloc, _QLIM, _DLIM ,
+                                _tcpu, rank,
+                                _part, pass_min,
+                                pass_max);
+                     _nloc = _nloc / 2;
+                     _nmov = std::max(_nmov, _nloc);
+                 }
+             };
+
+             auto task = [&](auto rank) {
+                 for (auto _isub = + 0; _isub != _nsub; ++_isub ) {
+                     if (_opts.verb() >= +3)
+                         _dump.push("**CALL MOVE-DUAL...\n");
+                     iptr_type _nloc;
+
+                     move_dual( _geom, _mesh , _conn ,
+                                _hfun, _hval,
+                                multi_nset[rank], multi_lset[rank], multi_aset[rank],
+                                _amrk, _mark,
+                                _iter, _isub, _opts ,
+                                _nloc, _QLIM, _DLIM ,
+                                _tcpu, rank, _part, 0, 2);
+
+                     _nloc = _nloc / 2;
+                     multi_nmov[rank] = std::max(multi_nmov[rank], _nloc);
+                 }
+             };
+
+             if (num_threads > 1) {
+
+                 for (auto r = 0; r < num_threads; ++r)
+                     if (_part._seqs[r] == 1)
+                         pool.push_task(interface, -1 - r, 0, 1);
+                 pool.wait_for_tasks();
+
+                 interface(std::numeric_limits<iptr_type>::min() + 1, 0, 1);
+
+                 for (auto r = 0; r < num_threads; ++r)
+                     pool.push_task(task, r);
+                 pool.wait_for_tasks();
+
+                 for (auto r = 0; r < num_threads; ++r)
+                     if (_part._seqs[r] == 1)
+                         pool.push_task(interface, -1 - r, 1, 2);
+                 pool.wait_for_tasks();
+
+                 interface(std::numeric_limits<iptr_type>::min() + 1, 1, 2);
+
+                 auto reduction_task = [&](auto r, auto c) {
+                     if (multi_nset[r + (c / 2)].count() > +0)
+                         for (auto it = multi_nset[r + (c / 2)].head(); it != multi_nset[r + (c / 2)].tend(); ++it)
+                             multi_nset[r].push_tail(*it);
+                 };
+
+                 if (num_threads > 2) {
+                     auto s = 0;
+                     for (auto i = 1; i < num_threads; ++i)
+                         s += multi_nset[i].count();
+
+                     if (s > 0)
+                         for (auto cycle = 2; cycle < num_threads; cycle *= 2) {
+                             for (auto rank = 0; rank < num_threads; rank += cycle)
+                                 pool.push_task(reduction_task, rank, cycle);
+                             pool.wait_for_tasks();
+                         }
+                 }
+
+                 for (auto i = 1; i < num_threads; ++i)
+                     _nmov += multi_nmov[i];
+                 if (multi_nset[num_threads / 2].count() > 0)
+                     for (auto it = multi_nset[num_threads / 2].head();
+                          it != multi_nset[num_threads / 2].tend(); ++it)
+                         multi_nset[0].push_tail(*it);
+
+             } else
+                 task(0);
+
+
             _tcpu._move_dual +=
                   _tcpu.time_span(_ttic , _ttoc);
     #       endif//__use_timers
