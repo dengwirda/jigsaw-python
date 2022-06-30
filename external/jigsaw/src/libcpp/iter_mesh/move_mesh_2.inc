@@ -494,7 +494,7 @@
         real_type  _QLIM ,
         real_type  _DLIM ,
         iter_opts &_opts
-        
+
         )
     {
     #   define PUSHSORT(_NODE)  \
@@ -752,6 +752,278 @@
     #   undef   PUSHCONN
     }
 
+    __static_call
+            __normal_call void_type sort_node (
+            mesh_type &_mesh ,
+            conn_sets &_CONN ,
+            iptr_list &_lset ,
+            iptr_list &_aset ,
+            iptr_list &_nmrk ,
+            iptr_list &_amrk ,
+            iptr_type  _iout ,
+            iptr_type  _isub ,
+            real_type  _QLIM ,
+            real_type  _DLIM ,
+            iter_opts &_opts ,
+            std::int32_t _rank ,
+            part_sets &_prts
+    )
+    {
+    #   define PUSHSORT(_NODE)  \
+            if (_amrk[_NODE] != _isub)      \
+            {               \
+                _amrk[_NODE]  = _isub;      \
+                _sset.push_tail(            \
+                 cost_pair(_NODE, 1.)) ;    \
+            }
+
+    #   define PUSHCONN(_NODE)  \
+            if (_amrk[_NODE] != _isub)      \
+            {               \
+                _amrk[_NODE]  = _isub;      \
+                _aset.push_tail(_NODE) ;    \
+            }
+
+    #   define PUSHCOST(_NODE , _COST)      \
+            _qbar[_NODE] += _COST ;         \
+            _nadj[_NODE] += +1 ;\
+            _qmin[_NODE]  =     \
+        std::min (_qmin[_NODE], _COST) ;
+
+        class cost_pair
+        {
+        public  :
+            /*------------------------ tuple for node re-ordering */
+            iptr_type           _node ;
+            float               _cost ;
+
+            /*------------------------ construct inline from src. */
+            __inline_call cost_pair (
+                    iptr_type const&_nsrc ,
+                    real_type const&_csrc
+            )   :
+                    _node (_nsrc),
+                    _cost((float)_csrc) {}
+        } ;
+
+        class cost_pred
+        {
+        public  :
+            /*------------------------ less-than op. for cost-tup */
+            __inline_call
+                    bool_type operator () (
+                    cost_pair const&_idat ,
+                    cost_pair const&_jdat
+            ) const
+            { return _idat._cost > _jdat._cost ;
+            }
+        } ;
+
+        typedef
+        containers::array<cost_pair> cost_list ;
+
+        real_list _qbar, _qmin ;
+        iptr_list _nadj ;
+        cost_list _sset ;
+
+        __unreferenced ( _DLIM ) ;
+        __unreferenced ( _opts ) ;
+
+        if (_isub == (iptr_type) +0)
+        {
+            /*-------------------- 1ST SUB-ITER: build full init. */
+            _qbar.set_count(
+                    _mesh.node().count(),
+                    containers::tight_alloc, +0.0) ;
+            _qmin.set_count(
+                    _mesh.node().count(),
+                    containers::tight_alloc, +1.0) ;
+            _nadj.set_count(
+                    _mesh.node().count(),
+                    containers::tight_alloc, + 0 ) ;
+
+            _sset.set_alloc(
+                    _mesh.node().count())  ;
+
+
+
+            for (auto _tria  = _mesh.tri3().head() ;
+                 _tria != _mesh.tri3().tend() ;
+                 ++_tria  )
+            {
+                if (_tria->mark() >= +0 && _prts._trls[_tria - _mesh.tri3().head()] == _rank)
+                {
+                    /*-------------------- calc. min. scores at nodes */
+                    iptr_type _inod, _jnod, _knod;
+                    _inod = _tria->node( 0);
+                    _jnod = _tria->node( 1);
+                    _knod = _tria->node( 2);
+
+                    real_type _cost;
+                    _cost = pred_type::tri3_cost (
+                            &_mesh .node(
+                                    _tria->node(0)).pval(0),
+                            &_mesh .node(
+                                    _tria->node(1)).pval(0),
+                            &_mesh .node(
+                                    _tria->node(2)).pval(0),
+                            typename
+                            pred_type::cell_kind ()) ;
+
+                    PUSHSORT( _inod )
+                    PUSHCOST( _inod, _cost )
+                    PUSHSORT( _jnod )
+                    PUSHCOST( _jnod, _cost )
+                    PUSHSORT( _knod )
+                    PUSHCOST( _knod, _cost )
+                }
+            }
+
+            for (auto _quad  = _mesh.quad().head() ;
+                 _quad != _mesh.quad().tend() ;
+                 ++_quad  )
+            {
+                if (_quad->mark() >= +0)
+                {
+                    /*-------------------- calc. min. scores at nodes */
+                    iptr_type _inod, _jnod, _knod,
+                            _lnod;
+                    _inod = _quad->node( 0);
+                    _jnod = _quad->node( 1);
+                    _knod = _quad->node( 2);
+                    _lnod = _quad->node( 3);
+
+                    real_type _cost;
+                    _cost = pred_type::quad_cost (
+                            &_mesh .node(
+                                    _quad->node(0)).pval(0),
+                            &_mesh .node(
+                                    _quad->node(1)).pval(0),
+                            &_mesh .node(
+                                    _quad->node(2)).pval(0),
+                            &_mesh .node(
+                                    _quad->node(3)).pval(0),
+                            typename
+                            pred_type::cell_kind ()) ;
+
+                    PUSHSORT( _inod )
+                    PUSHCOST( _inod, _cost )
+                    PUSHSORT( _jnod )
+                    PUSHCOST( _jnod, _cost )
+                    PUSHSORT( _knod )
+                    PUSHCOST( _knod, _cost )
+                    PUSHSORT( _lnod )
+                    PUSHCOST( _lnod, _cost )
+                }
+            }
+
+            for (auto _iter  =
+                    _qbar.count(); _iter-- != +0; )
+            {
+                /*------------------------ assign score for each node */
+                _qbar[_iter] /=
+                        std::max(+1, _nadj [_iter]) ;
+            }
+
+            for (auto _iter  = _sset.head() ;
+                 _iter != _sset.tend() ;
+                 ++_iter  )
+            {
+                _iter->_cost =
+                        (float)_qbar [_iter->_node] -
+                        (float)_qmin [_iter->_node] ;
+            }
+
+            algorithms::qsort( _sset.head() ,
+                               _sset.tend() ,
+                               cost_pred () ) ;
+
+            iptr_type _FLAG  = _iout - 2 ; // only "recent"
+
+            for (auto _iter  = _sset.head() ;
+                 _iter != _sset.tend() ;
+                 ++_iter  )
+            {
+                /*------------------------ push sorted wrt. min.-cost */
+                if (std::abs(
+                        _nmrk[_iter->_node]) >= _FLAG || // recent
+                    _qmin[_iter->_node]  <= _QLIM )  // skewed
+                {
+                    _amrk[_iter->_node]   = _isub ;
+                    _aset.push_tail( _iter->_node ) ;
+                }
+            }
+
+        }
+        else
+        {
+            /*-------------------- NTH sub-iter: init. from prev. */
+            for (auto _iter  = _lset.head() ;
+                 _iter != _lset.tend() ;
+                 ++_iter  )
+            {
+                PUSHCONN( *_iter )
+            }
+
+            /*-------------------- add adj.: 1-ring neighbourhood */
+            for (auto _iter =
+                    _aset.count() ; _iter-- != 0; )
+            {
+                auto _apos =   _aset [_iter] ;
+
+                /*-------------------- push any 1-cell neighbours */
+                for (auto _next  =
+                        _CONN._adj1.head()+_CONN._idx1[_apos+0] ;
+                     _next !=
+                     _CONN._adj1.head()+_CONN._idx1[_apos+1] ;
+                     ++_next  )
+                {
+                    if (_next->_kind == EDGE2_tag)
+                    {
+                        auto _eptr =
+                                _mesh. edge().head()+_next->_cell ;
+
+                        PUSHCONN( _eptr->node(0) )
+                        PUSHCONN( _eptr->node(1) )
+                    }
+                }
+
+                /*-------------------- push any 2-cell neighbours */
+                for (auto _next  =
+                        _CONN._adj2.head()+_CONN._idx2[_apos+0] ;
+                     _next !=
+                     _CONN._adj2.head()+_CONN._idx2[_apos+1] ;
+                     ++_next  )
+                {
+                    if (_next->_kind == TRIA3_tag)
+                    {
+                        auto _tptr =
+                                _mesh. tri3().head()+_next->_cell ;
+
+                        PUSHCONN( _tptr->node(0) )
+                        PUSHCONN( _tptr->node(1) )
+                        PUSHCONN( _tptr->node(2) )
+                    }
+                    else
+                    if (_next->_kind == QUAD4_tag)
+                    {
+                        auto _qptr =
+                                _mesh. quad().head()+_next->_cell ;
+
+                        PUSHCONN( _qptr->node(0) )
+                        PUSHCONN( _qptr->node(1) )
+                        PUSHCONN( _qptr->node(2) )
+                        PUSHCONN( _qptr->node(3) )
+                    }
+                }
+            }
+
+        }
+    #   undef   PUSHCOST
+    #   undef   PUSHSORT
+    #   undef   PUSHCONN
+    }
+
     /*
     --------------------------------------------------------
      * MOVE-NODE: do a single node smoothing pass.
@@ -766,7 +1038,7 @@
         hfun_type &_hfun ,
         char_type  _kern ,
         real_list &_hval ,
-        containers::array< iptr_list> &_nset ,
+        iptr_list &_nset ,
         iptr_list &_lset ,
         iptr_list &_aset ,
         iptr_list &_amrk ,
@@ -778,9 +1050,11 @@
         real_type  _QLIM ,
         real_type  _DLIM ,
         iter_stat &_tcpu ,
-	    std::int32_t    &_rank ,
-    	part_sets &_prts
-	
+	    std::int32_t    _rank ,
+    	part_sets &_prts ,
+        std::int32_t pass_min ,
+        std::int32_t pass_max
+
         )
     {
     #   define MARK(_NODE) _mark._node[_NODE]
@@ -796,7 +1070,7 @@
                            _aset.hend())
 
     #   define ITER(_PASS)(_PASS == +0 ? +1 : -1)
-        conn_list _conn;
+
         real_list _qold, _qnew, _dold, _dnew;
 
     #   ifdef  __use_timers
@@ -816,12 +1090,12 @@
         _ttic = _time.now() ;
     #   endif//__use_timers
 
-//        _aset.set_count(+0) ;
-
-//        sort_node(_mesh, _CONN, _lset, _aset,
-//            _mark._node, _amrk, _iout, _isub,
-//            _QLIM,_DLIM, _opts) ;
-        
+        _aset.set_count(+0) ;
+        conn_list _conn;
+        sort_node(_mesh, _CONN, _lset, _aset,
+            _mark._node, _amrk, _iout, _isub,
+            _QLIM,_DLIM, _opts, _rank, _prts) ;
+//        std::cout << _aset.count() << ' ' << _rank << '\n';
         _nmov = (iptr_type)0;
 
     #   ifdef  __use_timers
@@ -840,63 +1114,61 @@
         if (_opts .tria())  // 1=>GS, 2=>SGS
         {
 
-        auto limit = _prts._lptr[_rank + 1];
-        auto start = _prts._lptr[_rank];
-         
-        if (_rank < 0) {
-            limit = _prts._ifls.count();
-            start = 0;
-        }
+//        auto limit = _prts._lptr[_rank + 1];
+//        auto start = _prts._lptr[_rank];
+//
+//        if (_rank < 0) {
+//            limit = _prts._ifls.count();
+//            start = 0;
+//        }
+//        std::cout << _aset.count() << ' ' << _prts._lptr[_rank + 1] - _prts._lptr[_rank] << std::endl;
+        for (auto _pass  = pass_min; _pass < pass_max; ++_pass)
+            for (auto _apos = HEAD(_pass); _apos != STOP(_pass); _apos += ITER(_pass)) {
 
-        for (auto _pass  = 0; _pass < 2; ++_pass)
-            for (size_t _ape = start; _ape < limit; ++ _ape) {
-                auto _apos = _prts._list[_ape];                
-                if (_rank < 0)                
-                    _apos = _prts._ifls[_ape];
-                    
-                auto _node = _mesh.node().head() + _apos;
-                _conn.set_count( +0) ; // extract set of adj. tri3’s for this node
+                auto _node = _mesh.node().head() + *_apos;
+                _conn.set_count(+0); // extract set of adj. tri3’s for this node
                 _conn.push_tail(
-                _CONN._adj2.head()+_CONN._idx2[_apos+0],
-                _CONN._adj2.head()+_CONN._idx2[_apos+1]
-                     ) ;
-                if (_conn.empty()) continue ; // skip any unattached nodes
-                if (_mark._node[_apos] >= +0 && (_rank < 0 || _prts._itfc[_apos] == 0)) // skip nodes not allowed to move
-                {                             // perhaps also skip interface nodes here too?]
-                    
-                    _qold.set_count( +0) ;
-                    _qnew.set_count( +0) ; // lists of adj. tri3 “scores”
+                        _CONN._adj2.head() + _CONN._idx2[*_apos + 0],
+                        _CONN._adj2.head() + _CONN._idx2[*_apos + 1]
+                );
+                if (_conn.empty()) continue; // skip any unattached nodes
+                if (_mark._node[*_apos] >= +0) {
+
+                    _qold.set_count(+0);
+                    _qnew.set_count(+0); // lists of adj. tri3 “scores”
 
                     // get tri3 scores given current node position
                     real_type _QMIN = loop_cost(_mesh, _conn, _qold, cell_kind());
 
                     // call kernel to optimise single node position
-                    iptr_type _move = -1 ; // haven’t moved yet
-                    move_node( _geom, _mesh,
-                               _hfun, _hval,
-                               _opts, _node, _kern,
-                               _move, _conn,
-                               _qold, _qnew,
-                               _QMIN, _QLIM, _tcpu) ;
+                    iptr_type _move = -1; // haven’t moved yet
+                    move_node(_geom, _mesh,
+                              _hfun, _hval,
+                              _opts, _node, _kern,
+                              _move, _conn,
+                              _qold, _qnew,
+                              _QMIN, _QLIM, _tcpu);
 
                     if (_move > +0)  // if node has been successfully optimised
-                    {  
-                        _hval[_apos] = (real_type)-1; // to force a recalc. of internal data
+                    {
 
-                        if (std::abs(MARK( _apos )) !=_iout) // keep track of moving nodes
+                        _hval[*_apos] = (real_type) - 1; // to force a recalc. of internal data
+
+                        if (std::abs(MARK(*_apos)) != _iout) // keep track of moving nodes
                         {
-                            if (MARK( _apos ) >= 0)
-                                MARK( _apos ) = +_iout;
+                            if (MARK(*_apos) >= 0)
+                                MARK(*_apos) = +_iout;
                             else
-                                MARK( _apos ) = -_iout;
-                            _nset[_rank >= 0 ? _rank : 0].push_tail (_apos) ; // array of nodes that have moved
+                                MARK(*_apos) = -_iout;
+                            _nset.push_tail(*_apos); // array of nodes that have moved
                         }
-                        _nmov += +1 ;
+                        _lset.push_tail(*_apos);
+                        _nmov += +1;
                     }
                 }
-            } 
             }
-            
+        }
+
             // here
 
 
@@ -1066,6 +1338,7 @@
              auto _node  =
             _mesh.node().head()+ *_apos ;
 
+
         /*---------------- assemble a local tria. stencil */
             _conn.set_count( +0) ;
             _conn.push_tail(
@@ -1078,6 +1351,8 @@
         /*---------------- attempt to optimise DUAL geom. */
             _dold.set_count( +0) ;
             _dnew.set_count( +0) ;
+
+
 
             real_type  _DMIN =
             loop_cost( _mesh,
@@ -1127,6 +1402,8 @@
     #   undef   STOP
     #   undef   ITER
     }
+
+
 
 
 

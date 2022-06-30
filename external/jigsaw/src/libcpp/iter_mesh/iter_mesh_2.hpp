@@ -122,6 +122,8 @@
             ::array< real_type >        real_list ;
     typedef containers
             ::array< bool      >        bool_list ;
+    typedef containers
+            ::array< std::int32_t >     sint_list ;
 
     class mark_list                 // integer cell markers
         {
@@ -140,6 +142,8 @@
         iptr_list                      _part;
         bool_list                      _itfc; 
         iptr_list                      _ifls;
+        iptr_list                      _trls;
+        iptr_list                      _seqs;
         } ;
 
     typedef typename
@@ -484,83 +488,84 @@
     #       ifdef  __use_timers
             _ttic = _time.now() ;
     #       endif//__use_timers
-        
 
-        //!! hacking in mesh decomp. here
-        //!! considering partition is formed through bisection, assume that
-        //!! we'll be restricted to npart = powers-of-two...
-        //!! here, just hard code npart=4 for initial testing
             part_sets _part;
             part_mesh(_mesh, _part, num_threads) ;
 
+            iptr_list _amrk;
+            containers::array< iptr_list > multi_aset;
+            containers::array< iptr_list > multi_lset;
 
-            
-            iptr_list _amrk, _aset, _lset ;
-            _amrk.set_count(
-                _mesh.node().count() ,
-                    containers::tight_alloc,-1) ;
-            
-            _lset.set_alloc(
-                _mesh.node().count()) ;
-            _aset.set_alloc(
-                _mesh.node().count()) ;
+            // Possibly global -- _amrk
+            _amrk.set_count(_mesh.node().count(), containers::tight_alloc, -1);
+            multi_aset.set_count(num_threads, containers::tight_alloc);
+            multi_lset.set_count(num_threads, containers::tight_alloc);
+            multi_nset.set_count(num_threads);
+
+            for (auto i = 0; i < num_threads; ++i) {
+                auto j = _part._lptr[i + 1] - _part._lptr[i];
+                multi_lset[i].set_alloc(j);
+                multi_aset[i].set_alloc(j);
+                multi_nset[i].set_count(+0);
+            }
 
             conn_sets _conn ;
             
             pull_conn(_mesh, _conn);
 
-            multi_nset.set_count(num_threads);
-            for (auto i = 0; i < num_threads; ++ i)
-                multi_nset[i].set_count(+0);
-
-            auto interface_seq = [&](){
-                int32_t varthing = -1;
+            auto interface = [&](auto rank, auto pass_min, auto pass_max) {
+                auto r = rank == std::numeric_limits<iptr_type>::min() + 1 ?
+                         0 : (rank + 1) * -1;
                 for (auto _isub = + 0; _isub != _nsub; ++_isub ) {
-	                if (_opts.verb() >= +3)
-                	   _dump.push("**CALL MOVE-NODE...\n" );
-	                iptr_type  _nloc;
-                	move_node( _geom, _mesh , _conn ,
-                        _hfun, _kern, _hval ,
-	                    multi_nset, _lset, _aset ,
-                	    _amrk, _mark,
-                        _iter, _isub, _opts ,
-	                    _nloc, _QLIM, _DLIM , _tcpu, varthing, _part);
-
-                	_nloc = _nloc / 2 ;
-                    // There's a race condition on _nmov
-                    _nmov = std::max (_nmov , _nloc);
-	            }
+                    if (_opts.verb() >= +3)
+                        _dump.push("**CALL MOVE-NODE...\n");
+                    iptr_type _nloc;
+                    move_node(_geom, _mesh, _conn,
+                              _hfun, _kern, _hval,
+                              multi_nset[r], multi_lset[r], multi_aset[r],
+                              _amrk, _mark,
+                              _iter, _isub, _opts,
+                              _nloc, _QLIM, _DLIM, _tcpu,
+                              rank, _part,
+                              pass_min, pass_max);
+                    _nloc = _nloc / 2;
+                    _nmov = std::max(_nmov, _nloc);
+                }
             };
-            
 
 	        auto task = [&](auto rank) {  
                 for (auto _isub = + 0; _isub != _nsub; ++_isub ) {
-	                if (_opts.verb() >= +3)
-            	       _dump.push("**CALL MOVE-NODE...\n" );
-	                iptr_type  _nloc;
-            	    move_node( _geom, _mesh , _conn ,
-                        _hfun, _kern, _hval ,
-	                    multi_nset, _lset, _aset ,
-            	        _amrk, _mark,
-                        _iter, _isub, _opts ,
-	                    _nloc, _QLIM, _DLIM , _tcpu, rank, _part);
+                    if (_opts.verb() >= +3)
+                        _dump.push("**CALL MOVE-NODE...\n");
+                    iptr_type _nloc;
+                    move_node(_geom, _mesh, _conn,
+                              _hfun, _kern, _hval,
+                              multi_nset[rank], multi_lset[rank], multi_aset[rank],
+                              _amrk, _mark,
+                              _iter, _isub, _opts,
+                              _nloc, _QLIM, _DLIM, _tcpu, rank, _part, 0, 2);
 
-            	    _nloc = _nloc / 2 ;
-                    // There's a race condition on _nmov
-                    multi_nmov[rank] = std::max (multi_nmov[rank] , _nloc);
-	            }                  
+                    _nloc = _nloc / 2;
+                    multi_nmov[rank] = std::max(multi_nmov[rank], _nloc);
+                }
 	        };
-//            interface_seq();
+            for (auto r = 0; r < num_threads; ++ r)
+                if (_part._seqs[r] == 1)
+                    pool.push_task(interface, -1 - r, 0, 1);
+            pool.wait_for_tasks();
+
+            interface(std::numeric_limits<iptr_type>::min() + 1, 0, 1);
+
 	        for (auto r = 0; r < num_threads; ++r)
    	            pool.push_task(task, r);
             pool.wait_for_tasks();
 
+            for (auto r = 0; r < num_threads; ++ r)
+                if (_part._seqs[r] == 1)
+                    pool.push_task(interface, -1 - r, 1, 2);
+            pool.wait_for_tasks();
 
-            // These defined items don't work, not sure why
-            #define RT_HEAD(r, c)    \
-                multi_nset[r + c / 2].head();
-            #define RT_TAIL(r, c)    \
-                multi_nset[r + c / 2].tend();
+            interface(std::numeric_limits<iptr_type>::min() + 1, 1, 2);
 
             auto reduction_task = [&](auto r, auto c) {
                 if (multi_nset[r + (c / 2)].count() > +0)
@@ -570,7 +575,7 @@
             
             if (num_threads > 2) {
                 auto s = 0;
-                for (auto i = 0; i < num_threads; ++ i)
+                for (auto i = 1; i < num_threads; ++ i)
                     s += multi_nset[i].count();
                 
                 if (s > 0)
@@ -589,7 +594,7 @@
                         multi_nset[0].push_tail(* it);
             }
 
-            interface_seq();
+
     #       ifdef  __use_timers
             _ttoc = _time.now() ;
             _tcpu._move_node +=

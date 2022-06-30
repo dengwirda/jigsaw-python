@@ -61,6 +61,8 @@
         _part._part.clear();
         _part._itfc.clear();
         _part._ifls.clear();
+        _part._trls.clear();
+        _part._seqs.clear();
 
         _tree.dcmp(_part._lptr , _part._list) ;
 
@@ -71,6 +73,10 @@
     // PART[J] = K is partition for J-th mesh node 
         _part._part.set_count(_mesh.node().count(), 
             containers::tight_alloc, (iptr_type) -1 ) ;
+        _part._trls.set_count(_mesh.tri3().count(),
+                              containers::tight_alloc,
+                              std::numeric_limits<iptr_type>::min());
+        _part._seqs.set_count(_nprt, containers::tight_alloc, 0);
 
         for (auto _list = (size_t)0; 
             _list < _part._lptr.count() - 1; ++_list)
@@ -92,12 +98,25 @@
                 auto i = _iter->node(0);
                 auto j = _iter->node(1);
                 auto k = _iter->node(2);
-                auto l = _part._part[j];
-                auto m = _part._part[i] == l && l == _part._part[k];
-                if (!m) {
+                auto l = _part._part[i];
+                auto m = _part._part[j];
+                auto n = _part._part[k];
+                auto o = m == l && l == n;
+                if (o)
+                    _part._trls[_iter - _mesh.tri3().head()] = l;
+                else {
                     _part._itfc[i] = 1;
                     _part._itfc[j] = 1;
                     _part._itfc[k] = 1;
+//                    _part._trls[_iter - _mesh.tri3().head()] = -1;
+                    if (m != l && l != n)
+                        _part._trls[_iter - _mesh.tri3().head()] = std::numeric_limits<iptr_type>::min() + 1;
+                    else {
+                        auto p = std::min({l, m, n});
+                        _part._seqs[p] = 1;
+                        _part._trls[_iter - _mesh.tri3().head()] = -1 - p;
+                    }
+
                 }
             }        
         }
@@ -109,7 +128,8 @@
     // write partition index to ID space in mesh node
     // struct., will be written to output file for 
     // external checking 
-        _ipos = +0;
+
+    _ipos = +0;
         for (auto _iter  = _mesh.node().head();
                   _iter != _mesh.node().tend();
                 ++_iter, ++_ipos)
