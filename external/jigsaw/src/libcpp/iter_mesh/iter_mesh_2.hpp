@@ -43,6 +43,8 @@
 
 #   pragma once
 
+#include <numeric>
+
 #   ifndef __ITER_MESH_2__
 #   define __ITER_MESH_2__
 
@@ -406,6 +408,7 @@
         }
         auto num_threads = _opts.threads();
         iter_stat  _tcpu ;
+//        if (num_threads > 1)
         BS::thread_pool pool(num_threads);
     #   ifdef  __use_timers
         typename std ::chrono::
@@ -491,6 +494,21 @@
 
             part_sets _part;
             part_mesh(_mesh, _part, num_threads) ;
+            std::cout << std::endl;
+            part_sets _one;
+            part_sets _two;
+            auto start = std::chrono::steady_clock::now();
+            bool_list scratch;
+            scratch.clear();
+            scratch.set_count(_mesh.node().count(), containers::tight_alloc, (bool_type) 0);
+            part_mesh(_mesh, _one, _two, scratch, num_threads);
+            auto end = std::chrono::steady_clock::now();
+            std::cout << "Elapsed time in milliseconds: "
+                << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
+                << " ms" << std::endl;
+//
+            std::cout << "part " << std::accumulate(_part._itfc.head(), _part._itfc.tend(), 0) << std::endl;
+            std::cout << "one " << std::accumulate(_one._itfc.head(), _one._itfc.tend(), 0) << std::endl;
 
             iptr_list _amrk;
             containers::array< iptr_list > multi_aset;
@@ -510,12 +528,11 @@
             }
 
             conn_sets _conn ;
-            
             pull_conn(_mesh, _conn);
 
             auto interface = [&](auto rank, auto pass_min, auto pass_max) {
                 auto r = rank == std::numeric_limits<iptr_type>::min() + 1 ?
-                         0 : (rank + 1) * -1;
+                         0 : -1 - rank;
                 for (auto _isub = + 0; _isub != _nsub; ++_isub ) {
                     if (_opts.verb() >= +3)
                         _dump.push("**CALL MOVE-NODE...\n");
@@ -529,11 +546,11 @@
                               rank, _part,
                               pass_min, pass_max);
                     _nloc = _nloc / 2;
-                    _nmov = std::max(_nmov, _nloc);
+                    _nmov = std::max(multi_nmov[r], _nloc);
                 }
             };
 
-	        auto task = [&](auto rank) {  
+	        auto task = [&](auto rank) {
                 for (auto _isub = + 0; _isub != _nsub; ++_isub ) {
                     if (_opts.verb() >= +3)
                         _dump.push("**CALL MOVE-NODE...\n");
@@ -576,6 +593,7 @@
                 };
 
                 if (num_threads > 2) {
+
                     auto s = 0;
                     for (auto i = 1; i < num_threads; ++i)
                         s += multi_nset[i].count();
@@ -634,6 +652,7 @@
 
             if (_opts.dual())
             {
+                std::cout << "we got in here" << std::endl;
     /*------------------------------ update mesh geometry */
     #       ifdef  __use_timers
             _ttic = _time.now() ;
@@ -665,7 +684,7 @@
 
              auto interface = [&](auto rank, auto pass_min, auto pass_max) {
                  auto r = rank == std::numeric_limits<iptr_type>::min() + 1 ?
-                          0 : (rank + 1) * -1;
+                          0 : -1 - rank;
                  for (auto _isub = + 0; _isub != _nsub; ++_isub ) {
                      if (_opts.verb() >= +3)
                          _dump.push("**CALL MOVE-DUAL...\n");
@@ -681,7 +700,7 @@
                                 _part, pass_min,
                                 pass_max);
                      _nloc = _nloc / 2;
-                     _nmov = std::max(_nmov, _nloc);
+                     _nmov = std::max(multi_nmov[r], _nloc);
                  }
              };
 
@@ -752,6 +771,7 @@
 
              } else
                  task(0);
+
 
 
             _tcpu._move_dual +=
