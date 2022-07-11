@@ -1,6 +1,7 @@
 
 from pathlib import Path
 from jigsawpy.jig_t import jigsaw_jig_t
+import math
 
 
 def savechar(fptr, sval, stag):
@@ -187,6 +188,7 @@ def savejig(name, opts):
         if (opts.optm_cost is not None):
             savechar(fptr, opts.optm_cost, "OPTM_COST")
         if (opts.num_threads is not None):
+            assert math.log2(opts.num_threads).is_integer(), "opts.num_threads must be a power of 2."
             saveints(fptr, opts.num_threads, "NUM_THREADS")
         if (opts.optm_iter is not None):
             saveints(fptr, opts.optm_iter, "OPTM_ITER")
