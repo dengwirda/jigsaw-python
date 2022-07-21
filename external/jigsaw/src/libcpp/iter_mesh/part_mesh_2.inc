@@ -45,6 +45,7 @@
         // load items into tree and bisect
         // split until leaves contain approx nblk items
         _tree.load(_item.head(), _item.tend(), _nblk,
+                   _tree.median_split,
                    1.0,    // set LONG=1, only div. by pop.
                    0.0);  // set VTOL=0, only div. by pop.
 
@@ -219,6 +220,7 @@
             // load items into tree and bisect
             // split until leaves contain approx nblk items
             _tree.load(_item.head(), _item.tend(), _nblk,
+                       _tree.median_split,
                        1.0,    // set LONG=1, only div. by pop.
                        0.0);  // set VTOL=0, only div. by pop.
 
