@@ -46,6 +46,8 @@
 #include <numeric>
 #include <iostream>
 #include <fstream>
+#include <filesystem>
+#include <pthread.h>
 #   ifndef __ITER_MESH_2__
 #   define __ITER_MESH_2__
 
@@ -516,11 +518,20 @@
             conn_sets _conn ;
             pull_conn(_mesh, _conn);
 
+            auto affinity = [] (auto rank) {
+                cpu_set_t set;
+                CPU_ZERO(&set);
+                CPU_SET(rank, &set);
+                pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &set);
+            };
+
             auto interface = [&](auto rank, auto pass_min, auto pass_max) {
                 auto r = rank == std::numeric_limits<iptr_type>::min() + 1 ?
                          0 : -1 - rank;
+                affinity(r);
+
                 for (auto _isub = + 0; _isub != _nsub; ++_isub ) {
-                    if (_opts.verb() >= +3)
+                    if (_opts.verb() >= -+3)
                         _dump.push("**CALL MOVE-NODE...\n");
                     iptr_type _nloc;
                     move_node(_geom, _mesh, _conn,
@@ -534,12 +545,24 @@
                     _nloc = _nloc / 2;
                     _nmov = std::max(multi_nmov[r], _nloc);
                 }
+
+
+
+
+
             };
 
 	        auto task = [&](auto rank) {
+
+                auto start = std::chrono::high_resolution_clock::now();
+
+                affinity(rank);
                 for (auto _isub = + 0; _isub != _nsub; ++_isub ) {
                     if (_opts.verb() >= +3)
                         _dump.push("**CALL MOVE-NODE...\n");
+
+
+
                     iptr_type _nloc;
                     move_node(_geom, _mesh, _conn,
                               _hfun, _kern, _hval,
@@ -551,6 +574,22 @@
                     _nloc = _nloc / 2;
                     multi_nmov[rank] = std::max(multi_nmov[rank], _nloc);
                 }
+
+                auto end = std::chrono::high_resolution_clock::now();
+
+                {
+                    std::string str = "./thread_time/";
+                    str.append(std::to_string(num_threads).append("/"));
+                    std::filesystem::create_directories(str);
+                    str.append(std::to_string(rank).append(".csv"));
+                    std::ofstream out;
+                    out.open(str, std::ios_base::app);
+                    out << std::chrono::duration_cast
+                            <std::chrono::milliseconds>(end - start).count()
+                        << '\n';
+                    out.close();
+                }
+
 	        };
 
             if (num_threads > 1) {
@@ -878,7 +917,8 @@
 		    << '\t'
 		    << _tcpu._topo_flip
 		    << '\t'
-		    << _tcpu._topo_zips;
+		    << _tcpu._topo_zips
+            << '\t';
 	}
 	
 
