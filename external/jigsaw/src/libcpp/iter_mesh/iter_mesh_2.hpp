@@ -44,7 +44,8 @@
 #   pragma once
 
 #include <numeric>
-
+#include <iostream>
+#include <fstream>
 #   ifndef __ITER_MESH_2__
 #   define __ITER_MESH_2__
 
@@ -425,7 +426,7 @@
         std::srand( +1 ) ;
 
     /*------------------------------ push boundary marker */
-        
+	std::ofstream out;        
         mark_list _mark ;
         containers::array< iptr_list >        multi_nset;
         init_mark(_mesh, _mark) ;
@@ -494,21 +495,6 @@
 
             part_sets _part;
             part_mesh(_mesh, _part, num_threads) ;
-            std::cout << std::endl;
-            part_sets _one;
-            part_sets _two;
-            auto start = std::chrono::steady_clock::now();
-            bool_list scratch;
-            scratch.clear();
-            scratch.set_count(_mesh.node().count(), containers::tight_alloc, (bool_type) 0);
-            part_mesh(_mesh, _one, _two, scratch, num_threads);
-            auto end = std::chrono::steady_clock::now();
-            std::cout << "Elapsed time in milliseconds: "
-                << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()
-                << " ms" << std::endl;
-//
-            std::cout << "part " << std::accumulate(_part._itfc.head(), _part._itfc.tend(), 0) << std::endl;
-            std::cout << "one " << std::accumulate(_one._itfc.head(), _one._itfc.tend(), 0) << std::endl;
 
             iptr_list _amrk;
             containers::array< iptr_list > multi_aset;
@@ -883,6 +869,18 @@
                 _ndiv == +0 &&
                 _nflp == +0 )       break ;
         }
+
+	{
+		out.open("./time_results.csv", std::ios_base::app);
+		out << std::scientific
+		    << std::setprecision(2)	
+		    << _tcpu._move_node
+		    << '\t'
+		    << _tcpu._topo_flip
+		    << '\t'
+		    << _tcpu._topo_zips;
+	}
+	
 
         if (_opts.verb() >= +2)
         {
