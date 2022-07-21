@@ -1094,7 +1094,7 @@
         sort_node(_mesh, _CONN, _lset, _aset,
             _mark._node, _amrk, _iout, _isub,
             _QLIM,_DLIM, _opts, _rank, _prts) ;
-        std::cout << _aset.count() << ' ' << _rank << '\n';
+//        std::cout << _aset.count() << ' ' << _rank << '\n';
         _nmov = (iptr_type)0;
 
     #   ifdef  __use_timers

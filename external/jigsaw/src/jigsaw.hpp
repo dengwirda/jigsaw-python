@@ -50,7 +50,8 @@
      *
     --------------------------------------------------------
      */
-
+#include <iostream>
+#include <fstream>
     namespace JIGSAW {
 
     std::string asciibanner =
@@ -2085,6 +2086,12 @@
             _ttoc   = _time.now();
             _jlog.push(dump_time(_ttic, _ttoc));
 #           endif//__use_timers
+
+	    {
+	    	std::ofstream out;
+		out.open("./time_results.csv", std::ios_base::app);
+		out << '\n';
+	    }
         }
 
     /*-------------------------- success, if we got here! */

@@ -885,7 +885,12 @@
               << std::setprecision(2)
               << time_span(_ttic, _ttoc )
               << "sec)\n\n" ;
-
+	std::ofstream out;
+	out.open("./time_results.csv", std::ios_base::app);
+	out << std::scientific
+	    << std::setprecision(2)
+	    << time_span(_ttic, _ttoc)
+	    << '\t';
         return _sstr.str () ;
     }
 
