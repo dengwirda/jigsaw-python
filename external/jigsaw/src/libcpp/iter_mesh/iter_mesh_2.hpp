@@ -428,7 +428,7 @@
         std::srand( +1 ) ;
 
     /*------------------------------ push boundary marker */
-	std::ofstream out;        
+	    std::ofstream out;
         mark_list _mark ;
         containers::array< iptr_list >        multi_nset;
         init_mark(_mesh, _mark) ;
@@ -450,6 +450,7 @@
         for (auto _iter = +1 ;
             _iter <= _opts.iter(); ++_iter)
         {
+            std::cout << "in opti iter " << _iter << '\n';
     /*------------------------------ set-up current iter. */
             init_mark(_mesh, _mark,
                 std::max(_iter-1, +0)) ;
@@ -495,15 +496,44 @@
             _ttic = _time.now() ;
     #       endif//__use_timers
 
-            part_sets _part;
-            part_mesh(_mesh, _part, num_threads) ;
+            // hard code in a lookup table for affinity on cori-haswell
+            // Couldn't figure out how to use containers::hash_table
+            // and couldn't figure out how to get unordered map to work with
+            // iptr_type/iptr_list.
 
-            iptr_list _amrk;
+            const std::unordered_map<int32_t, std::vector<int32_t> > affinity_lookup = {
+                    {1, {0}},
+                    {2, {0, 16}},
+                    {4, {0, 1, 16, 17}},
+                    {8, {0, 1, 2, 3, 16, 17, 18, 19}},
+                    {16, {0, 1, 2, 3, 4, 5, 6, 7, 16, 17, 18, 19, 20, 21, 22, 23}},
+                    {32, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31}},
+                    {64, {0, 32, 1, 33, 2, 34, 3, 35, 4, 36, 5, 37, 6, 38, 7, 39, 8, 40, 9, 41, 10, 42, 11, 43, 12, 44, 13, 45, 14, 46, 15, 47,
+                          16, 48, 17, 49, 18, 50, 19, 51, 20, 52, 21, 53, 22, 54, 23, 55, 24, 56, 25, 57, 26, 58, 27, 59, 28, 60, 29, 61, 30, 62, 31, 63}}
+            };
+
+            conn_sets _conn ;
+            pull_conn(_mesh, _conn);
+
+            iptr_list whole_aset, whole_lset, _amrk, _amrk2;
+            whole_aset.set_alloc(_mesh.node().count());
+            whole_lset.set_alloc(_mesh.node().count());
+
+
+            _amrk.set_count(_mesh.node().count(), containers::tight_alloc, -1);
+            _amrk2.set_count(_mesh.node().count(), containers::tight_alloc, -1);
+
+            sort_node(_mesh, _conn, whole_lset, whole_aset,
+                    _mark._node, _amrk2, _iter, 0,
+                    _QLIM,_DLIM, _opts);
+
+            part_sets _part;
+            part_mesh(_mesh, _part, num_threads, whole_aset) ;
+
             containers::array< iptr_list > multi_aset;
             containers::array< iptr_list > multi_lset;
 
-            // Possibly global -- _amrk
-            _amrk.set_count(_mesh.node().count(), containers::tight_alloc, -1);
+
             multi_aset.set_count(num_threads, containers::tight_alloc);
             multi_lset.set_count(num_threads, containers::tight_alloc);
             multi_nset.set_count(num_threads);
@@ -515,9 +545,6 @@
                 multi_nset[i].set_count(+0);
             }
 
-            conn_sets _conn ;
-            pull_conn(_mesh, _conn);
-
             auto affinity = [] (auto rank) {
                 cpu_set_t set;
                 CPU_ZERO(&set);
@@ -528,7 +555,8 @@
             auto interface = [&](auto rank, auto pass_min, auto pass_max) {
                 auto r = rank == std::numeric_limits<iptr_type>::min() + 1 ?
                          0 : -1 - rank;
-                affinity(r);
+
+                affinity(affinity_lookup.at(num_threads)[r]);
 
                 for (auto _isub = + 0; _isub != _nsub; ++_isub ) {
                     if (_opts.verb() >= -+3)
@@ -543,12 +571,8 @@
                               rank, _part,
                               pass_min, pass_max);
                     _nloc = _nloc / 2;
-                    _nmov = std::max(multi_nmov[r], _nloc);
+                    multi_nmov[r] = std::max(multi_nmov[r], _nloc);
                 }
-
-
-
-
 
             };
 
@@ -556,7 +580,8 @@
 
                 auto start = std::chrono::high_resolution_clock::now();
 
-                affinity(rank);
+                affinity(affinity_lookup.at(num_threads)[rank]);
+
                 for (auto _isub = + 0; _isub != _nsub; ++_isub ) {
                     if (_opts.verb() >= +3)
                         _dump.push("**CALL MOVE-NODE...\n");
@@ -592,6 +617,7 @@
 
 	        };
 
+
             if (num_threads > 1) {
                 for (auto r = 0; r < num_threads; ++r)
                     if (_part._seqs[r] == 1)
@@ -617,6 +643,7 @@
                             multi_nset[r].push_tail(*it);
                 };
 
+
                 if (num_threads > 2) {
 
                     auto s = 0;
@@ -633,6 +660,7 @@
 
                 for (auto i = 1; i < num_threads; ++i)
                     _nmov += multi_nmov[i];
+
                 if (multi_nset[num_threads / 2].count() > 0)
                     for (auto it = multi_nset[num_threads / 2].head();
                          it != multi_nset[num_threads / 2].tend(); ++it)
@@ -664,6 +692,7 @@
                 +3 * _iter - 2  , _nloc ) ;
 
                 _nflp +=   _nloc;
+
             }
 
     #       ifdef  __use_timers
@@ -677,7 +706,6 @@
 
             if (_opts.dual())
             {
-                std::cout << "we got in here" << std::endl;
     /*------------------------------ update mesh geometry */
     #       ifdef  __use_timers
             _ttic = _time.now() ;
