@@ -450,7 +450,6 @@
         for (auto _iter = +1 ;
             _iter <= _opts.iter(); ++_iter)
         {
-            std::cout << "in opti iter " << _iter << '\n';
     /*------------------------------ set-up current iter. */
             init_mark(_mesh, _mark,
                 std::max(_iter-1, +0)) ;
@@ -503,13 +502,13 @@
 
             const std::unordered_map<int32_t, std::vector<int32_t> > affinity_lookup = {
                     {1, {0}},
-                    {2, {0, 16}},
-                    {4, {0, 1, 16, 17}},
-                    {8, {0, 1, 2, 3, 16, 17, 18, 19}},
+                    {2, {0, 1}},
+                    {4, {0, 1, 2, 3}},
+                    {8, {0, 1, 2, 3, 4, 5, 6, 7}},
                     {16, {0, 1, 2, 3, 4, 5, 6, 7, 16, 17, 18, 19, 20, 21, 22, 23}},
                     {32, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31}},
                     {64, {0, 32, 1, 33, 2, 34, 3, 35, 4, 36, 5, 37, 6, 38, 7, 39, 8, 40, 9, 41, 10, 42, 11, 43, 12, 44, 13, 45, 14, 46, 15, 47,
-                          16, 48, 17, 49, 18, 50, 19, 51, 20, 52, 21, 53, 22, 54, 23, 55, 24, 56, 25, 57, 26, 58, 27, 59, 28, 60, 29, 61, 30, 62, 31, 63}}
+                                16, 48, 17, 49, 18, 50, 19, 51, 20, 52, 21, 53, 22, 54, 23, 55, 24, 56, 25, 57, 26, 58, 27, 59, 28, 60, 29, 61, 30, 62, 31, 63}}
             };
 
             conn_sets _conn ;
@@ -518,7 +517,6 @@
             iptr_list whole_aset, whole_lset, _amrk, _amrk2;
             whole_aset.set_alloc(_mesh.node().count());
             whole_lset.set_alloc(_mesh.node().count());
-
 
             _amrk.set_count(_mesh.node().count(), containers::tight_alloc, -1);
             _amrk2.set_count(_mesh.node().count(), containers::tight_alloc, -1);
@@ -532,7 +530,6 @@
 
             containers::array< iptr_list > multi_aset;
             containers::array< iptr_list > multi_lset;
-
 
             multi_aset.set_count(num_threads, containers::tight_alloc);
             multi_lset.set_count(num_threads, containers::tight_alloc);
@@ -573,7 +570,6 @@
                     _nloc = _nloc / 2;
                     multi_nmov[r] = std::max(multi_nmov[r], _nloc);
                 }
-
             };
 
 	        auto task = [&](auto rank) {
@@ -585,8 +581,6 @@
                 for (auto _isub = + 0; _isub != _nsub; ++_isub ) {
                     if (_opts.verb() >= +3)
                         _dump.push("**CALL MOVE-NODE...\n");
-
-
 
                     iptr_type _nloc;
                     move_node(_geom, _mesh, _conn,
