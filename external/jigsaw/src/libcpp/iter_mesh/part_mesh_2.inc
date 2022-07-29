@@ -270,7 +270,7 @@
                         _part._itfc[i] = 1;
                         _part._itfc[j] = 1;
                         _part._itfc[k] = 1;
-                        const auto p = -1;
+                        auto p = -1;
 
                         // Sorry for this code. Yikes, it's bad!
                         if (l == -1 && m == -1 && n == -1)
