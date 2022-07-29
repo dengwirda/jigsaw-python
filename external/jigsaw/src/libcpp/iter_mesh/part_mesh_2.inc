@@ -89,6 +89,8 @@
         }
         _part._itfc.set_count(_mesh.node().count(), containers::tight_alloc, (bool_type) 0);
         // 3D Case
+
+
         // Interface Set ..?
         // --
         for (auto _iter = _mesh.tri3().head(); _iter != _mesh.tri3().tend(); ++_iter) {
@@ -144,16 +146,16 @@
     // struct., will be written to output file for 
     // external checking 
 
-//	auto _ipos = +0;
-//        for (auto _iter  = _mesh.node().head();
-//                  _iter != _mesh.node().tend();
-//                ++_iter, ++_ipos)
-//        {
-//            if (_iter->mark() >= 0)
-//            {
-//                _iter->itag() = _part._part[_ipos];
-//            }
-//        }
+	auto _ipos = +0;
+        for (auto _iter  = _mesh.node().head();
+                  _iter != _mesh.node().tend();
+                ++_iter, ++_ipos)
+        {
+            if (_iter->mark() >= 0)
+            {
+                _iter->itag() = _part._part[_ipos];
+            }
+        }
 
     }
 
@@ -195,7 +197,7 @@
 
                 if (_iter->mark() >= 0 && _iter->ndeg(TRIA3_tag) > 0) {
                     _item.push_tail();
-                    _item.tail()->ipos() = _ipos;
+                    _item.tail()->ipos() = * _ape;
 
                     for (auto _idim = geom_dims;
                          _idim-- != 0;)
@@ -268,24 +270,27 @@
                         _part._itfc[i] = 1;
                         _part._itfc[j] = 1;
                         _part._itfc[k] = 1;
+                        const auto p = -1;
+
                         // Sorry for this code. Yikes, it's bad!
                         if (l == -1 && m == -1 && n == -1)
                             _part._trls[_iter - _mesh.tri3().head()] = std::numeric_limits<iptr_type>::min();
                         else if (l == -1 || m == -1 || n == -1) {
-                            l = l == -1 ? std::numeric_limits<iptr_type>::max() : l;
-                            m = m == -1 ? std::numeric_limits<iptr_type>::max() : m;
-                            n = n == -1 ? std::numeric_limits<iptr_type>::max() : n;
-                            auto p = std::min({l, m, n});
-                            _part._seqs[p] = 1;
-                            _part._trls[_iter - _mesh.tri3().head()] = -1 - p;
-                        } else if (m != l && l != n)
+                            if (l * m * n < 0) { // True if only 1 negative
+                                p = m >= 0 ? m : l; // chooses the positive
+                                _part._trls[_iter - _mesh.tri3().head()] = p;
+                            } else { // Only if 2 negatives
+                                p = std::max({l, m, n});
+                                _part._seqs[p] = 1;
+                                _part._trls[_iter - _mesh.tri3().head()] = -1 - p;
+                            }
+                        } else if (m != l && l != n) // No negatives, strictly sequential portion
                             _part._trls[_iter - _mesh.tri3().head()] = std::numeric_limits<iptr_type>::min() + 1;
-                        else {
-                            auto p = std::min({l, m, n});
+                        else { // No negatives, parallel interface portion
+                            p = std::min({l, m, n});
                             _part._seqs[p] = 1;
                             _part._trls[_iter - _mesh.tri3().head()] = -1 - p;
                         }
-
                     }
                 }
             }
@@ -316,16 +321,16 @@
         // struct., will be written to output file for
         // external checking
 
-//	auto _ipos = +0;
-//        for (auto _iter  = _mesh.node().head();
-//                  _iter != _mesh.node().tend();
-//                ++_iter, ++_ipos)
-//        {
-//            if (_iter->mark() >= 0)
-//            {
-//                _iter->itag() = _part._part[_ipos];
-//            }
-//        }
+	auto _ipos = +0;
+        for (auto _iter  = _mesh.node().head();
+                  _iter != _mesh.node().tend();
+                ++_iter, ++_ipos)
+        {
+            if (_iter->mark() >= 0)
+            {
+                _iter->itag() = _part._part[_ipos];
+            }
+        }
 
     }
 

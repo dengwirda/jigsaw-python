@@ -1980,6 +1980,8 @@
             _ttic   = _time.now();
 #           endif//__use_timers
 
+
+
             if(_jcfg._mesh_opts.iter() != +0 &&
                _jcfg._iter_opts.iter() != +0 )
             {
