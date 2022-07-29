@@ -272,22 +272,26 @@
                         _part._itfc[k] = 1;
                         auto p = -1;
 
-                        // Sorry for this code. Yikes, it's bad!
-                        if (l == -1 && m == -1 && n == -1)
+                        if (l == -1 && m == -1 && n == -1) // All negative
                             _part._trls[_iter - _mesh.tri3().head()] = std::numeric_limits<iptr_type>::min();
                         else if (l == -1 || m == -1 || n == -1) {
                             if (l * m * n < 0) { // True if only 1 negative
-                                p = m >= 0 ? m : l; // chooses the positive
-                                _part._trls[_iter - _mesh.tri3().head()] = p;
+                                if (l == m || m == n || l == n) { // Other 2 are equal
+                                    p = m >= 0 ? m : l; // chooses the positive
+                                    _part._trls[_iter - _mesh.tri3().head()] = p;
+                                } else { // Parallel interface portion
+                                    p = std::max({l, m, n});
+                                    _part._seqs[p] = 1;
+                                    _part._trls[_iter - _mesh.tri3().head()] = -1 - p;
+                                }
                             } else { // Only if 2 negatives
                                 p = std::max({l, m, n});
-                                _part._seqs[p] = 1;
-                                _part._trls[_iter - _mesh.tri3().head()] = -1 - p;
+                                _part._trls[_iter - _mesh.tri3().head()] = p;
                             }
-                        } else if (m != l && l != n) // No negatives, strictly sequential portion
+                        } else if (m != l && l != n && m != n) // No negatives and strictly sequential portion
                             _part._trls[_iter - _mesh.tri3().head()] = std::numeric_limits<iptr_type>::min() + 1;
                         else { // No negatives, parallel interface portion
-                            p = std::min({l, m, n});
+                            p = std::max({l, m, n});
                             _part._seqs[p] = 1;
                             _part._trls[_iter - _mesh.tri3().head()] = -1 - p;
                         }
