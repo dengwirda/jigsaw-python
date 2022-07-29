@@ -290,7 +290,9 @@
                             }
                         } else if (m != l && l != n && m != n) // No negatives and strictly sequential portion
                             _part._trls[_iter - _mesh.tri3().head()] = std::numeric_limits<iptr_type>::min() + 1;
-                        else { // No negatives, parallel interface portion
+                        else if (l == m && m == n) { // No negatives, all are the same
+                            _part._trls[_iter - _mesh.tri3().head()] = m;
+                        } else {// No negatives, parallel interface portion
                             p = std::max({l, m, n});
                             _part._seqs[p] = 1;
                             _part._trls[_iter - _mesh.tri3().head()] = -1 - p;
