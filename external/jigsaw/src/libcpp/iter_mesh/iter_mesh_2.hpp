@@ -448,22 +448,11 @@
             if (num_threads > threads * socks || (threads != cores && threads != cores * 2))
                 affinity_avail = false;
             else {
-
-                std::vector<std::vector<int> > lookup_cores;
-                std::vector<std::vector<int> > lookup_threads;
-
-                for (auto i = 0; i < socks; ++ i) {
-                    lookup_cores.push_back(std::vector<int>(cores));
-                    lookup_threads.push_back(std::vector<int>(cores));
-                    std::iota(lookup_cores.at(i).begin(), lookup_cores.at(i).end(), i * cores);
-                    std::iota(lookup_threads.at(i).begin(), lookup_threads.at(i).end(), (socks * cores) + (i * cores));
-                }
-
                 if (num_threads == threads * socks) {
                     for (auto i = 0; i < socks; ++ i) {
                         for (auto j = 0; j < cores; ++ j) {
-                            affinity_lookup.push_back(lookup_cores.at(i).at(j));
-                            affinity_lookup.push_back(lookup_threads.at(i).at(j));
+                            affinity_lookup.push_back(i * cores + j);
+                            affinity_lookup.push_back(i * cores + socks * cores + j);
                         }
                     }
                 } else {
@@ -471,9 +460,9 @@
                     for (auto l = 0; l < socks; ++ l) {
                         auto k = 0;
                         for (k; k < num_threads / socks; ++ k)
-                            affinity_lookup.push_back(lookup_cores.at(l).at(k));
+                            affinity_lookup.push_back(l * cores + k);
                         if (leftover -- > 0)
-                            affinity_lookup.push_back(lookup_cores.at(l).at(k + 1));
+                            affinity_lookup.push_back(l * cores + k + 1);
                     }
                 }
             }
