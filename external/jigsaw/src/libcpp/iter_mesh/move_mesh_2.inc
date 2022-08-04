@@ -662,9 +662,9 @@
                         (float)_qmin [_iter->_node] ;
             }
 
-            algorithms::qsort( _sset.head() ,
-                               _sset.tend() ,
-                               cost_pred () ) ;
+//            algorithms::qsort( _sset.head() ,
+//                               _sset.tend() ,
+//                               cost_pred () ) ;
 
             iptr_type _FLAG  = _iout - 2 ; // only "recent"
 
