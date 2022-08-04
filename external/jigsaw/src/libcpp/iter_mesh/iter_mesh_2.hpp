@@ -413,6 +413,73 @@
         iter_stat  _tcpu ;
 //        if (num_threads > 1)
         BS::thread_pool pool(num_threads);
+
+
+        #if !defined(WIN32) || defined(__CYGWIN__)
+        auto threads = std::numeric_limits<int>::max();
+        auto cores = std::numeric_limits<int>::max();
+        auto socks = -1;
+        auto affinity_avail = true;
+
+        std::string line;
+        std::string found;
+
+        {
+            std::fstream proc_file;
+            proc_file.open("/proc/cpuinfo", std::ios::in);
+            if (proc_file.is_open()) {
+                while (std::getline(proc_file, line)) {
+                    found = line.substr(0, line.find("\t: "));
+                    if (found == "physical id")
+                        socks = std::max({socks, std::stoi(line.substr(line.find("\t: ")).substr(3))});
+                    else if (found == "cpu cores")
+                        cores = std::min({cores, std::stoi(line.substr(line.find("\t: ")).substr(3))});
+                    else if (found == "siblings")
+                        threads = std::min({threads, std::stoi(line.substr(line.find("\t: ")).substr(3))});
+                }
+            }
+        }
+        std::vector <int> affinity_lookup;
+
+        if (socks == -1 || cores == std::numeric_limits<int>::max() || threads == std::numeric_limits<int>::max())
+            affinity_avail = false;
+        else {
+            socks += 1; // socks = physical id + 1
+            if (num_threads > threads * socks || (threads != cores && threads != cores * 2))
+                affinity_avail = false;
+            else {
+
+                std::vector<std::vector<int> > lookup_cores;
+                std::vector<std::vector<int> > lookup_threads;
+
+                for (auto i = 0; i < socks; ++ i) {
+                    lookup_cores.push_back(std::vector<int>(cores));
+                    lookup_threads.push_back(std::vector<int>(cores));
+                    std::iota(lookup_cores.at(i).begin(), lookup_cores.at(i).end(), i * cores);
+                    std::iota(lookup_threads.at(i).begin(), lookup_threads.at(i).end(), (socks * cores) + (i * cores));
+                }
+
+                if (num_threads == threads * socks) {
+                    for (auto i = 0; i < socks; ++ i) {
+                        for (auto j = 0; j < cores; ++ j) {
+                            affinity_lookup.push_back(lookup_cores.at(i).at(j));
+                            affinity_lookup.push_back(lookup_threads.at(i).at(j));
+                        }
+                    }
+                } else {
+                    auto leftover = num_threads % socks;
+                    for (auto l = 0; l < socks; ++ l) {
+                        auto k = 0;
+                        for (k; k < num_threads / socks; ++ k)
+                            affinity_lookup.push_back(lookup_cores.at(l).at(k));
+                        if (leftover -- > 0)
+                            affinity_lookup.push_back(lookup_cores.at(l).at(k + 1));
+                    }
+                }
+            }
+        }
+        #endif
+
     #   ifdef  __use_timers
         typename std ::chrono::
         high_resolution_clock::time_point  _ttic ;
@@ -420,7 +487,6 @@
         high_resolution_clock::time_point  _ttoc ;
         typename std ::chrono::
         high_resolution_clock _time ;
-
         __unreferenced(_time) ; // why does MSVC need this??
     #   endif//__use_timers
 
@@ -496,78 +562,6 @@
             _ttic = _time.now() ;
     #       endif//__use_timers
 
-            #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-            auto threads = std::numeric_limits<int>::max();
-            auto cores = std::numeric_limits<int>::max();
-            auto socks = -1;
-            auto affinity_avail = true;
-
-            std::string line;
-            std::string found;
-
-            {
-                std::fstream proc_file;
-                proc_file.open("/proc/cpuinfo", std::ios::in);
-                if (proc_file.is_open()) {
-                    while (std::getline(proc_file, line)) {
-                        found = line.substr(0, line.find("\t: "));
-                        if (found == "physical id")
-                            socks = std::max({socks, std::stoi(line.substr(line.find("\t: ")).substr(3))});
-                        else if (found == "cpu cores")
-                            cores = std::min({cores, std::stoi(line.substr(line.find("\t: ")).substr(3))});
-                        else if (found == "siblings")
-                            threads = std::min({threads, std::stoi(line.substr(line.find("\t: ")).substr(3))});
-                    }
-                }
-            }
-            std::vector <int> affinity_lookup[num_threads];
-
-            if (socks == -1 || cores == std::numeric_limits<int>::max() || threads == std::numeric_limits<int>::max())
-                affinity_avail = false;
-            else {
-                socks += 1;
-                if (threads != cores && threads != cores * 2)
-                    affinity_avail = false;
-                else {
-
-                    std::vector<std::vector<int> > lookup_cores;
-                    std::vector<std::vector<int> > lookup_threads;
-
-                    for (auto i = 0; i < socks; ++ i) {
-                        lookup_cores.push_back(std::vector<int>(cores));
-                        lookup_threads.push_back(std::vector<int>(cores));
-                        std::iota(lookup_cores.at(i).begin(), lookup_cores.at(i).end(), i * cores);
-                        std::iota(lookup_threads.at(i).begin(), lookup_threads.at(i).end(), (socks * cores) + (i * cores));
-                    }
-
-                    if (num_threads == threads * socks) {
-                        for (auto i = 0; i < socks; ++ i) {
-                            for (auto j = 0; j < cores; ++ j) {
-                                affinity_lookup.push_back(lookup_cores.at(i).at(j));
-                                affinity_lookup.push_back(lookup_threads.at(i).at(j));
-                            }
-                        }
-                    } else {
-                        auto leftover = num_threads % socks;
-                        auto j = num_threads;
-                        while (j > 0) {
-                            for (auto l = 0; l < socks; ++ l) {
-                                auto k = 0;
-                                for (k; k < num_threads / socks; ++ k) {
-                                    affinity_lookup.push_back(lookup_cores.at(l).at(k));
-                                    --j;
-                                }
-                                if (leftover -- > 0) {
-                                    affinity_lookup.push_back(lookup_cores.at(l).at(k + 1));
-                                    --j;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            #endif
-
             conn_sets _conn ;
             pull_conn(_mesh, _conn);
 
@@ -611,10 +605,10 @@
             auto interface = [&](auto rank, auto pass_min, auto pass_max) {
                 auto r = rank == std::numeric_limits<iptr_type>::min() + 1 ?
                          0 : -1 - rank;
-                #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+            #if !defined(WIN32) || defined(__CYGWIN__)
                 if (affinity_avail)
                     affinity(affinity_lookup[r]);
-                #endif
+            #endif
                 for (auto _isub = + 0; _isub != _nsub; ++_isub ) {
                     if (_opts.verb() >= -+3)
                         _dump.push("**CALL MOVE-NODE...\n");
@@ -636,10 +630,10 @@
 	        auto task = [&](auto rank) {
 
                 auto start = std::chrono::high_resolution_clock::now();
-                #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+            #if !defined(WIN32) || defined(__CYGWIN__)
                 if (affinity_avail)
                     affinity(affinity_lookup[rank]);
-                #endif
+            #endif
                 for (auto _isub = + 0; _isub != _nsub; ++_isub ) {
                     if (_opts.verb() >= +3)
                         _dump.push("**CALL MOVE-NODE...\n");
