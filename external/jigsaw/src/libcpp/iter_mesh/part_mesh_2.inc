@@ -271,22 +271,28 @@
                         _part._itfc[k] = 1;
 
                         static auto p = -1;
+                        static auto zero_check = -1;
 
                         if (l == -1 && m == -1 && n == -1) // All negative
                             _part._trls[_iter - _mesh.tri3().head()] = std::numeric_limits<iptr_type>::min();
                         else if (l == -1 || m == -1 || n == -1) {
-                            if (l * m * n < 0) { // True if only 1 negative
+                            if ((zero_check = l * m * n) < 0) { // True if only 1 negative
                                 if (l == m || m == n || l == n) { // Other 2 are equal
-                                    p = m >= 0 ? m : l; // chooses the positive
+                                    p = m >= 0 ? m : l; // chooses the non-negative
                                     _part._trls[_iter - _mesh.tri3().head()] = p;
                                 } else { // Parallel interface portion
                                     p = std::max({l, m, n});
                                     _part._seqs[p] = 1;
                                     _part._trls[_iter - _mesh.tri3().head()] = -1 - p;
                                 }
-                            } else { // Only if 2 negatives or {l,m,n} contains 0
+                            } else { // 2 negatives or 1 negative and 1 zero
                                 p = std::max({l, m, n});
-                                _part._trls[_iter - _mesh.tri3().head()] = p;
+                                if (zero_check == 0 && p != 0) { // Parallel interface portion, with zero and negative
+                                    _part._seqs[p] = 1;
+                                    _part._trls[_iter - _mesh.tri3().head()] = -1 - p;
+                                }
+                                else // Two negatives or equal non-negatives
+                                    _part._trls[_iter - _mesh.tri3().head()] = p;
                             }
                         } else if (m != l && l != n && m != n) // No negatives and strictly sequential portion
                             _part._trls[_iter - _mesh.tri3().head()] = std::numeric_limits<iptr_type>::min() + 1;

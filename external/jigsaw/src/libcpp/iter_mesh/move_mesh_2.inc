@@ -1319,6 +1319,278 @@
     }
 
 
+    __static_call
+            __normal_call void_type pull_aset (
+            mesh_type &_mesh ,
+            conn_sets &_CONN ,
+            iptr_list &_lset ,
+            iptr_list &_aset ,
+            iptr_list &_nmrk ,
+            iptr_type  _iout ,
+            iptr_type  _isub ,
+            real_type  _QLIM ,
+            real_type  _DLIM ,
+            iter_opts &_opts
 
+    )
+    {
+
+        class cost_pair
+        {
+        public  :
+            /*------------------------ tuple for node re-ordering */
+            iptr_type           _node ;
+            float               _cost ;
+
+            /*------------------------ construct inline from src. */
+            __inline_call cost_pair (
+                    iptr_type const&_nsrc ,
+                    real_type const&_csrc
+            )   :
+                    _node (_nsrc),
+                    _cost((float)_csrc) {}
+        } ;
+
+        class cost_pred
+        {
+        public  :
+            /*------------------------ less-than op. for cost-tup */
+            __inline_call
+                    bool_type operator () (
+                    cost_pair const&_idat ,
+                    cost_pair const&_jdat
+            ) const
+            { return _idat._cost > _jdat._cost ;
+            }
+        } ;
+
+        typedef
+        containers::array<cost_pair> cost_list ;
+
+        real_list _qbar, _qmin ;
+        iptr_list _nadj ;
+        cost_list _sset ;
+
+        iptr_list _amrk;
+        _amrk.set_count(_mesh.node().count(), containers::tight_alloc, -1);
+
+        __unreferenced ( _DLIM ) ;
+        __unreferenced ( _opts ) ;
+
+        if (_isub == (iptr_type) +0)
+        {
+
+
+
+#   define PUSHSORT(_NODE)  \
+            if (_amrk[_NODE] != _isub)      \
+            {               \
+                _amrk[_NODE]  = _isub;      \
+                _sset.push_tail(            \
+                 cost_pair(_NODE, 1.)) ;    \
+            }
+
+#   define PUSHCONN(_NODE)  \
+            if (_amrk[_NODE] != _isub)      \
+            {               \
+                _amrk[_NODE]  = _isub;      \
+                _aset.push_tail(_NODE) ;    \
+            }
+
+#   define PUSHCOST(_NODE , _COST)      \
+            _qbar[_NODE] += _COST ;         \
+            _nadj[_NODE] += +1 ;\
+            _qmin[_NODE]  =     \
+        std::min (_qmin[_NODE], _COST) ;
+
+
+            /*-------------------- 1ST SUB-ITER: build full init. */
+            _qbar.set_count(
+                    _mesh.node().count(),
+                    containers::tight_alloc, +0.0) ;
+            _qmin.set_count(
+                    _mesh.node().count(),
+                    containers::tight_alloc, +1.0) ;
+            _nadj.set_count(
+                    _mesh.node().count(),
+                    containers::tight_alloc, + 0 ) ;
+
+            _sset.set_alloc(
+                    _mesh.node().count())  ;
+
+            pull_conn(_mesh, _CONN) ;
+
+            for (auto _tria  = _mesh.tri3().head() ;
+                 _tria != _mesh.tri3().tend() ;
+                 ++_tria  )
+            {
+                if (_tria->mark() >= +0)
+                {
+                    /*-------------------- calc. min. scores at nodes */
+                    iptr_type _inod, _jnod, _knod;
+                    _inod = _tria->node( 0);
+                    _jnod = _tria->node( 1);
+                    _knod = _tria->node( 2);
+
+                    real_type _cost;
+                    _cost = pred_type::tri3_cost (
+                            &_mesh .node(
+                                    _tria->node(0)).pval(0),
+                            &_mesh .node(
+                                    _tria->node(1)).pval(0),
+                            &_mesh .node(
+                                    _tria->node(2)).pval(0),
+                            typename
+                            pred_type::cell_kind ()) ;
+
+                    PUSHSORT( _inod )
+                    PUSHCOST( _inod, _cost )
+                    PUSHSORT( _jnod )
+                    PUSHCOST( _jnod, _cost )
+                    PUSHSORT( _knod )
+                    PUSHCOST( _knod, _cost )
+                }
+            }
+
+            for (auto _quad  = _mesh.quad().head() ;
+                 _quad != _mesh.quad().tend() ;
+                 ++_quad  )
+            {
+                if (_quad->mark() >= +0)
+                {
+                    /*-------------------- calc. min. scores at nodes */
+                    iptr_type _inod, _jnod, _knod,
+                            _lnod;
+                    _inod = _quad->node( 0);
+                    _jnod = _quad->node( 1);
+                    _knod = _quad->node( 2);
+                    _lnod = _quad->node( 3);
+
+                    real_type _cost;
+                    _cost = pred_type::quad_cost (
+                            &_mesh .node(
+                                    _quad->node(0)).pval(0),
+                            &_mesh .node(
+                                    _quad->node(1)).pval(0),
+                            &_mesh .node(
+                                    _quad->node(2)).pval(0),
+                            &_mesh .node(
+                                    _quad->node(3)).pval(0),
+                            typename
+                            pred_type::cell_kind ()) ;
+
+                    PUSHSORT( _inod )
+                    PUSHCOST( _inod, _cost )
+                    PUSHSORT( _jnod )
+                    PUSHCOST( _jnod, _cost )
+                    PUSHSORT( _knod )
+                    PUSHCOST( _knod, _cost )
+                    PUSHSORT( _lnod )
+                    PUSHCOST( _lnod, _cost )
+                }
+            }
+
+            for (auto _iter  =
+                    _qbar.count(); _iter-- != +0; )
+            {
+                /*------------------------ assign score for each node */
+                _qbar[_iter] /=
+                        std::max(+1, _nadj [_iter]) ;
+            }
+
+            for (auto _iter  = _sset.head() ;
+                 _iter != _sset.tend() ;
+                 ++_iter  )
+            {
+                _iter->_cost =
+                        (float)_qbar [_iter->_node] -
+                        (float)_qmin [_iter->_node] ;
+            }
+
+            iptr_type _FLAG  = _iout - 2 ; // only "recent"
+
+            for (auto _iter  = _sset.head() ;
+                 _iter != _sset.tend() ;
+                 ++_iter  )
+            {
+                /*------------------------ push sorted wrt. min.-cost */
+                if (std::abs(
+                        _nmrk[_iter->_node]) >= _FLAG || // recent
+                    _qmin[_iter->_node]  <= _QLIM )  // skewed
+                {
+                    _amrk[_iter->_node]   = _isub ;
+                    _aset.push_tail( _iter->_node ) ;
+                }
+            }
+
+        }
+        else
+        {
+            /*-------------------- NTH sub-iter: init. from prev. */
+            for (auto _iter  = _lset.head() ;
+                 _iter != _lset.tend() ;
+                 ++_iter  )
+            {
+                PUSHCONN( *_iter )
+            }
+
+            /*-------------------- add adj.: 1-ring neighbourhood */
+            for (auto _iter =
+                    _aset.count() ; _iter-- != 0; )
+            {
+                auto _apos =   _aset [_iter] ;
+
+                /*-------------------- push any 1-cell neighbours */
+                for (auto _next  =
+                        _CONN._adj1.head()+_CONN._idx1[_apos+0] ;
+                     _next !=
+                     _CONN._adj1.head()+_CONN._idx1[_apos+1] ;
+                     ++_next  )
+                {
+                    if (_next->_kind == EDGE2_tag)
+                    {
+                        auto _eptr =
+                                _mesh. edge().head()+_next->_cell ;
+
+                        PUSHCONN( _eptr->node(0) )
+                        PUSHCONN( _eptr->node(1) )
+                    }
+                }
+
+                /*-------------------- push any 2-cell neighbours */
+                for (auto _next  =
+                        _CONN._adj2.head()+_CONN._idx2[_apos+0] ;
+                     _next !=
+                     _CONN._adj2.head()+_CONN._idx2[_apos+1] ;
+                     ++_next  )
+                {
+                    if (_next->_kind == TRIA3_tag)
+                    {
+                        auto _tptr =
+                                _mesh. tri3().head()+_next->_cell ;
+
+                        PUSHCONN( _tptr->node(0) )
+                        PUSHCONN( _tptr->node(1) )
+                        PUSHCONN( _tptr->node(2) )
+                    }
+                    else
+                    if (_next->_kind == QUAD4_tag)
+                    {
+                        auto _qptr =
+                                _mesh. quad().head()+_next->_cell ;
+
+                        PUSHCONN( _qptr->node(0) )
+                        PUSHCONN( _qptr->node(1) )
+                        PUSHCONN( _qptr->node(2) )
+                        PUSHCONN( _qptr->node(3) )
+                    }
+                }
+            }
+
+        }
+#   undef   PUSHCOST
+#   undef   PUSHSORT
+#   undef   PUSHCONN
+    }
 
 

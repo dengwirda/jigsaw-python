@@ -415,7 +415,7 @@
         BS::thread_pool pool(num_threads);
 
 
-        #if !defined(WIN32) || defined(__CYGWIN__)
+        #if !defined(WIN32) && !defined(__APPLE__) || defined(__CYGWIN__)
         auto threads = std::numeric_limits<int>::max();
         auto cores = std::numeric_limits<int>::max();
         auto socks = -1;
@@ -448,18 +448,18 @@
             if (num_threads > threads * socks || (threads != cores && threads != cores * 2))
                 affinity_avail = false;
             else {
-                if (num_threads == threads * socks) {
+                if (num_threads == threads * socks) {  // Interleave hyper-threads with physical cores, use all
                     for (auto i = 0; i < socks; ++ i) {
                         for (auto j = 0; j < cores; ++ j) {
                             affinity_lookup.push_back(i * cores + j);
                             affinity_lookup.push_back(i * cores + socks * cores + j);
                         }
                     }
-                } else {
+                } else {  // Use only physical cores, cluster within socket, even spread over sockets
                     auto leftover = num_threads % socks;
                     for (auto l = 0; l < socks; ++ l) {
                         auto k = 0;
-                        for (k; k < num_threads / socks; ++ k)
+                        for (; k < num_threads / socks; ++ k)
                             affinity_lookup.push_back(l * cores + k);
                         if (leftover -- > 0)
                             affinity_lookup.push_back(l * cores + k + 1);
@@ -554,16 +554,15 @@
             conn_sets _conn ;
             pull_conn(_mesh, _conn);
 
-            iptr_list whole_aset, whole_lset, _amrk, _amrk2;
+            iptr_list whole_aset, whole_lset, _amrk;
             whole_aset.set_alloc(_mesh.node().count());
             whole_lset.set_alloc(_mesh.node().count());
 
 
             _amrk.set_count(_mesh.node().count(), containers::tight_alloc, -1);
-            _amrk2.set_count(_mesh.node().count(), containers::tight_alloc, -1);
 
-            sort_node(_mesh, _conn, whole_lset, whole_aset,
-                    _mark._node, _amrk2, _iter, 0,
+            pull_aset(_mesh, _conn, whole_lset, whole_aset,
+                    _mark._node, _iter, 0,
                     _QLIM,_DLIM, _opts);
 
             part_sets _part;
@@ -594,7 +593,7 @@
             auto interface = [&](auto rank, auto pass_min, auto pass_max) {
                 auto r = rank == std::numeric_limits<iptr_type>::min() + 1 ?
                          0 : -1 - rank;
-            #if !defined(WIN32) || defined(__CYGWIN__)
+            #if !defined(WIN32) && !defined(__APPLE__) || defined(__CYGWIN__)
                 if (affinity_avail)
                     affinity(affinity_lookup[r]);
             #endif
@@ -617,9 +616,7 @@
             };
 
 	        auto task = [&](auto rank) {
-
-                auto start = std::chrono::high_resolution_clock::now();
-            #if !defined(WIN32) || defined(__CYGWIN__)
+            #if !defined(WIN32) && !defined(__APPLE__) || defined(__CYGWIN__)
                 if (affinity_avail)
                     affinity(affinity_lookup[rank]);
             #endif
@@ -640,22 +637,6 @@
                     _nloc = _nloc / 2;
                     multi_nmov[rank] = std::max(multi_nmov[rank], _nloc);
                 }
-
-                auto end = std::chrono::high_resolution_clock::now();
-
-                {
-                    std::string str = "./thread_time/";
-                    str.append(std::to_string(num_threads).append("/"));
-                    std::filesystem::create_directories(str);
-                    str.append(std::to_string(rank).append(".csv"));
-                    std::ofstream out;
-                    out.open(str, std::ios_base::app);
-                    out << std::chrono::duration_cast
-                            <std::chrono::milliseconds>(end - start).count()
-                        << '\n';
-                    out.close();
-                }
-
 	        };
 
 
