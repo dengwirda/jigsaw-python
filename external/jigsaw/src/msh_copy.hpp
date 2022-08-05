@@ -54,7 +54,7 @@
         iptr_list &_perm
         )
     {
-        iptr_type static constexpr SIZE = +256 ;
+        iptr_type static constexpr SIZE = +64 ; // Negligibly better than 32
 
         if (_mesh._ndim == +2 &&
             _mesh._kind ==
