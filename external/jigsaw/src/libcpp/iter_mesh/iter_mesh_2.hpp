@@ -415,7 +415,7 @@
         BS::thread_pool pool(num_threads);
 
 
-        #if !defined(WIN32) && !defined(__APPLE__) || defined(__CYGWIN__)
+        #if !defined(WIN32) && !defined(__APPLE__)
         auto threads = std::numeric_limits<int>::max();
         auto cores = std::numeric_limits<int>::max();
         auto socks = -1;
@@ -448,7 +448,7 @@
             if (num_threads > threads * socks || (threads != cores && threads != cores * 2))
                 affinity_avail = false;
             else {
-                if (num_threads == threads * socks) {  // Interleave hyper-threads with physical cores, use all
+                if (num_threads == threads * socks && threads != cores) {  // Interleave hyper-threads with physical cores, use all
                     for (auto i = 0; i < socks; ++ i) {
                         for (auto j = 0; j < cores; ++ j) {
                             affinity_lookup.push_back(i * cores + j);
@@ -592,7 +592,7 @@
             auto interface = [&](auto rank, auto pass_min, auto pass_max) {
                 auto r = rank == std::numeric_limits<iptr_type>::min() + 1 ?
                          0 : -1 - rank;
-            #if !defined(WIN32) && !defined(__APPLE__) || defined(__CYGWIN__)
+            #if !defined(WIN32) && !defined(__APPLE__)
                 if (affinity_avail)
                     affinity(affinity_lookup[r]);
             #endif
@@ -615,7 +615,7 @@
             };
 
 	        auto task = [&](auto rank) {
-            #if !defined(WIN32) && !defined(__APPLE__) || defined(__CYGWIN__)
+            #if !defined(WIN32) && !defined(__APPLE__)
                 if (affinity_avail)
                     affinity(affinity_lookup[rank]);
             #endif
@@ -767,7 +767,7 @@
                 auto r = rank == std::numeric_limits<iptr_type>::min() + 1 ?
                          0 : -1 - rank;
 
-               #if !defined(WIN32) && !defined(__APPLE__) || defined(__CYGWIN__)
+               #if !defined(WIN32) && !defined(__APPLE__)
                     if (affinity_avail)
                         affinity(affinity_lookup[r]);
                #endif
@@ -792,7 +792,7 @@
 
             auto task = [&](auto rank) {
 
-               #if !defined(WIN32) && !defined(__APPLE__) || defined(__CYGWIN__)
+               #if !defined(WIN32) && !defined(__APPLE__)
                     if (affinity_avail)
                         affinity(affinity_lookup[rank]);
                #endif
