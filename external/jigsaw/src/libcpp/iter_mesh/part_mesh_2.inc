@@ -58,7 +58,6 @@
         _part._list.clear();
         _part._part.clear();
         _part._itfc.clear();
-        _part._ifls.clear();
         _part._trls.clear();
         _part._seqs.clear();
 
@@ -119,15 +118,11 @@
             }
         }
 
-        for (auto _iter = _part._itfc.head(); _iter != _part._itfc.tend(); ++_iter)
-            if (*_iter == 1)
-                _part._ifls.push_tail(_iter - _part._itfc.head());
     } else {
         _part._lptr.clear();
         _part._list.clear();
         _part._part.clear();
         _part._itfc.clear();
-        _part._ifls.clear();
         _part._trls.clear();
         _part._seqs.clear();
         _part._part.set_count(_mesh.node().count(),
@@ -222,7 +217,6 @@
             _part._list.clear();
             _part._part.clear();
             _part._itfc.clear();
-            _part._ifls.clear();
             _part._trls.clear();
             _part._seqs.clear();
 
@@ -307,15 +301,11 @@
                 }
             }
 
-            for (auto _iter = _part._itfc.head(); _iter != _part._itfc.tend(); ++_iter)
-                if (*_iter == 1)
-                    _part._ifls.push_tail(_iter - _part._itfc.head());
         } else {
             _part._lptr.clear();
             _part._list.clear();
             _part._part.clear();
             _part._itfc.clear();
-            _part._ifls.clear();
             _part._trls.clear();
             _part._seqs.clear();
             _part._part.set_count(_mesh.node().count(),

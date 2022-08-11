@@ -148,7 +148,6 @@ namespace mesh {
             iptr_list _list;
             iptr_list _part;
             bool_list _itfc;
-            iptr_list _ifls;
             iptr_list _trls;
             iptr_list _seqs;
         };
