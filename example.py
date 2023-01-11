@@ -61,7 +61,7 @@ if __name__ == "__main__":
         description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
 
     parser.add_argument("--IDnumber", dest="IDnumber", type=int,
-                        required=True, help="Run example with ID = (0-9).")
+                        required=True, help="Run example with ID = (0-8).")
 
     args = parser.parse_args()
 

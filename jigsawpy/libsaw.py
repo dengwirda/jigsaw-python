@@ -167,6 +167,11 @@ def put_jig_t(jigt, jigl):
     elif (jigt.verbosity is not None):
         raise TypeError("VERBOSITY type")
 
+    if (is_type_t(jigt.numthread, int)):
+        jigl.numthread = indx_t(jigt.numthread)
+    elif (jigt.numthread is not None):
+        raise TypeError("NUMTHREAD type")
+
     #--------------------------------- assign GEOM user-opt.
     if (is_type_t(jigt.geom_seed, int)):
         jigl.geom_seed = indx_t(jigt.geom_seed)
@@ -291,6 +296,16 @@ def put_jig_t(jigt, jigl):
         jigl.optm_iter = indx_t(jigt.optm_iter)
     elif (jigt.optm_iter is not None):
         raise TypeError("OPTM-ITER type")
+
+    if (is_type_t(jigt.optm_beta, float)):
+        jigl.optm_beta = real_t(jigt.optm_beta)
+    elif (jigt.optm_beta is not None):
+        raise TypeError("OPTM-BETA type")
+
+    if (is_type_t(jigt.optm_zeta, float)):
+        jigl.optm_zeta = real_t(jigt.optm_zeta)
+    elif (jigt.optm_zeta is not None):
+        raise TypeError("OPTM-ZETA type")
 
     if (is_type_t(jigt.optm_qtol, float)):
         jigl.optm_qtol = real_t(jigt.optm_qtol)

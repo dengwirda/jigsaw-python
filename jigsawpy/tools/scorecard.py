@@ -387,7 +387,7 @@ def pwrscr2(ppos, ppwr, tri2):
     ll33 = +0.25 * np.sum(
         vvec ** 2, axis=1, keepdims=True)
 
-    lf00 = (ll11 + ll22 + ll33) / 3.0
+    lf00 = (ll11 * ll11 * ll33) ** (1./3)
 
 #--------------------------------------- form quality metric
     qf00 = +1.00 - df00 / lf00
@@ -533,8 +533,8 @@ def pwrscr3(ppos, ppwr, tri3):
     ll66 = +0.25 * np.sum(
         vvec ** 2, axis=1, keepdims=True)
 
-    lt00 = (ll11 + ll22 + ll33 +
-            ll44 + ll55 + ll66) / 6.0
+    lt00 = (ll11 * ll22 * ll33 +
+            ll44 * ll55 * ll66) ** (1./6)
 
 #--------------------------------------- form quality metric
     qt00 = +1.00 - dt00 / lt00

@@ -251,14 +251,12 @@ def jitter(opts, imax, ibad, mesh=None):
 #--------- call JIGSAW iteratively; try to improve topology.
     OPTS = copy.deepcopy(opts)
 
-    best = metric(mesh); next = mesh; done = False; inow = 0
-
     for iter in range(imax):
 
-        if (next.point is not None and
-                next.point.size != +0):
+        if (mesh.point is not None and
+                mesh.point.size != +0):
 
-            nvrt = next.point.size
+            nvrt = mesh.point.size
 
             keep = np.full(
                 (nvrt), True, dtype=bool)
@@ -274,54 +272,41 @@ def jitter(opts, imax, ibad, mesh=None):
 
             OPTS.init_file = str(path / name)
 
-            if (next.tria3 is not None and
-                    next.tria3.size != +0):
+            if (mesh.tria3 is not None and
+                    mesh.tria3.size != +0):
     #------------------------------ mark any irregular nodes
                 vdeg = trideg2(
-                    next.point["coord"],
-                    next.tria3["index"])
+                    mesh.point["coord"],
+                    mesh.tria3["index"])
 
                 ierr = np.abs(vdeg - 6)  # err in topo. deg.
 
                 ierr[vdeg > 6] = ierr[vdeg > 6] * 2
 
-                ierr = ierr[next.tria3["index"]]
+                ierr = ierr[mesh.tria3["index"]]
 
                 M = np.sum(ierr, axis=1) >= ibad
 
-                keep[next.tria3["index"][M, :]] = False
+                keep[mesh.tria3["index"][M, :]] = False
                 
-            if (next.edge2 is not None and
-                    next.edge2.size != +0):
+            if (mesh.edge2 is not None and
+                    mesh.edge2.size != +0):
 
-                keep[next.edge2["index"][:, :]] = False
+                keep[mesh.edge2["index"][:, :]] = True
 
             if (np.count_nonzero(keep) <= 32):
     #------------------------------ don't delete everything!
                 keep = np.full(
                     (nvrt), True, dtype=bool)
 
-            done = np.all(keep)
-
     #------------------------------ keep nodes far from seam
             init = jigsaw_msh_t()
-            init.point = next.point[keep]
+            init.point = mesh.point[keep]
 
-            savemsh(OPTS.init_file, init,
-                    OPTS.mesh_tags)
+            savemsh(OPTS.init_file, init)
 
     #------------------------------ call JIGSAW with new ICs
-        jigsaw (OPTS, next)       # noqa
-
-        cost = metric(next)
-
-        if (cost > best):
-    #------------------------------ keep "best" mesh so far!
-            mesh = copy.deepcopy(next)
-            best = cost
-            inow = iter
-
-        if (done): return
+        jigsaw (OPTS, mesh)       # noqa
 
     return
 
@@ -342,8 +327,7 @@ def tetris(opts, nlev, mesh=None):
 #---------------------------- call JIGSAW via inc. bisection
     SCAL = +2. ** nlev
     OPTS = copy.deepcopy(opts)
-    flag = +1
-
+    
     while (nlev >= +0):
 
         if (opts.optm_qlim is not None):
@@ -359,7 +343,7 @@ def tetris(opts, nlev, mesh=None):
             scal = min(
                 2.0, (nlev + 1) ** (1. / 8.))
 
-            QLIM = 0.93750
+            QLIM = 0.93333
 
             OPTS.optm_qlim = QLIM / scal
 
@@ -395,24 +379,10 @@ def tetris(opts, nlev, mesh=None):
 
             HFUN.value = HFUN.value * SCAL
 
-            savemsh(OPTS.hfun_file, HFUN,
-                    OPTS.hfun_tags)
+            savemsh(OPTS.hfun_file, HFUN)
 
-        if (nlev <= 1 or flag == 0):
     #------------------------ call JIGSAW kernel at this lev
-            ninc = min(32, nlev ** 2)
-
-            flag = +1
-
-            jitter(OPTS, 2 + ninc, 3, mesh)
-
-        else:
-
-            ninc = min(32, nlev ** 2)
-
-            flag = +0
-
-            jitter(OPTS, 2 + ninc, 2, mesh)
+        jitter(OPTS, 4 + (nlev > 0) * 44, 3, mesh)
 
         nlev = nlev - 1
         SCAL = SCAL / 2.
@@ -434,8 +404,7 @@ def tetris(opts, nlev, mesh=None):
             bisect(mesh)
             attach(mesh)
 
-            savemsh(OPTS.init_file, mesh,
-                    OPTS.init_tags)
+            savemsh(OPTS.init_file, mesh)
 
         else:
     #------------------------ create/write current INIT data
@@ -452,8 +421,7 @@ def tetris(opts, nlev, mesh=None):
             bisect(mesh)
             attach(mesh)
 
-            savemsh(OPTS.init_file, mesh,
-                    OPTS.mesh_tags)
+            savemsh(OPTS.init_file, mesh)
 
     return
 
@@ -502,8 +470,7 @@ def refine(opts, nlev, mesh=None):
             bisect(mesh)
             attach(mesh)
 
-            savemsh(opts.init_file, mesh,
-                    opts.mesh_tags)
+            savemsh(opts.init_file, mesh)
 
     return
 

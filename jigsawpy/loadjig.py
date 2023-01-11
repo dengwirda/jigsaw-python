@@ -43,6 +43,9 @@ def loadjig(name, opts):
                 if (item == "VERBOSITY"):
                     opts.verbosity = int(ltag[1])
 
+                if (item == "NUMTHREAD"):
+                    opts.numthread = int(ltag[1])
+
                 if (item == "TRIA_FILE"):
                     opts.tria_file = ltag[1].strip()
 
@@ -146,6 +149,11 @@ def loadjig(name, opts):
 
                 if (item == "OPTM_ITER"):
                     opts.optm_iter = int(ltag[1])
+
+                if (item == "OPTM_BETA"):
+                    opts.optm_beta = float(ltag[1])
+                if (item == "OPTM_ZETA"):
+                    opts.optm_zeta = float(ltag[1])
 
                 if (item == "OPTM_QTOL"):
                     opts.optm_qtol = float(ltag[1])

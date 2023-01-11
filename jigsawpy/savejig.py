@@ -87,6 +87,9 @@ def savejig(name, opts):
         if (opts.verbosity is not None):
             saveints(fptr, opts.verbosity, "VERBOSITY")
 
+        if (opts.numthread is not None):
+            saveints(fptr, opts.numthread, "NUMTHREAD")
+
         if (opts.tria_file is not None):
             savechar(fptr, opts.tria_file, "TRIA_FILE")
         if (opts.bnds_file is not None):
@@ -189,6 +192,11 @@ def savejig(name, opts):
 
         if (opts.optm_iter is not None):
             saveints(fptr, opts.optm_iter, "OPTM_ITER")
+
+        if (opts.optm_beta is not None):
+            savereal(fptr, opts.optm_beta, "OPTM_BETA")
+        if (opts.optm_zeta is not None):
+            savereal(fptr, opts.optm_zeta, "OPTM_ZETA")
 
         if (opts.optm_qtol is not None):
             savereal(fptr, opts.optm_qtol, "OPTM_QTOL")

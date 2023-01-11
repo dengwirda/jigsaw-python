@@ -12,7 +12,7 @@ DESCRIPTION = \
 AUTHOR = "Darren Engwirda"
 AUTHOR_EMAIL = "d.engwirda@gmail.com"
 URL = "https://github.com/dengwirda/"
-VERSION = "0.3.7"
+VERSION = "1.0.0"
 REQUIRES_PYTHON = ">=3.6.0"
 KEYWORDS = "Mesh-generation Delaunay Voronoi"
 
@@ -21,7 +21,7 @@ REQUIRED = [
 ]
 
 CLASSIFY = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Operating System :: OS Independent",
     "Intended Audience :: Science/Research",
     "Programming Language :: Python",
@@ -103,7 +103,8 @@ class build_external(Command):
 
             compilecall = ["cmake", "--build", ".",
                            "--config", "Release",
-                           "--target", "install"]
+                           "--target", "install",
+                           "--parallel", "4"]
 
             subprocess.run(compilecall, check=True)
 
