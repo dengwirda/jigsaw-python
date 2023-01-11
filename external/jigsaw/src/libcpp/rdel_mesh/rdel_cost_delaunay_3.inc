@@ -1,0 +1,606 @@
+
+    /*
+    --------------------------------------------------------
+     * RDEL-PRED-DELAUNAY-3: "classical" kernel in R^3.
+    --------------------------------------------------------
+     *
+     * This program may be freely redistributed under the
+     * condition that the copyright notices (including this
+     * entire header) are not removed, and no compensation
+     * is received through use of the software.  Private,
+     * research, and institutional use is free.  You may
+     * distribute modified versions of this code UNDER THE
+     * CONDITION THAT THIS CODE AND ANY MODIFICATIONS MADE
+     * TO IT IN THE SAME FILE REMAIN UNDER COPYRIGHT OF THE
+     * ORIGINAL AUTHOR, BOTH SOURCE AND OBJECT CODE ARE
+     * MADE FREELY AVAILABLE WITHOUT CHARGE, AND CLEAR
+     * NOTICE IS GIVEN OF THE MODIFICATIONS.  Distribution
+     * of this code as part of a commercial system is
+     * permissible ONLY BY DIRECT ARRANGEMENT WITH THE
+     * AUTHOR.  (If you are not directly supplying this
+     * code to a customer, and you are instead telling them
+     * how they can obtain it for free, then you are not
+     * required to make any arrangement with me.)
+     *
+     * Disclaimer:  Neither I nor THE CONTRIBUTORS warrant
+     * this code in any way whatsoever.  This code is
+     * provided "as-is" to be used at your own risk.
+     *
+     * THE CONTRIBUTORS include:
+     * (a) The University of Sydney
+     * (b) The Massachusetts Institute of Technology
+     * (c) Columbia University
+     * (d) The National Aeronautics & Space Administration
+     * (e) Los Alamos National Laboratory
+     *
+    --------------------------------------------------------
+     *
+     * Last updated: 29 Dec., 2022
+     *
+     * Copyright 2013-2022
+     * Darren Engwirda
+     * d.engwirda@gmail.com
+     * https://github.com/dengwirda/
+     *
+    --------------------------------------------------------
+     */
+
+    // from rdel_pred_delaunay_3.hpp
+
+
+    /*
+    --------------------------------------------------------
+     * EDGE-COST: calc. edge refinement "cost".
+    --------------------------------------------------------
+     */
+
+    __static_call
+    __normal_call void_type edge_cost (
+        geom_type &_geom,
+        hfun_type &_hfun,
+        mesh_type &_mesh,
+        iptr_type  _tadj,
+        iptr_type  _eadj,
+        rdel_opts &_args,
+        edge_data &_edat,
+        iptr_type &_part,
+        char_type &_feat,
+        char_type *_topo,
+        char_type &_kind,
+        real_type *_ebal,
+        real_type *_pmax
+        )
+    {
+        _kind = mesh::null_item ;
+
+        _edat._mark = (iptr_type)+0;
+
+        if (_args.dims() < +1) return;
+
+    /*--------------------------- assemble local indexing */
+        iptr_type _enod[ +4] ;
+        mesh_type::tria_type::tria_type::
+        face_node(_enod, _eadj, 3, 1);
+        _enod[0] =_mesh._tria.
+         tria(_tadj)->node(_enod[ 0]);
+        _enod[1] =_mesh._tria.
+         tria(_tadj)->node(_enod[ 1]);
+
+    /*--------------------------------- calc. circumballs */
+        if (!base_type::edge_ball (
+            _geom, _mesh, _tadj,
+            _eadj, _ebal, _pmax,
+            _feat, _topo, _part)  )
+    /*--------------------------------- is not restricted */
+            return  ;
+
+    /*------------------------- eval. surface-disc.-error */
+        float _srat = (float)
+        geometry::lensqr_3d(_ebal, _pmax) ;
+
+    /*------------------------- calc. refinement priority */
+        _edat._cost = (float) (
+       (float)_pmax[3] * (_srat + 1.f ) ) ;
+
+    /*------------------------- eval. size func. at _tbal */
+        real_type _esiz = (real_type)+0.;
+        _esiz += (real_type)1./4.*_hfun.eval(
+           &_mesh._tria.
+             node(_enod[0])->pval(0) ,
+            _mesh._tria.
+             node(_enod[0])->idxh()) ;
+        _esiz += (real_type)1./4.*_hfun.eval(
+           &_mesh._tria.
+             node(_enod[1])->pval(0) ,
+            _mesh._tria.
+             node(_enod[1])->idxh()) ;
+
+         auto _hint =
+        _mesh._tria.node(_enod[ 1])->idxh() ;
+
+        _esiz += (real_type)2./4. *
+                 _hfun.eval(  _pmax, _hint) ;
+
+        _srat /= (float)(_esiz * _esiz) ;
+
+        real_type _eave =_pmax [ +3] ;
+        _eave /= _esiz * _esiz ;
+        _eave *= (real_type)4./1. ;
+
+    /*------------------------- refinement classification */
+
+    //  flag cells "trapped" between boundaries -- having
+    //  all nodes on lower dimensional facets...
+
+        bool_type _trap =
+       _mesh._tria.node(_enod[0])->fdim() < 1 &&
+       _mesh._tria.node(_enod[1])->fdim() < 1 ;
+
+        real_type _scal = 1. + _trap * .100 ;
+
+        if (_eave >= _args.siz1() * _scal *
+                     _args.siz1() * _scal ||
+            _srat >= _args.eps1() * _scal *
+                     _args.eps1() * _scal )
+        {
+            _kind = mesh::ring_item; return ;
+        }
+        else
+        {
+            _kind = mesh::good_item; return ;
+        }
+    }
+
+    /*
+    --------------------------------------------------------
+     * FACE-COST: calc. face refinement "cost".
+    --------------------------------------------------------
+     */
+
+    __static_call
+    __normal_call void_type face_cost (
+        geom_type &_geom,
+        hfun_type &_hfun,
+        mesh_type &_mesh,
+        iptr_type  _tadj,
+        iptr_type  _fadj,
+        rdel_opts &_args,
+        face_data &_fdat,
+        iptr_type &_part,
+        char_type &_feat,
+        char_type *_topo,
+        char_type &_kind,
+        real_type *_tbal,
+        real_type *_pmax
+        )
+    {
+        _kind = mesh::null_item ;
+
+        _fdat._mark = (iptr_type)+0;
+
+        if (_args.dims() < +2) return;
+
+    /*--------------------------- assemble local indexing */
+        iptr_type _fnod[ +4] ;
+        mesh_type::tria_type::tria_type::
+        face_node(_fnod, _fadj, 3, 2);
+        _fnod[0] =_mesh._tria.
+         tria(_tadj)->node(_fnod [ 0]) ;
+        _fnod[1] =_mesh._tria.
+         tria(_tadj)->node(_fnod [ 1]) ;
+        _fnod[2] =_mesh._tria.
+         tria(_tadj)->node(_fnod [ 2]) ;
+
+    /*--------------------------------- calc. circumballs */
+        if (!base_type::face_ball (
+            _geom, _mesh, _tadj,
+            _fadj, _tbal, _pmax,
+            _feat, _topo, _part)  )
+    /*--------------------------------- is not restricted */
+            return  ;
+
+    /*--------------------------------- find edge lengths */
+        real_type _llen[  +3] ;
+        _llen[0] = geometry::lensqr_3d (
+            &_mesh._tria.
+              node(_fnod[0])->pval(0),
+            &_mesh._tria.
+              node(_fnod[1])->pval(0)) ;
+        _llen[1] = geometry::lensqr_3d (
+            &_mesh._tria.
+              node(_fnod[1])->pval(0),
+            &_mesh._tria.
+              node(_fnod[2])->pval(0)) ;
+        _llen[2] = geometry::lensqr_3d (
+            &_mesh._tria.
+              node(_fnod[2])->pval(0),
+            &_mesh._tria.
+              node(_fnod[0])->pval(0)) ;
+
+    /*--------------------------------- find min/max edge */
+        iptr_type _enum ;
+        iptr_type _emin = (iptr_type)+0;
+        iptr_type _emax = (iptr_type)+0;
+        for(_enum = +3; _enum-- != +1; )
+        {
+        if (_llen[_emax] < _llen[_enum])
+            _emax = _enum ;
+        if (_llen[_emin] > _llen[_enum])
+            _emin = _enum ;
+        }
+
+    /*------------------------- calc. refinement priority */
+        iptr_type _nbnd = +0 ;
+
+    #   ifdef __bias_bnds
+        for(_enum = +3; _enum-- != +0; )
+        {
+    /*------------------------- are there bnd-adj. faces? */
+            iptr_type  _enod[ +3];
+            mesh_type::tria_type::tria_type::
+            face_node(_enod, _enum, 2, 1);
+            _enod[ +0] = _fnod[_enod[+0]];
+            _enod[ +1] = _fnod[_enod[+1]];
+
+            algorithms::isort(
+                &_enod[0] , &_enod[2] ,
+                    std::less<iptr_type>()) ;
+
+            typename mesh_type::
+                     edge_data _edat;
+            _edat._node[0] = _enod[0] ;
+            _edat._node[1] = _enod[1] ;
+
+            typename mesh_type::
+                     edge_list::
+                 item_type *_eptr = nullptr ;
+            if (_mesh.find_edge(_edat,_eptr))
+            {
+                _nbnd       += +1 ;
+                _fdat._mark -= +1 ;
+            }
+        }
+    #   endif
+
+    /*------------------------- eval. surface-disc.-error */
+        float _srat = (float)
+        geometry::lensqr_3d(_tbal, _pmax) ;
+
+    /*------------------------- eval. radius--edge ratios */
+        float _prat = (float) (
+       (float)_pmax[3] / _llen[_emin] ) ;
+
+    /*------------------------- calc. refinement priority */
+        _fdat._cost = (float) (
+       (float)_prat * (+1.f +  _srat) ) ;
+
+    /*------------------------- refinement classification */
+
+    //  flag cells "trapped" between boundaries -- having
+    //  all nodes on lower dimensional facets and with at
+    //  least one boundary face.
+
+        bool_type _trap =_nbnd > +0 &&
+            _mesh._tria.
+        node(_fnod[0])->fdim() < +2 &&
+            _mesh._tria.
+        node(_fnod[1])->fdim() < +2 &&
+            _mesh._tria.
+        node(_fnod[2])->fdim() < +2  ;
+
+        real_type _scal = 1. ;
+
+        if (_prat >= _args.rad2() * _scal *
+                     _args.rad2() * _scal )
+        {
+            _kind = mesh::ring_item; return ;
+        }
+
+        if (_nbnd >= +3 )
+        {
+            _kind = mesh::ring_item; return ;
+        }
+
+    /*------------------------- eval. size func. at _tbal */
+        real_type _tsiz = (real_type)+0.;
+        _tsiz += (real_type)2./9.*_hfun.eval(
+           &_mesh._tria.
+             node(_fnod[0])->pval(0) ,
+            _mesh._tria.
+             node(_fnod[0])->idxh()) ;
+        _tsiz += (real_type)2./9.*_hfun.eval(
+           &_mesh._tria.
+             node(_fnod[1])->pval(0) ,
+            _mesh._tria.
+             node(_fnod[1])->idxh()) ;
+        _tsiz += (real_type)2./9.*_hfun.eval(
+           &_mesh._tria.
+             node(_fnod[2])->pval(0) ,
+            _mesh._tria.
+             node(_fnod[2])->idxh()) ;
+
+         auto _hint =
+        _mesh._tria.node(_fnod[ 2])->idxh() ;
+
+        _tsiz += (real_type)3./9. *
+                 _hfun.eval(  _pmax, _hint) ;
+
+        _srat /= (float)(_tsiz * _tsiz) ;
+
+        real_type _eave =_pmax [ +3] ;
+        _eave /= _tsiz * _tsiz;
+        _eave *= (real_type)3./1. ;
+
+    /*------------------------- refinement classification */
+        _scal += (real_type)(_trap * 0.100) ;
+
+        if (_eave >= _args.siz2() * _scal *
+                     _args.siz2() * _scal ||
+            _srat >= _args.eps2() * _scal *
+                     _args.eps2() * _scal )
+        {
+            _kind = mesh::ring_item; return ;
+        }
+        else
+        {
+            _kind = mesh::good_item; return ;
+        }
+    }
+
+    /*
+    --------------------------------------------------------
+     * TRIA-COST: calc. tria refinement "cost".
+    --------------------------------------------------------
+     */
+
+    __static_call
+    __normal_call void_type tria_cost (
+        geom_type &_geom,
+        hfun_type &_hfun,
+        mesh_type &_mesh,
+        iptr_type  _tpos,
+        rdel_opts &_args,
+        tria_data &_tdat,
+        iptr_type &_part,
+        char_type &_kind
+        )
+    {
+        _kind = mesh::null_item ;
+
+        _tdat._mark = (iptr_type)+0;
+
+        if (_args.dims() < +3) return;
+
+    /*--------------------------------- get nodes in tria */
+        iptr_type  _tnod[4] = {
+            _mesh.
+        _tria.tria(_tpos)->node(+0) ,
+            _mesh.
+        _tria.tria(_tpos)->node(+1) ,
+            _mesh.
+        _tria.tria(_tpos)->node(+2) ,
+            _mesh.
+        _tria.tria(_tpos)->node(+3)
+            } ;
+
+    /*--------------------------------- calc. circumballs */
+        real_type  _tbal[4] ;
+        if (!base_type::tria_ball (
+            _geom, _mesh,
+            _tpos, _tbal, _part)  )
+    /*--------------------------------- is not restricted */
+            return  ;
+
+    /*--------------------------------- find edge lengths */
+        real_type  _llen[6] ;
+        iptr_type  _enum ;
+        for (_enum = +6; _enum-- != +0; )
+        {
+            iptr_type _enod[ +4] ;
+            mesh_type::tria_type::tria_type::
+            face_node(_enod, _enum, 3, 1);
+            _enod[0] = _mesh._tria.
+             tria(_tpos)->node(_enod[ 0]);
+            _enod[1] = _mesh._tria.
+             tria(_tpos)->node(_enod[ 1]);
+
+            _llen[_enum] =
+                geometry::lensqr_3d (
+           &_mesh._tria.
+             node(_enod[0])->pval(0),
+           &_mesh._tria.
+             node(_enod[1])->pval(0)) ;
+        }
+
+    /*--------------------------------- find 2-face radii */
+        real_type  _frad[4] ;
+        iptr_type  _fnum ;
+        for(_fnum = +4; _fnum-- != +0; )
+        {
+            iptr_type _fnod [ +4];
+            mesh_type::tria_type::tria_type::
+            face_node(_fnod, _fnum, 3, 2);
+            _fnod[ +0] = _mesh._tria.
+             tria(_tpos)->node(_fnod[ 0]);
+            _fnod[ +1] = _mesh._tria.
+             tria(_tpos)->node(_fnod[ 1]);
+            _fnod[ +2] = _mesh._tria.
+             tria(_tpos)->node(_fnod[ 2]);
+
+            real_type _fbal [ +4];
+            geometry::circ_ball_3d(_fbal ,
+           &_mesh._tria.
+             node(_fnod[0])->pval(0),
+           &_mesh._tria.
+             node(_fnod[1])->pval(0),
+           &_mesh._tria.
+             node(_fnod[2])->pval(0)) ;
+
+            _frad[_fnum] =  _fbal[3];
+        }
+
+    /*--------------------------------- find min/max edge */
+        iptr_type _emin = (iptr_type)+0;
+        iptr_type _emax = (iptr_type)+0;
+        for(_enum = +6; _enum-- != +1; )
+        {
+        if (_llen[_emax] < _llen[_enum])
+            _emax = _enum ;
+        if (_llen[_emin] > _llen[_enum])
+            _emin = _enum ;
+        }
+
+    /*--------------------------------- find min/max face */
+        iptr_type _fmin = (iptr_type)+0;
+        iptr_type _fmax = (iptr_type)+0;
+        for(_fnum = +4; _fnum-- != +1; )
+        {
+        if (_frad[_fmax] < _frad[_fnum])
+            _fmax = _fnum ;
+        if (_frad[_fmin] > _frad[_fnum])
+            _fmin = _fnum ;
+        }
+
+    /*------------------------- calc. refinement priority */
+        iptr_type _nbnd = +0 ;
+
+    #   ifdef __bias_bnds
+        for(_fnum = +4; _fnum-- != +0; )
+        {
+    /*------------------------- are there bnd-adj. faces? */
+            iptr_type  _fnod[ +4];
+            mesh_type::tria_type::tria_type::
+            face_node(_fnod, _fnum, 3, 2);
+            _fnod[0] = _mesh._tria.
+             tria(_tpos)->node(_fnod[ 0]);
+            _fnod[1] = _mesh._tria.
+             tria(_tpos)->node(_fnod[ 1]);
+            _fnod[2] = _mesh._tria.
+             tria(_tpos)->node(_fnod[ 2]);
+
+            algorithms::isort(
+                &_fnod[0] , &_fnod[3] ,
+                    std::less<iptr_type>()) ;
+
+            typename mesh_type::
+                     face_data _fdat;
+            _fdat._node[0] = _fnod[0] ;
+            _fdat._node[1] = _fnod[1] ;
+            _fdat._node[2] = _fnod[2] ;
+
+            typename mesh_type::
+                     face_list::
+                 item_type *_fptr = nullptr ;
+            if (_mesh.find_face(_fdat,_fptr))
+            {
+                _nbnd       += +1 ;
+                _tdat._mark -= +1 ;
+            }
+        }
+    #   endif
+
+    /*------------------------- eval. radius--edge ratios */
+        float _erat = (float) (
+       (float)_tbal [3] / _llen [_emin] ) ;
+
+    /*------------------------- calc. refinement priority */
+        _tdat._cost = (float)    _erat;
+
+    /*------------------------- refinement classification */
+
+    //  flag cells "trapped" between boundaries -- having
+    //  all nodes on lower dimensional facets and with at
+    //  least one boundary face.
+
+        bool_type _trap =_nbnd > +0 &&
+            _mesh._tria.
+        node(_tnod[0])->fdim() < +3 &&
+            _mesh._tria.
+        node(_tnod[1])->fdim() < +3 &&
+            _mesh._tria.
+        node(_tnod[2])->fdim() < +3 &&
+            _mesh._tria.
+        node(_tnod[3])->fdim() < +3  ;
+
+        real_type _scal = 1. ;
+
+        if (_erat >= _args.rad3() * _scal *
+                     _args.rad3() * _scal )
+        {
+            _kind = mesh::ring_item; return ;
+        }
+
+        if (_nbnd >= +4 )
+        {
+            _kind = mesh::ring_item; return ;
+        }
+
+    /*------------------------- eval. size func. at _tbal */
+        real_type _tsiz = (real_type)+0.;
+        _tsiz += (real_type)3./16*_hfun.eval(
+           &_mesh._tria.
+             node(_tnod[0])->pval(0) ,
+            _mesh._tria.
+             node(_tnod[0])->idxh()) ;
+        _tsiz += (real_type)3./16*_hfun.eval(
+           &_mesh._tria.
+             node(_tnod[1])->pval(0) ,
+            _mesh._tria.
+             node(_tnod[1])->idxh()) ;
+        _tsiz += (real_type)3./16*_hfun.eval(
+           &_mesh._tria.
+             node(_tnod[2])->pval(0) ,
+            _mesh._tria.
+             node(_tnod[2])->idxh()) ;
+        _tsiz += (real_type)3./16*_hfun.eval(
+           &_mesh._tria.
+             node(_tnod[3])->pval(0) ,
+            _mesh._tria.
+             node(_tnod[3])->idxh()) ;
+
+         auto _hint =
+        _mesh._tria.node(_tnod[ 3])->idxh() ;
+
+        _tsiz += (real_type)4./16 *
+                 _hfun.eval(  _tbal, _hint) ;
+
+        real_type _eave = _tbal[ +3] ;
+        _eave /= (_tsiz*_tsiz) ;
+        _eave *= (real_type)8./3. ;
+
+    /*------------------------- refinement classification */
+        _scal += (real_type)(_trap * 0.100) ;
+
+        if (_eave >= _args.siz3() * _scal *
+                     _args.siz3() * _scal )
+        {
+            _kind = mesh::ring_item; return ;
+        }
+
+        _tdat._mark += +4 ;
+
+    /*------------------------- eval. vol.--length metric */
+        real_type _vlen =
+        geometry::tria_quality_3d (
+           &_mesh._tria.
+             node(_tnod[0])->pval(0) ,
+           &_mesh._tria.
+             node(_tnod[1])->pval(0) ,
+           &_mesh._tria.
+             node(_tnod[2])->pval(0) ,
+           &_mesh._tria.
+             node(_tnod[3])->pval(0)
+             ) ;
+
+        if (_vlen <= _args.vol3() )
+        {
+            _kind = mesh::ring_item; return ;
+        }
+        else
+        {
+            _kind = mesh::good_item; return ;
+        }
+    }
+
+
+
