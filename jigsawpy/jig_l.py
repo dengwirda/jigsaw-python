@@ -240,7 +240,7 @@ class libsaw_jig_t(ct.Structure):
 
     ("optm_cost", indx_t),
 
-    # OPTM_BETA - {default=0.4667} "momentum"-type biases
+    # OPTM_BETA - {default=0.4667} "momentum"-type weight
     # for gradient descent updates, such that 
     # DX' = BETA * DX(K-1) + (1-BETA) * DX(K).
     # Momentum typically improves the convergence of mesh
@@ -248,7 +248,7 @@ class libsaw_jig_t(ct.Structure):
 
     ("optm_beta", real_t),
 
-    # OPTM_ZETA - {default=0.7500} "momentum"-type biases
+    # OPTM_ZETA - {default=0.7500} "momentum"-type weight
     # for search direction updates, such that 
     # DX* = ZETA * DX' (K) + (1-ZETA) * DX(K).
     # Momentum typically improves the convergence of mesh

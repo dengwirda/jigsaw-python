@@ -186,13 +186,13 @@
         angles, and may be useful for staggered primal-dual 
         tessellations.
 
-    OPTS.OPTM_BETA - {default=0.4950} "momentum"-type biases
+    OPTS.OPTM_BETA - {default=0.4950} "momentum"-type weight
         for gradient descent updates, such that 
         DX' = BETA * DX(K-1) + (1-BETA) * DX(K).
         Momentum typically improves the convergence of mesh
         optimisation. 
 
-    OPTS.OPTM_ZETA - {default=0.8250} "momentum"-type biases
+    OPTS.OPTM_ZETA - {default=0.8250} "momentum"-type weight
         for search direction updates, such that 
         DX* = ZETA * DX' (K) + (1-ZETA) * DX(K).
         Momentum typically improves the convergence of mesh
