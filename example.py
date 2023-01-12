@@ -53,6 +53,9 @@ def example(IDnumber=0):
     elif (IDnumber == +8):
         case_8_(src_path, dst_path)
 
+    elif (IDnumber == -1):
+        for i in range(9): example(i)
+
     return
 
 
