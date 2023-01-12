@@ -324,6 +324,8 @@ def tetris(opts, nlev, mesh=None):
             isinstance(mesh, jigsaw_msh_t)):
         raise TypeError("Incorrect type: MESH.")
 
+    if (mesh is None): mesh = jigsaw_msh_t()
+
 #---------------------------- call JIGSAW via inc. bisection
     SCAL = +2. ** nlev
     OPTS = copy.deepcopy(opts)
@@ -439,6 +441,8 @@ def refine(opts, nlev, mesh=None):
             isinstance(mesh, jigsaw_msh_t)):
         raise TypeError("Incorrect type: MESH.")
 
+    if (mesh is None): mesh = jigsaw_msh_t()
+
 #---------------------------- call JIGSAW via inc. bisection
     opts.mesh_iter = +0
     opts.optm_div_ = False
@@ -475,7 +479,7 @@ def refine(opts, nlev, mesh=None):
     return
 
 
-def icosahedron(opts, nlev, mesh):
+def icosahedron(opts, nlev, mesh=None):
     """
     ICOSAHEDRON Nth-level icosahedral mesh of the ellipsoid.
 
@@ -484,12 +488,15 @@ def icosahedron(opts, nlev, mesh):
     if (not isinstance(opts, jigsaw_jig_t)):
         raise TypeError("Incorrect type: OPTS.")
 
-    if (not isinstance(mesh, jigsaw_msh_t)):
+    if (mesh is not None and not
+            isinstance(mesh, jigsaw_msh_t)):
         raise TypeError("Incorrect type: MESH.")
 
     geom = jigsaw_msh_t()
 
     loadmsh(opts.geom_file, geom)
+
+    if (mesh is None): mesh = jigsaw_msh_t()
 
 #-------------------------------- setup icosahedron geometry
     la = math.atan(0.5)
@@ -553,7 +560,7 @@ def icosahedron(opts, nlev, mesh):
     return
 
 
-def cubedsphere(opts, nlev, mesh):
+def cubedsphere(opts, nlev, mesh=None):
     """
     CUBEDSPHERE Nth-level cubedsphere mesh of the ellipsoid.
 
@@ -562,12 +569,15 @@ def cubedsphere(opts, nlev, mesh):
     if (not isinstance(opts, jigsaw_jig_t)):
         raise TypeError("Incorrect type: OPTS.")
 
-    if (not isinstance(mesh, jigsaw_msh_t)):
+    if (mesh is not None and not
+            isinstance(mesh, jigsaw_msh_t)):
         raise TypeError("Incorrect type: MESH.")
 
     geom = jigsaw_msh_t()
 
     loadmsh(opts.geom_file, geom)
+
+    if (mesh is None): mesh = jigsaw_msh_t()
 
 #-------------------------------- setup cubedsphere geometry
     aval = math.atan(
