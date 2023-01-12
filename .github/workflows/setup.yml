@@ -51,10 +51,10 @@ jobs:
           cmake --version
           clang++ --version
           
-      - name: Install dependencies -- all
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install -r requirements.txt
 
       - name: Build jigsaw-python
         run: python setup.py build_external install
