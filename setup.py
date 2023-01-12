@@ -5,6 +5,7 @@ import subprocess
 import shutil
 
 from setuptools import setup, find_packages, Command
+from packaging import version
 
 NAME = "jigsawpy"
 DESCRIPTION = \
@@ -42,6 +43,18 @@ try:
 
 except FileNotFoundError:
     LONG_DESCRIPTION = DESCRIPTION
+
+
+def get_cmake_version():
+    try:
+        out = subprocess.check_output(
+            ["cmake", "--version"]).decode("utf-8")
+        sln = out.splitlines()[0]
+        ver = sln.split()[2]
+        return ver
+
+    except:
+        print("cmake not found!")
 
 
 class build_external(Command):
@@ -101,19 +114,27 @@ class build_external(Command):
 
             self.announce("cmake complie", level=3)
 
-            compilecall = ["cmake", "--build", ".",
-                           "--config", "Release",
-                           "--target", "install",
-                           "--parallel", "4"]
+            ver = get_cmake_version()
+            if version.parse(ver) < version.parse("3.12"):
+                compilecall = [
+                    "cmake", "--build", ".",
+                    "--config", "Release",
+                    "--target", "install"
+                    ]
+            else:            
+                compilecall = [
+                    "cmake", "--build", ".",
+                    "--config", "Release",
+                    "--target", "install",
+                    "--parallel", "4"
+                    ]
 
             subprocess.run(compilecall, check=True)
 
             self.announce("cmake cleanup", level=3)
 
-            shutil.copytree(
-                exesrc_path, exedst_path)
-            shutil.copytree(
-                libsrc_path, libdst_path)
+            shutil.copytree(exesrc_path, exedst_path)
+            shutil.copytree(libsrc_path, libdst_path)
 
         finally:
             os.chdir(cwd_pointer)
