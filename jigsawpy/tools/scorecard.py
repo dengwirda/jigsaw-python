@@ -168,9 +168,12 @@ def triang2(ppos, tri2):
     dcos = np.empty(
         (tri2.shape[0], 3), dtype=ppos.dtype)
 
-    ee11 = normal1(ppos, tri2[:, (0, 1)])
-    ee22 = normal1(ppos, tri2[:, (1, 2)])
-    ee33 = normal1(ppos, tri2[:, (2, 0)])
+    ee11 = ppos[tri2[:, 1], :] \
+         - ppos[tri2[:, 0], :]
+    ee22 = ppos[tri2[:, 2], :] \
+         - ppos[tri2[:, 1], :]
+    ee33 = ppos[tri2[:, 0], :] \
+         - ppos[tri2[:, 2], :]
 
     ll11 = np.sqrt(np.sum(
         ee11 ** 2, axis=1, keepdims=True))
