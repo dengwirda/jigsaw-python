@@ -56,8 +56,8 @@ jobs:
           cmake --version
           clang++ --version
 
-       - name: Build jigsaw-python
-         run: python setup.py build_external install
+      - name: Build jigsaw-python
+        run: python setup.py build_external install
 
-       - name: Eval. jigsaw-python
-         run: python example.py --IDnumber=-1
+      - name: Eval. jigsaw-python
+        run: python example.py --IDnumber=-1
