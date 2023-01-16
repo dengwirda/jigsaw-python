@@ -47,7 +47,7 @@ def bisect(mesh):
     """
 
     if (not isinstance(mesh, jigsaw_msh_t)):
-        raise Exception(
+        raise TypeError(
             "Incorrect type: MESH.")
 
     certify(mesh)

@@ -41,11 +41,11 @@ def jigsaw(opts, mesh=None):
     jexename = Path()
 
     if (not isinstance(opts, jigsaw_jig_t)):
-        raise Exception("Incorrect type: OPTS.")
+        raise TypeError("Incorrect type: OPTS.")
 
     if (mesh is not None and not
             isinstance(mesh, jigsaw_msh_t)):
-        raise Exception("Incorrect type: MESH.")
+        raise TypeError("Incorrect type: MESH.")
 
     savejig(opts.jcfg_file, opts)
 
@@ -87,7 +87,7 @@ def jigsaw(opts, mesh=None):
 
     else:
 
-        raise Exception("JIGSAW executable not found!")
+        raise ValueError("JIGSAW executable not found")
 
     return
 
@@ -108,11 +108,11 @@ def tripod(opts, tria=None):
     jexename = Path()
 
     if (not isinstance(opts, jigsaw_jig_t)):
-        raise Exception("Incorrect type: OPTS.")
+        raise TypeError("Incorrect type: OPTS.")
 
     if (tria is not None and not
             isinstance(tria, jigsaw_msh_t)):
-        raise Exception("Incorrect type: TRIA.")
+        raise TypeError("Incorrect type: TRIA.")
 
     savejig(opts.jcfg_file, opts)
 
@@ -154,7 +154,7 @@ def tripod(opts, tria=None):
 
     else:
 
-        raise Exception("TRIPOD executable not found!")
+        raise ValueError("TRIPOD executable not found")
 
     return
 
@@ -182,11 +182,11 @@ def marche(opts, ffun=None):
     jexename = Path()
 
     if (not isinstance(opts, jigsaw_jig_t)):
-        raise Exception("Incorrect type: OPTS.")
+        raise TypeError("Incorrect type: OPTS.")
 
     if (ffun is not None and not
             isinstance(ffun, jigsaw_msh_t)):
-        raise Exception("Incorrect type: FFUN.")
+        raise TypeError("Incorrect type: FFUN.")
 
     savejig(opts.jcfg_file, opts)
 
@@ -228,7 +228,7 @@ def marche(opts, ffun=None):
 
     else:
 
-        raise Exception("MARCHE executable not found!")
+        raise ValueError("MARCHE executable not found")
 
     return
 
@@ -240,25 +240,23 @@ def jitter(opts, imax, ibad, mesh=None):
     """
 
     if (not isinstance(opts, jigsaw_jig_t)):
-        raise Exception("Incorrect type: OPTS.")
+        raise TypeError("Incorrect type: OPTS.")
 
     if (mesh is not None and not
             isinstance(mesh, jigsaw_msh_t)):
-        raise Exception("Incorrect type: MESH.")
+        raise TypeError("Incorrect type: MESH.")
 
     if (mesh is None): mesh = jigsaw_msh_t()
 
 #--------- call JIGSAW iteratively; try to improve topology.
     OPTS = copy.deepcopy(opts)
 
-    best = metric(mesh); next = mesh; done = False
-
     for iter in range(imax):
 
-        if (next.point is not None and
-                next.point.size != +0):
+        if (mesh.point is not None and
+                mesh.point.size != +0):
 
-            nvrt = next.point.size
+            nvrt = mesh.point.size
 
             keep = np.full(
                 (nvrt), True, dtype=bool)
@@ -274,53 +272,41 @@ def jitter(opts, imax, ibad, mesh=None):
 
             OPTS.init_file = str(path / name)
 
-            if (next.tria3 is not None and
-                    next.tria3.size != +0):
+            if (mesh.tria3 is not None and
+                    mesh.tria3.size != +0):
     #------------------------------ mark any irregular nodes
                 vdeg = trideg2(
-                    next.point["coord"],
-                    next.tria3["index"])
+                    mesh.point["coord"],
+                    mesh.tria3["index"])
 
                 ierr = np.abs(vdeg - 6)  # err in topo. deg.
 
                 ierr[vdeg > 6] = ierr[vdeg > 6] * 2
 
-                ierr = ierr[next.tria3["index"]]
+                ierr = ierr[mesh.tria3["index"]]
 
                 M = np.sum(ierr, axis=1) >= ibad
 
-                keep[next.tria3["index"][M, :]] = False
+                keep[mesh.tria3["index"][M, :]] = False
                 
-            if (next.edge2 is not None and
-                    next.edge2.size != +0):
+            if (mesh.edge2 is not None and
+                    mesh.edge2.size != +0):
 
-                keep[next.edge2["index"][:, :]] = False
+                keep[mesh.edge2["index"][:, :]] = True
 
-            if (np.count_nonzero(keep) <= +8):
+            if (np.count_nonzero(keep) <= 32):
     #------------------------------ don't delete everything!
                 keep = np.full(
                     (nvrt), True, dtype=bool)
 
-            done = np.all(keep)
-
     #------------------------------ keep nodes far from seam
             init = jigsaw_msh_t()
-            init.point = next.point[keep]
+            init.point = mesh.point[keep]
 
-            savemsh(OPTS.init_file, init,
-                    OPTS.mesh_tags)
+            savemsh(OPTS.init_file, init)
 
     #------------------------------ call JIGSAW with new ICs
-        jigsaw (OPTS, next)       # noqa
-
-        cost = metric(next)
-
-        if (cost > best):
-    #------------------------------ keep "best" mesh so far!
-            mesh = copy.deepcopy(next)
-            best = cost
-
-        if (done): return
+        jigsaw (OPTS, mesh)       # noqa
 
     return
 
@@ -332,23 +318,24 @@ def tetris(opts, nlev, mesh=None):
     """
 
     if (not isinstance(opts, jigsaw_jig_t)):
-        raise Exception("Incorrect type: OPTS.")
+        raise TypeError("Incorrect type: OPTS.")
 
     if (mesh is not None and not
             isinstance(mesh, jigsaw_msh_t)):
-        raise Exception("Incorrect type: MESH.")
+        raise TypeError("Incorrect type: MESH.")
+
+    if (mesh is None): mesh = jigsaw_msh_t()
 
 #---------------------------- call JIGSAW via inc. bisection
     SCAL = +2. ** nlev
     OPTS = copy.deepcopy(opts)
-    flag = +1
-
+    
     while (nlev >= +0):
 
         if (opts.optm_qlim is not None):
     #------------------------ create/write current QLIM data
             scal = min(
-                2.0, (nlev + 1) ** (1. / 4.))
+                2.0, (nlev + 1) ** (1. / 8.))
 
             QLIM = opts.optm_qlim
 
@@ -356,9 +343,9 @@ def tetris(opts, nlev, mesh=None):
 
         else:
             scal = min(
-                2.0, (nlev + 1) ** (1. / 4.))
+                2.0, (nlev + 1) ** (1. / 8.))
 
-            QLIM = 0.93750
+            QLIM = 0.93333
 
             OPTS.optm_qlim = QLIM / scal
 
@@ -394,24 +381,10 @@ def tetris(opts, nlev, mesh=None):
 
             HFUN.value = HFUN.value * SCAL
 
-            savemsh(OPTS.hfun_file, HFUN,
-                    OPTS.hfun_tags)
+            savemsh(OPTS.hfun_file, HFUN)
 
-        if (nlev <= 1 or flag == 0):
     #------------------------ call JIGSAW kernel at this lev
-            ninc = min(64, nlev ** 2)
-
-            flag = +1
-
-            jitter(OPTS, 2 + ninc, 3, mesh)
-
-        else:
-
-            ninc = min(64, nlev ** 2)
-
-            flag = +0
-
-            jitter(OPTS, 2 + ninc, 2, mesh)
+        jitter(OPTS, 4 + (nlev > 0) * 44, 3, mesh)
 
         nlev = nlev - 1
         SCAL = SCAL / 2.
@@ -433,8 +406,7 @@ def tetris(opts, nlev, mesh=None):
             bisect(mesh)
             attach(mesh)
 
-            savemsh(OPTS.init_file, mesh,
-                    OPTS.init_tags)
+            savemsh(OPTS.init_file, mesh)
 
         else:
     #------------------------ create/write current INIT data
@@ -451,8 +423,7 @@ def tetris(opts, nlev, mesh=None):
             bisect(mesh)
             attach(mesh)
 
-            savemsh(OPTS.init_file, mesh,
-                    OPTS.mesh_tags)
+            savemsh(OPTS.init_file, mesh)
 
     return
 
@@ -464,11 +435,13 @@ def refine(opts, nlev, mesh=None):
     """
 
     if (not isinstance(opts, jigsaw_jig_t)):
-        raise Exception("Incorrect type: OPTS.")
+        raise TypeError("Incorrect type: OPTS.")
 
     if (mesh is not None and not
             isinstance(mesh, jigsaw_msh_t)):
-        raise Exception("Incorrect type: MESH.")
+        raise TypeError("Incorrect type: MESH.")
+
+    if (mesh is None): mesh = jigsaw_msh_t()
 
 #---------------------------- call JIGSAW via inc. bisection
     opts.mesh_iter = +0
@@ -501,27 +474,29 @@ def refine(opts, nlev, mesh=None):
             bisect(mesh)
             attach(mesh)
 
-            savemsh(opts.init_file, mesh,
-                    opts.mesh_tags)
+            savemsh(opts.init_file, mesh)
 
     return
 
 
-def icosahedron(opts, nlev, mesh):
+def icosahedron(opts, nlev, mesh=None):
     """
     ICOSAHEDRON Nth-level icosahedral mesh of the ellipsoid.
 
     """
 
     if (not isinstance(opts, jigsaw_jig_t)):
-        raise Exception("Incorrect type: OPTS.")
+        raise TypeError("Incorrect type: OPTS.")
 
-    if (not isinstance(mesh, jigsaw_msh_t)):
-        raise Exception("Incorrect type: MESH.")
+    if (mesh is not None and not
+            isinstance(mesh, jigsaw_msh_t)):
+        raise TypeError("Incorrect type: MESH.")
 
     geom = jigsaw_msh_t()
 
     loadmsh(opts.geom_file, geom)
+
+    if (mesh is None): mesh = jigsaw_msh_t()
 
 #-------------------------------- setup icosahedron geometry
     la = math.atan(0.5)
@@ -585,21 +560,24 @@ def icosahedron(opts, nlev, mesh):
     return
 
 
-def cubedsphere(opts, nlev, mesh):
+def cubedsphere(opts, nlev, mesh=None):
     """
     CUBEDSPHERE Nth-level cubedsphere mesh of the ellipsoid.
 
     """
 
     if (not isinstance(opts, jigsaw_jig_t)):
-        raise Exception("Incorrect type: OPTS.")
+        raise TypeError("Incorrect type: OPTS.")
 
-    if (not isinstance(mesh, jigsaw_msh_t)):
-        raise Exception("Incorrect type: MESH.")
+    if (mesh is not None and not
+            isinstance(mesh, jigsaw_msh_t)):
+        raise TypeError("Incorrect type: MESH.")
 
     geom = jigsaw_msh_t()
 
     loadmsh(opts.geom_file, geom)
+
+    if (mesh is None): mesh = jigsaw_msh_t()
 
 #-------------------------------- setup cubedsphere geometry
     aval = math.atan(

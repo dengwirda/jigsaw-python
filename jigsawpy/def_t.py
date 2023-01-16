@@ -9,14 +9,19 @@ real_t = ct.c_double
 class jigsaw_def_t:
 #--------------------------------- return codes for JIGSAW .
 
-    JIGSAW_UNKNOWN_ERROR = +1
+    JIGSAW_UNKNOWN_ERROR = -1
 
     JIGSAW_NO_ERROR = +0
 
     JIGSAW_FILE_NOT_LOCATED = +2
     JIGSAW_FILE_NOT_CREATED = +3
 
+    JIGSAW_NETCDF_NOT_FOUND = +9
+
     JIGSAW_INVALID_ARGUMENT = +4
+    JIGSAW_INVALID_INDEXING = +5
+    JIGSAW_INVALID_USEROPTS = +6
+    JIGSAW_INVALID_ARRAYDIM = +7
 
 #--------------------------------- constants for libJIGSAW .
 
@@ -51,3 +56,6 @@ class jigsaw_def_t:
     JIGSAW_KERN_ODT_DQDX = +404
     JIGSAW_KERN_CVT_DQDX = +405
     JIGSAW_KERN_H95_DQDX = +406
+
+    JIGSAW_KERN_AREA_LEN = +410
+    JIGSAW_KERN_SKEW_COS = +411

@@ -76,7 +76,7 @@ if (JLIBNAME != Path()):
     JLIB = ct.cdll.LoadLibrary(str(JLIBNAME))
 
 else:
-    raise Exception("JIGSAW lib. not found!")
+    raise ValueError("JIGSAW lib. not found")
 
 
 def is_type_t(data, kind):
@@ -94,7 +94,7 @@ def put_jig_t(jigt, jigl):
     if (jigt is None): return
 
     if (not isinstance(jigt, jigsaw_jig_t)):
-        raise Exception("OPTS not JIG_t")
+        raise TypeError("OPTS not JIG_t")
 
     #--------------------------------- assign "kernels" opt.
     if (isinstance(jigt.hfun_scal, str)):
@@ -107,7 +107,7 @@ def put_jig_t(jigt, jigl):
                 defs.JIGSAW_HFUN_RELATIVE
 
     elif (jigt.hfun_scal is not None):
-        raise Exception("HFUN-SCAL type")
+        raise TypeError("HFUN-SCAL type")
 
     if (isinstance(jigt.bnds_kern, str)):
         if (jigt.bnds_kern.lower() == "triacell"):
@@ -119,7 +119,7 @@ def put_jig_t(jigt, jigl):
                 defs.JIGSAW_BNDS_DUALCELL
 
     elif (jigt.bnds_kern is not None):
-        raise Exception("BNDS-KERN type")
+        raise TypeError("BNDS-KERN type")
 
     if (isinstance(jigt.mesh_kern, str)):
         if (jigt.mesh_kern.lower() == "delfront"):
@@ -131,7 +131,7 @@ def put_jig_t(jigt, jigl):
                 defs.JIGSAW_KERN_DELAUNAY
 
     elif (jigt.mesh_kern is not None):
-        raise Exception("MESH-KERN type")
+        raise TypeError("MESH-KERN type")
 
     if (isinstance(jigt.optm_kern, str)):
         if (jigt.optm_kern.lower() == "odt+dqdx"):
@@ -147,168 +147,195 @@ def put_jig_t(jigt, jigl):
                 defs.JIGSAW_KERN_H95_DQDX
 
     elif (jigt.optm_kern is not None):
-        raise Exception("OPTM-KERN type")
+        raise TypeError("OPTM-KERN type")
+
+    if (isinstance(jigt.optm_cost, str)):
+        if (jigt.optm_cost.lower() == "area-len"):
+            jigl.optm_cost = \
+                defs.JIGSAW_KERN_AREA_LEN
+
+        if (jigt.optm_cost.lower() == "skew-cos"):
+            jigl.optm_cost = \
+                defs.JIGSAW_KERN_SKEW_COS
+
+    elif (jigt.optm_cost is not None):
+        raise TypeError("OPTM-COST type")
 
     #--------------------------------- assign MISC user-opt.
     if (is_type_t(jigt.verbosity, int)):
         jigl.verbosity = indx_t(jigt.verbosity)
     elif (jigt.verbosity is not None):
-        raise Exception("VERBOSITY type")
+        raise TypeError("VERBOSITY type")
+
+    if (is_type_t(jigt.numthread, int)):
+        jigl.numthread = indx_t(jigt.numthread)
+    elif (jigt.numthread is not None):
+        raise TypeError("NUMTHREAD type")
 
     #--------------------------------- assign GEOM user-opt.
     if (is_type_t(jigt.geom_seed, int)):
         jigl.geom_seed = indx_t(jigt.geom_seed)
     elif (jigt.geom_seed is not None):
-        raise Exception("GEOM-SEED type")
+        raise TypeError("GEOM-SEED type")
 
     if (is_type_t(jigt.geom_feat, bool)):
         jigl.geom_feat = indx_t(jigt.geom_feat)
     elif (jigt.geom_feat is not None):
-        raise Exception("GEOM-FEAT type")
+        raise TypeError("GEOM-FEAT type")
 
     if (is_type_t(jigt.geom_eta1, float)):
         jigl.geom_eta1 = real_t(jigt.geom_eta1)
     elif (jigt.geom_eta1 is not None):
-        raise Exception("GEOM-ETA1 type")
+        raise TypeError("GEOM-ETA1 type")
 
     if (is_type_t(jigt.geom_eta2, float)):
         jigl.geom_eta2 = real_t(jigt.geom_eta2)
     elif (jigt.geom_eta2 is not None):
-        raise Exception("GEOM-ETA2 type")
+        raise TypeError("GEOM-ETA2 type")
 
     #--------------------------------- assign INIT user-opt.
     if (is_type_t(jigt.init_near, float)):
         jigl.init_near = real_t(jigt.init_near)
     elif (jigt.init_near is not None):
-        raise Exception("INIT-NEAR type")
+        raise TypeError("INIT-NEAR type")
 
     #--------------------------------- assign HFUN user-opt.
     if (is_type_t(jigt.hfun_hmax, float)):
         jigl.hfun_hmax = real_t(jigt.hfun_hmax)
     elif (jigt.hfun_hmax is not None):
-        raise Exception("HFUN-HMAX type")
+        raise TypeError("HFUN-HMAX type")
 
     if (is_type_t(jigt.hfun_hmin, float)):
         jigl.hfun_hmin = real_t(jigt.hfun_hmin)
     elif (jigt.hfun_hmin is not None):
-        raise Exception("HFUN-HMIN type")
+        raise TypeError("HFUN-HMIN type")
 
     #--------------------------------- assign MESH user-opt.
     if (is_type_t(jigt.mesh_dims, int)):
         jigl.mesh_dims = indx_t(jigt.mesh_dims)
     elif (jigt.mesh_dims is not None):
-        raise Exception("MESH-DIMS type")
+        raise TypeError("MESH-DIMS type")
 
     if (is_type_t(jigt.mesh_iter, int)):
         jigl.mesh_iter = indx_t(jigt.mesh_iter)
     elif (jigt.mesh_iter is not None):
-        raise Exception("MESH-ITER type")
+        raise TypeError("MESH-ITER type")
 
     if (is_type_t(jigt.mesh_top1, bool)):
         jigl.mesh_top1 = indx_t(jigt.mesh_top1)
     elif (jigt.mesh_top1 is not None):
-        raise Exception("MESH-TOP1 type")
+        raise TypeError("MESH-TOP1 type")
 
     if (is_type_t(jigt.mesh_top2, bool)):
         jigl.mesh_top2 = indx_t(jigt.mesh_top2)
     elif (jigt.mesh_top2 is not None):
-        raise Exception("MESH-TOP2 type")
+        raise TypeError("MESH-TOP2 type")
 
     if (is_type_t(jigt.mesh_rad2, float)):
         jigl.mesh_rad2 = real_t(jigt.mesh_rad2)
     elif (jigt.mesh_rad2 is not None):
-        raise Exception("MESH-RAD2 type")
+        raise TypeError("MESH-RAD2 type")
 
     if (is_type_t(jigt.mesh_rad3, float)):
         jigl.mesh_rad3 = real_t(jigt.mesh_rad3)
     elif (jigt.mesh_rad3 is not None):
-        raise Exception("MESH-RAD3 type")
+        raise TypeError("MESH-RAD3 type")
 
     if (is_type_t(jigt.mesh_siz1, float)):
         jigl.mesh_siz1 = real_t(jigt.mesh_siz1)
     elif (jigt.mesh_siz1 is not None):
-        raise Exception("MESH-SIZ1 type")
+        raise TypeError("MESH-SIZ1 type")
 
     if (is_type_t(jigt.mesh_siz2, float)):
         jigl.mesh_siz2 = real_t(jigt.mesh_siz2)
     elif (jigt.mesh_siz2 is not None):
-        raise Exception("MESH-SIZ2 type")
+        raise TypeError("MESH-SIZ2 type")
 
     if (is_type_t(jigt.mesh_siz3, float)):
         jigl.mesh_siz3 = real_t(jigt.mesh_siz3)
     elif (jigt.mesh_siz3 is not None):
-        raise Exception("MESH-SIZ3 type")
+        raise TypeError("MESH-SIZ3 type")
 
     if (is_type_t(jigt.mesh_off2, float)):
         jigl.mesh_off2 = real_t(jigt.mesh_off2)
     elif (jigt.mesh_off2 is not None):
-        raise Exception("MESH-OFF2 type")
+        raise TypeError("MESH-OFF2 type")
 
     if (is_type_t(jigt.mesh_off3, float)):
         jigl.mesh_off3 = real_t(jigt.mesh_off3)
     elif (jigt.mesh_off3 is not None):
-        raise Exception("MESH-OFF3 type")
+        raise TypeError("MESH-OFF3 type")
 
     if (is_type_t(jigt.mesh_snk2, float)):
         jigl.mesh_snk2 = real_t(jigt.mesh_snk2)
     elif (jigt.mesh_snk2 is not None):
-        raise Exception("MESH-SNK2 type")
+        raise TypeError("MESH-SNK2 type")
 
     if (is_type_t(jigt.mesh_snk3, float)):
         jigl.mesh_snk3 = real_t(jigt.mesh_snk3)
     elif (jigt.mesh_snk3 is not None):
-        raise Exception("MESH-SNK3 type")
+        raise TypeError("MESH-SNK3 type")
 
     if (is_type_t(jigt.mesh_eps1, float)):
         jigl.mesh_eps1 = real_t(jigt.mesh_eps1)
     elif (jigt.mesh_eps1 is not None):
-        raise Exception("MESH-EPS1 type")
+        raise TypeError("MESH-EPS1 type")
 
     if (is_type_t(jigt.mesh_eps2, float)):
         jigl.mesh_eps2 = real_t(jigt.mesh_eps2)
     elif (jigt.mesh_eps2 is not None):
-        raise Exception("MESH-EPS2 type")
+        raise TypeError("MESH-EPS2 type")
 
     if (is_type_t(jigt.mesh_vol3, float)):
         jigl.mesh_vol3 = real_t(jigt.mesh_vol3)
     elif (jigt.mesh_vol3 is not None):
-        raise Exception("MESH-VOL3 type")
+        raise TypeError("MESH-VOL3 type")
 
     #--------------------------------- assign OPTM user-opt.
     if (is_type_t(jigt.optm_iter, int)):
         jigl.optm_iter = indx_t(jigt.optm_iter)
     elif (jigt.optm_iter is not None):
-        raise Exception("OPTM-ITER type")
+        raise TypeError("OPTM-ITER type")
+
+    if (is_type_t(jigt.optm_beta, float)):
+        jigl.optm_beta = real_t(jigt.optm_beta)
+    elif (jigt.optm_beta is not None):
+        raise TypeError("OPTM-BETA type")
+
+    if (is_type_t(jigt.optm_zeta, float)):
+        jigl.optm_zeta = real_t(jigt.optm_zeta)
+    elif (jigt.optm_zeta is not None):
+        raise TypeError("OPTM-ZETA type")
 
     if (is_type_t(jigt.optm_qtol, float)):
         jigl.optm_qtol = real_t(jigt.optm_qtol)
     elif (jigt.optm_qtol is not None):
-        raise Exception("OPTM-QTOL type")
+        raise TypeError("OPTM-QTOL type")
 
     if (is_type_t(jigt.optm_qlim, float)):
         jigl.optm_qlim = real_t(jigt.optm_qlim)
     elif (jigt.optm_qlim is not None):
-        raise Exception("OPTM-QLIM type")
+        raise TypeError("OPTM-QLIM type")
 
     if (is_type_t(jigt.optm_tria, bool)):
         jigl.optm_tria = indx_t(jigt.optm_tria)
     elif (jigt.optm_tria is not None):
-        raise Exception("OPTM-TRIA type")
+        raise TypeError("OPTM-TRIA type")
 
     if (is_type_t(jigt.optm_dual, bool)):
         jigl.optm_dual = indx_t(jigt.optm_dual)
     elif (jigt.optm_dual is not None):
-        raise Exception("OPTM-DUAL type")
+        raise TypeError("OPTM-DUAL type")
 
     if (is_type_t(jigt.optm_zip_, bool)):
         jigl.optm_zip_ = indx_t(jigt.optm_zip_)
     elif (jigt.optm_zip_ is not None):
-        raise Exception("OPTM-ZIP_ type")
+        raise TypeError("OPTM-ZIP_ type")
 
     if (is_type_t(jigt.optm_div_, bool)):
         jigl.optm_div_ = indx_t(jigt.optm_div_)
     elif (jigt.optm_div_ is not None):
-        raise Exception("OPTM-DIV_ type")
+        raise TypeError("OPTM-DIV_ type")
 
     return
 
@@ -486,13 +513,9 @@ def put_msh_t(msht, mshl):
         msht.slope = np.asfortranarray(
             msht.slope, dtype=np.float32)
 
-        print(msht.slope.shape)
-
         mshl.slope.size = msht.slope.size
         mshl.slope.data = \
             put_ptr_t(msht.slope, fp32_t)
-
-        print(mshl.slope.size)
 
     return
 
@@ -709,7 +732,7 @@ def jigsaw(opts, geom, mesh, init=None, hfun=None):
                        ct.byref(mmsh))
 
     if (retv != +0):
-        raise Exception(
+        raise ValueError(
             "JIGSAW returned code: " + str(retv))
 
     #--------------------------------- copy buffers to MSH_t
@@ -763,7 +786,7 @@ def tripod(opts, init, tria, geom=None):
                        ct.byref(tmsh))
 
     if (retv != +0):
-        raise Exception(
+        raise ValueError(
             "TRIPOD returned code: " + str(retv))
 
     #--------------------------------- copy buffers to MSH_t
@@ -814,7 +837,7 @@ def marche(opts, ffun):
                        ct.byref(fmsh))
 
     if (retv != +0):
-        raise Exception(
+        raise ValueError(
             "MARCHE returned code: " + str(retv))
 
     return

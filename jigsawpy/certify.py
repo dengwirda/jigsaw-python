@@ -10,7 +10,7 @@ def certifyarray(data, stag):
 
             return data.size >= +1
 
-        raise Exception("Invalid " + stag + " type.")
+        raise TypeError("Invalid " + stag + " type.")
 
     return False
 
@@ -18,19 +18,19 @@ def certifyarray(data, stag):
 def certifyradii(data, stag):
 
     if (data.size != +3):
-        raise Exception("Invalid " + stag + " size.")
+        raise ValueError("Invalid " + stag + " size.")
 
     if (data.ndim != +1):
-        raise Exception("Invalid " + stag + " size.")
+        raise ValueError("Invalid " + stag + " size.")
 
     if (data.dtype != jigsaw_msh_t.REALS_t):
-        raise Exception("Invalid " + stag + " type.")
+        raise TypeError("Invalid " + stag + " type.")
 
     if (not np.isfinite(data).all()):
-        raise Exception("Invalid " + stag + " data.")
+        raise ValueError("Invalid " + stag + " data.")
 
     if (np.any(data <= 0.)):
-        raise Exception("Invalid " + stag + " data.")
+        raise ValueError("Invalid " + stag + " data.")
 
     return
 
@@ -38,16 +38,16 @@ def certifyradii(data, stag):
 def certifypoint(data, stag, KIND):
 
     if (data.ndim != +1):
-        raise Exception("Invalid " + stag + " size.")
+        raise ValueError("Invalid " + stag + " size.")
 
     if (data.dtype != KIND):
-        raise Exception("Invalid " + stag + " type.")
+        raise TypeError("Invalid " + stag + " type.")
 
     if (not np.isfinite(data["coord"]).all()):
-        raise Exception("Invalid " + stag + " data.")
+        raise ValueError("Invalid " + stag + " data.")
 
     if (not np.isfinite(data["IDtag"]).all()):
-        raise Exception("Invalid " + stag + " data.")
+        raise ValueError("Invalid " + stag + " data.")
 
     return
 
@@ -56,10 +56,10 @@ def certifyvalue(vals, stag):
 
     if (vals.dtype != jigsaw_msh_t.REALS_t and
         vals.dtype != jigsaw_msh_t.FLT32_t):
-        raise Exception("Invalid " + stag + " type.")
+        raise TypeError("Invalid " + stag + " type.")
 
     if (not np.isfinite(vals).all()):
-        raise Exception("Invalid " + stag + " data.")
+        raise ValueError("Invalid " + stag + " data.")
 
     return
 
@@ -67,19 +67,19 @@ def certifyvalue(vals, stag):
 def certifycells(cell, stag, KIND):
 
     if (cell.ndim != +1):
-        raise Exception("Invalid " + stag + " size.")
+        raise ValueError("Invalid " + stag + " size.")
 
     if (cell.dtype != KIND):
-        raise Exception("Invalid " + stag + " type.")
+        raise TypeError("Invalid " + stag + " type.")
 
     if (not np.isfinite(cell["index"]).all()):
-        raise Exception("Invalid " + stag + " data.")
+        raise ValueError("Invalid " + stag + " data.")
 
     if (np.any(cell["index"] < +0)):
-        raise Exception("Invalid " + stag + " data.")
+        raise ValueError("Invalid " + stag + " data.")
 
     if (not np.isfinite(cell["IDtag"]).all()):
-        raise Exception("Invalid " + stag + " data.")
+        raise ValueError("Invalid " + stag + " data.")
 
     return
 
@@ -87,25 +87,25 @@ def certifycells(cell, stag, KIND):
 def certifyindex(data, stag, KIND):
 
     if (data.ndim != +1):
-        raise Exception("Invalid " + stag + " size.")
+        raise ValueError("Invalid " + stag + " size.")
 
     if (data.dtype != KIND):
-        raise Exception("Invalid " + stag + " type.")
+        raise TypeError("Invalid " + stag + " type.")
 
     if (not np.isfinite(data["IDtag"]).all()):
-        raise Exception("Invalid " + stag + " data.")
+        raise ValueError("Invalid " + stag + " data.")
 
     if (not np.isfinite(data["index"]).all()):
-        raise Exception("Invalid " + stag + " data.")
+        raise ValueError("Invalid " + stag + " data.")
 
     if (np.any(data["index"] < +0)):
-        raise Exception("Invalid " + stag + " data.")
+        raise ValueError("Invalid " + stag + " data.")
 
     if (not np.isfinite(data["cells"]).all()):
-        raise Exception("Invalid " + stag + " data.")
+        raise ValueError("Invalid " + stag + " data.")
 
     if (np.any(data["cells"] < +0)):
-        raise Exception("Invalid " + stag + " data.")
+        raise ValueError("Invalid " + stag + " data.")
 
     return
 
@@ -194,13 +194,13 @@ def certifymesht(mesh):
 def certifycoord(data, stag):
 
     if (data.ndim != +1):
-        raise Exception("Invalid " + stag + " size.")
+        raise ValueError("Invalid " + stag + " size.")
 
     if (data.dtype != jigsaw_msh_t.REALS_t):
-        raise Exception("Invalid " + stag + " type.")
+        raise TypeError("Invalid " + stag + " type.")
 
     if (not np.isfinite(data).all()):
-        raise Exception("Invalid " + stag + " data.")
+        raise ValueError("Invalid " + stag + " data.")
 
     return
 
@@ -209,18 +209,18 @@ def certifyNDmat(data, stag, dims):
 
     if (data.size > 1 and 
             data.ndim != len(dims)):
-        raise Exception("Invalid " + stag + " size.")
+        raise ValueError("Invalid " + stag + " size.")
 
     if (data.size > 1 and 
             data.size != np.prod(dims)):
-        raise Exception("Invalid " + stag + " size.")
+        raise ValueError("Invalid " + stag + " size.")
 
     if (data.dtype != jigsaw_msh_t.REALS_t and 
         data.dtype != jigsaw_msh_t.FLT32_t):
-        raise Exception("Invalid " + stag + " type.")
+        raise TypeError("Invalid " + stag + " type.")
 
     if (not np.isfinite(data).all()):
-        raise Exception("Invalid " + stag + " data.")
+        raise ValueError("Invalid " + stag + " data.")
 
     return
 
@@ -273,10 +273,10 @@ def certify(mesh):
     if (mesh is None): return
 
     if (not isinstance(mesh, jigsaw_msh_t)):
-        raise Exception("Invalid MESH structure.")
+        raise TypeError("Invalid MESH structure.")
 
     if (not isinstance(mesh.mshID, str)):
-        raise Exception("Invalid MESH.MSHID tag.")
+        raise TypeError("Invalid MESH.MSHID tag.")
 
     if   (mesh.mshID.lower() in
             ["euclidean-mesh", "ellipsoid-mesh"]):
@@ -291,6 +291,6 @@ def certify(mesh):
         certifygridt(mesh)
 
     else:
-        raise Exception("Invalid MESH.MSHID tag.")
+        raise ValueError("Invalid MESH.MSHID tag.")
 
     return

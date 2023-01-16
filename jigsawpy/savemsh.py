@@ -595,7 +595,7 @@ def save_grid_file(mesh, fptr, args, kind):
     return
 
 
-def savemsh(name, mesh, tags=None):
+def savemsh(name, mesh):
     """
     SAVEMSH: save a JIGSAW MSH object to file.
 
@@ -610,10 +610,10 @@ def savemsh(name, mesh, tags=None):
     """
 
     if (not isinstance(name, str)):
-        raise Exception("Incorrect type: NAME.")
+        raise TypeError("Incorrect type: NAME.")
 
     if (not isinstance(mesh, jigsaw_msh_t)):
-        raise Exception("Incorrect type: MESH.")
+        raise TypeError("Incorrect type: MESH.")
 
     certify(mesh)
 
@@ -621,20 +621,13 @@ def savemsh(name, mesh, tags=None):
 
     args = stub()                           ## savmsh params
     args.kind = "ascii"
-    args.nver = + 3
+    args.nver = 3
 
     fext = Path(name).suffix
 
     if (fext.strip() != ".msh"): name += ".msh"
 
     kind = mesh.mshID.lower()
-
-    if (tags is not None):
-    #----------------------------------- parse savmsh params
-        stag = tags.lower().split(";")
-        for this in stag:
-            if "binary" in this:
-                args.kind = "binary"
 
     with Path(name).open("w") as fptr:
     #----------------------------------- write JIGSAW object

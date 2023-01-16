@@ -168,9 +168,12 @@ def triang2(ppos, tri2):
     dcos = np.empty(
         (tri2.shape[0], 3), dtype=ppos.dtype)
 
-    ee11 = normal1(ppos, tri2[:, (0, 1)])
-    ee22 = normal1(ppos, tri2[:, (1, 2)])
-    ee33 = normal1(ppos, tri2[:, (2, 0)])
+    ee11 = ppos[tri2[:, 1], :] \
+         - ppos[tri2[:, 0], :]
+    ee22 = ppos[tri2[:, 2], :] \
+         - ppos[tri2[:, 1], :]
+    ee33 = ppos[tri2[:, 0], :] \
+         - ppos[tri2[:, 2], :]
 
     ll11 = np.sqrt(np.sum(
         ee11 ** 2, axis=1, keepdims=True))
@@ -387,7 +390,7 @@ def pwrscr2(ppos, ppwr, tri2):
     ll33 = +0.25 * np.sum(
         vvec ** 2, axis=1, keepdims=True)
 
-    lf00 = (ll11 + ll22 + ll33) / 3.0
+    lf00 = (ll11 * ll11 * ll33) ** (1./3)
 
 #--------------------------------------- form quality metric
     qf00 = +1.00 - df00 / lf00
@@ -533,8 +536,8 @@ def pwrscr3(ppos, ppwr, tri3):
     ll66 = +0.25 * np.sum(
         vvec ** 2, axis=1, keepdims=True)
 
-    lt00 = (ll11 + ll22 + ll33 +
-            ll44 + ll55 + ll66) / 6.0
+    lt00 = (ll11 * ll22 * ll33 +
+            ll44 * ll55 * ll66) ** (1./6)
 
 #--------------------------------------- form quality metric
     qt00 = +1.00 - dt00 / lt00
@@ -613,7 +616,7 @@ def centre2(ppos, ppwr, tri2):
         sgn3 = np.sum(nrm3 * nrm1, axis=1)
 
     else:
-        raise Exception("Unsupported dimension.")
+        raise ValueError("Unsupported dimension.")
 
 #------------------------------------- interior if same sign
     return np.logical_and.reduce((
@@ -671,7 +674,7 @@ def centre3(ppos, ppwr, tri3):
             ppos[tri3[:, 0], :], ball)
 
     else:
-        raise Exception("Unsupported dimension.")
+        raise ValueError("Unsupported dimension.")
 
 #------------------------------------- interior if same sign
     return np.logical_and.reduce((

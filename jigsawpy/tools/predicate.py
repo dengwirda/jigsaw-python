@@ -12,28 +12,28 @@ def istri_1(ppos, tri1):
 
 #--------------------------------------- some simple checks!
     if (not isinstance(ppos, np.ndarray)):
-        raise Exception("Invalid type: PPOS.")
+        raise TypeError("Invalid type: PPOS.")
 
     if (not isinstance(tri1, np.ndarray)):
-        raise Exception("Invalid type: TRIA.")
+        raise TypeError("Invalid type: TRIA.")
 
     if (ppos.ndim != +2):
-        raise Exception("Invalid PPOS ndims.")
+        raise ValueError("Invalid PPOS ndims.")
 
     if (ppos.shape[1] < +2):
-        raise Exception("Invalid PPOS shape.")
+        raise ValueError("Invalid PPOS shape.")
 
     nump = ppos.shape[0]
 
     if (tri1.ndim != +2):
-        raise Exception("Invalid TRIA ndims.")
+        raise ValueError("Invalid TRIA ndims.")
 
     if (tri1.shape[1] < +2):
-        raise Exception("Invalid TRIA shape.")
+        raise ValueError("Invalid TRIA shape.")
 
     if (np.min(tri1[:, 0:1]) < +0 or
             np.max(tri1[:, 0:1]) >= nump):
-        raise Exception("Invalid TRIA index.")
+        raise IndexError("Invalid TRIA index.")
 
     return okay
 
@@ -48,28 +48,28 @@ def istri_2(ppos, tri2):
 
 #--------------------------------------- some simple checks!
     if (not isinstance(ppos, np.ndarray)):
-        raise Exception("Invalid type: PPOS.")
+        raise TypeError("Invalid type: PPOS.")
 
     if (not isinstance(tri2, np.ndarray)):
-        raise Exception("Invalid type: TRIA.")
+        raise TypeError("Invalid type: TRIA.")
 
     if (ppos.ndim != +2):
-        raise Exception("Invalid PPOS ndims.")
+        raise ValueError("Invalid PPOS ndims.")
 
     if (ppos.shape[1] < +2):
-        raise Exception("Invalid PPOS shape.")
+        raise ValueError("Invalid PPOS shape.")
 
     nump = ppos.shape[0]
 
     if (tri2.ndim != +2):
-        raise Exception("Invalid TRIA ndims.")
+        raise ValueError("Invalid TRIA ndims.")
 
     if (tri2.shape[1] < +3):
-        raise Exception("Invalid TRIA shape.")
+        raise ValueError("Invalid TRIA shape.")
 
     if (np.min(tri2[:, 0:2]) < +0 or
             np.max(tri2[:, 0:2]) >= nump):
-        raise Exception("Invalid TRIA index.")
+        raise IndexError("Invalid TRIA index.")
 
     return okay
 
@@ -84,28 +84,28 @@ def istri_3(ppos, tri3):
 
 #--------------------------------------- some simple checks!
     if (not isinstance(ppos, np.ndarray)):
-        raise Exception("Invalid type: PPOS.")
+        raise TypeError("Invalid type: PPOS.")
 
     if (not isinstance(tri3, np.ndarray)):
-        raise Exception("Invalid type: TRIA.")
+        raise TypeError("Invalid type: TRIA.")
 
     if (ppos.ndim != +2):
-        raise Exception("Invalid PPOS ndims.")
+        raise ValueError("Invalid PPOS ndims.")
 
     if (ppos.shape[1] < +3):
-        raise Exception("Invalid PPOS shape.")
+        raise ValueError("Invalid PPOS shape.")
 
     nump = ppos.shape[0]
 
     if (tri3.ndim != +2):
-        raise Exception("Invalid TRIA ndims.")
+        raise ValueError("Invalid TRIA ndims.")
 
     if (tri3.shape[1] < +4):
-        raise Exception("Invalid TRIA shape.")
+        raise ValueError("Invalid TRIA shape.")
 
     if (np.min(tri3[:, 0:3]) < +0 or
             np.max(tri3[:, 0:3]) >= nump):
-        raise Exception("Invalid TRIA index.")
+        raise IndexError("Invalid TRIA index.")
 
     return okay
 
@@ -145,7 +145,7 @@ def trivol2(ppos, tri2):
         vol2 = 0.5 * vol2
 
     else:
-        raise Exception(
+        raise ValueError(
             "Invalid dimension X**d!!")
 
     return vol2
@@ -193,7 +193,7 @@ def trivol3(ppos, tri3):
         vol3 = vdet / 6.0
 
     else:
-        raise Exception(
+        raise ValueError(
             "Invalid dimension X**d!!")
 
     return vol3

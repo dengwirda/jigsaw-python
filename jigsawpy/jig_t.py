@@ -176,12 +176,34 @@
         isation iterations. Set ITER=N to see progress after
         N iterations.
 
+    OPTS.OPTM_COST - {default='area-len'} mesh optimisation
+        cost metric, choice of area-length (COST='area-len') 
+        or skewed-cosine (COST='skew-cos') functions.
+        The area-length metric is symmetric wrt. both small 
+        and large cell angles, and is typically appropriate
+        for simplex-only meshes. The skewed-cosine metric 
+        is based on an asymmetric penalisation of large cell
+        angles, and may be useful for staggered primal-dual 
+        tessellations.
+
+    OPTS.OPTM_BETA - {default=0.4950} "momentum"-type weight
+        for gradient descent updates, such that 
+        DX' = BETA * DX(K-1) + (1-BETA) * DX(K).
+        Momentum typically improves the convergence of mesh
+        optimisation. 
+
+    OPTS.OPTM_ZETA - {default=0.8250} "momentum"-type weight
+        for search direction updates, such that 
+        DX* = ZETA * DX' (K) + (1-ZETA) * DX(K).
+        Momentum typically improves the convergence of mesh
+        optimisation.
+
     OPTS.OPTM_QTOL - {default=1.E-04} tolerance on mesh cost
         function for convergence. Iteration on a given node
         is terminated if adjacent element cost-functions are
         improved by less than QTOL.
 
-    OPTS.OPTM_QLIM - {default=0.9375} threshold on mesh cost
+    OPTS.OPTM_QLIM - {default=0.9333} threshold on mesh cost
         function above which gradient-based optimisation is
         attempted.
 
@@ -203,6 +225,10 @@
     OPTS.VERBOSITY - {default=0} verbosity of log-file gene-
         rated by JIGSAW. Set VERBOSITY >= 1 for more output.
 
+    OPTS.NUMTHREAD - {default=0} control for thread-parallel
+        implementations. Set NUMTHREAD <= 0 to autodetect a
+        machine's max-thread allocation.
+
     See also MSH_t
 
 
@@ -215,6 +241,8 @@ class jigsaw_jig_t:
 
     #------------------------------------------ MISC options
         self.verbosity = None
+
+        self.numthread = None
 
         self.jcfg_file = None
 
@@ -283,8 +311,13 @@ class jigsaw_jig_t:
 
     #------------------------------------------ OPTM options
         self.optm_kern = None
-
+        
         self.optm_iter = None
+
+        self.optm_cost = None
+
+        self.optm_beta = None
+        self.optm_zeta = None
 
         self.optm_qtol = None
         self.optm_qlim = None

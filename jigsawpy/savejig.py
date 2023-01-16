@@ -8,7 +8,7 @@ def savechar(fptr, sval, stag):
     if (isinstance(sval, str)):
         fptr.write("  " + stag + "=" + sval + "\n")
     else:
-        raise Exception(
+        raise TypeError(
             "Invalid [CHARA] data: OPTS." + stag)
 
     return
@@ -20,7 +20,7 @@ def saveints(fptr, ival, stag):
         fptr.write(
             "  " + stag + "=" + str(ival) + "\n")
     else:
-        raise Exception(
+        raise TypeError(
             "Invalid [INDEX] data: OPTS." + stag)
 
     return
@@ -32,7 +32,7 @@ def savereal(fptr, fval, stag):
         fptr.write(
             "  " + stag + "=" + str(fval) + "\n")
     else:
-        raise Exception(
+        raise TypeError(
             "Invalid [FLOAT] data: OPTS." + stag)
 
     return
@@ -46,7 +46,7 @@ def savebool(fptr, bval, stag):
         else:
             fptr.write("  " + stag + "=FALSE\n")
     else:
-        raise Exception(
+        raise TypeError(
             "Invalid [BOOLS] data: OPTS." + stag)
 
     return
@@ -67,10 +67,10 @@ def savejig(name, opts):
     """
 
     if (not isinstance(name, str)):
-        raise Exception("Incorrect type: NAME.")
+        raise TypeError("Incorrect type: NAME.")
 
     if (not isinstance(opts, jigsaw_jig_t)):
-        raise Exception("Incorrect type: OPTS.")
+        raise TypeError("Incorrect type: OPTS.")
 
     fext = Path(name).suffix
 
@@ -86,6 +86,9 @@ def savejig(name, opts):
     #------------------------------------------ MISC options
         if (opts.verbosity is not None):
             saveints(fptr, opts.verbosity, "VERBOSITY")
+
+        if (opts.numthread is not None):
+            saveints(fptr, opts.numthread, "NUMTHREAD")
 
         if (opts.tria_file is not None):
             savechar(fptr, opts.tria_file, "TRIA_FILE")
@@ -184,9 +187,16 @@ def savejig(name, opts):
     #------------------------------------------ OPTM options
         if (opts.optm_kern is not None):
             savechar(fptr, opts.optm_kern, "OPTM_KERN")
+        if (opts.optm_cost is not None):
+            savechar(fptr, opts.optm_cost, "OPTM_COST")
 
         if (opts.optm_iter is not None):
             saveints(fptr, opts.optm_iter, "OPTM_ITER")
+
+        if (opts.optm_beta is not None):
+            savereal(fptr, opts.optm_beta, "OPTM_BETA")
+        if (opts.optm_zeta is not None):
+            savereal(fptr, opts.optm_zeta, "OPTM_ZETA")
 
         if (opts.optm_qtol is not None):
             savereal(fptr, opts.optm_qtol, "OPTM_QTOL")

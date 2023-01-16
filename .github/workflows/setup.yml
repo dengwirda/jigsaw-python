@@ -1,0 +1,63 @@
+name: jigsaw-python tester
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.10"]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Print environment
+        run: |
+          echo github.event.action: ${{ github.event.action }}
+          echo github.event_name: ${{ github.event_name }}
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies on win
+        if: startsWith(matrix.os, 'windows')
+        run: |
+          choco install ninja cmake
+          ninja --version
+          cmake --version
+          
+      - name: Install dependencies on unx
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          sudo apt-get update
+          sudo apt-get install ninja-build cmake
+          ninja --version
+          cmake --version
+          g++ --version
+          
+      - name: Install dependencies on osx
+        if: startsWith(matrix.os, 'macos')
+        run: |
+          brew install ninja cmake llvm libomp
+          ninja --version
+          cmake --version
+          clang++ --version
+          
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Build jigsaw-python
+        run: python setup.py build_external install
+
+      - name: Eval. jigsaw-python
+        run: python example.py --IDnumber=-1

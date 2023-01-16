@@ -5,6 +5,7 @@ import subprocess
 import shutil
 
 from setuptools import setup, find_packages, Command
+from packaging import version
 
 NAME = "jigsawpy"
 DESCRIPTION = \
@@ -12,7 +13,7 @@ DESCRIPTION = \
 AUTHOR = "Darren Engwirda"
 AUTHOR_EMAIL = "d.engwirda@gmail.com"
 URL = "https://github.com/dengwirda/"
-VERSION = "0.3.6"
+VERSION = "1.0.0"
 REQUIRES_PYTHON = ">=3.6.0"
 KEYWORDS = "Mesh-generation Delaunay Voronoi"
 
@@ -21,7 +22,7 @@ REQUIRED = [
 ]
 
 CLASSIFY = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Operating System :: OS Independent",
     "Intended Audience :: Science/Research",
     "Programming Language :: Python",
@@ -42,6 +43,18 @@ try:
 
 except FileNotFoundError:
     LONG_DESCRIPTION = DESCRIPTION
+
+
+def get_cmake_version():
+    try:
+        out = subprocess.check_output(
+            ["cmake", "--version"]).decode("utf-8")
+        sln = out.splitlines()[0]
+        ver = sln.split()[2]
+        return ver
+
+    except:
+        print("cmake not found!")
 
 
 class build_external(Command):
@@ -101,18 +114,27 @@ class build_external(Command):
 
             self.announce("cmake complie", level=3)
 
-            compilecall = ["cmake", "--build", ".",
-                           "--config", "Release",
-                           "--target", "install"]
+            ver = get_cmake_version()
+            if version.parse(ver) < version.parse("3.12"):
+                compilecall = [
+                    "cmake", "--build", ".",
+                    "--config", "Release",
+                    "--target", "install"
+                    ]
+            else:            
+                compilecall = [
+                    "cmake", "--build", ".",
+                    "--config", "Release",
+                    "--target", "install",
+                    "--parallel", "4"
+                    ]
 
             subprocess.run(compilecall, check=True)
 
             self.announce("cmake cleanup", level=3)
 
-            shutil.copytree(
-                exesrc_path, exedst_path)
-            shutil.copytree(
-                libsrc_path, libdst_path)
+            shutil.copytree(exesrc_path, exedst_path)
+            shutil.copytree(libsrc_path, libdst_path)
 
         finally:
             os.chdir(cwd_pointer)
