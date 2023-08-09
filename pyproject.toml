@@ -21,8 +21,8 @@ packages = [
     { include = "jigsawpy" },
 ]
 include = [
-    { path = "jigsawpy/_lib", format = "wheel" },
-    { path = "jigsawpy/_bin", format = "wheel" },
+    { path = "jigsawpy/_lib/*", format = "wheel" },
+    { path = "jigsawpy/_bin/*", format = "wheel" },
     "external/**/*",
 ]
 
