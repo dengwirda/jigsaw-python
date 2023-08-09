@@ -17,6 +17,14 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Physics",
     "Topic :: Scientific/Engineering :: Visualization"
 ]
+packages = [
+    { include = "jigsawpy" },
+]
+include = [
+    { path = "jigsawpy/_lib", format = "wheel" },
+    { path = "jigsawpy/_bin", format = "wheel" },
+    "external/**/*",
+]
 
 [tool.poetry.dependencies]
 python = ">=3.9.0,<3.13"
@@ -27,8 +35,12 @@ scipy = "^1.11.1"
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
-[tool.poetry.scripts]
-install-jigsaw = 'install_jigsaw:run'
+[tool.poetry.build]
+generate-setup-file = false
+script = "build.py"
+
+# [tool.poetry.scripts]
+# install-jigsaw = 'install_jigsaw:run'
 
 [tool.poetry.urls]
 "Github" = "https://github.com/dengwirda/"
