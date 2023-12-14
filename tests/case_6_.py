@@ -70,4 +70,9 @@ def case_6_(src_path, dst_path):
     jigsawpy.savevtk(os.path.join(
         dst_path, "case_6c.vtk"), mesh)
 
+    print("Saving case_6c.obj file.")
+
+    jigsawpy.saveobj(os.path.join(
+        dst_path, "case_6c.obj"), mesh)
+
     return

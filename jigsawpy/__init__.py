@@ -87,6 +87,7 @@ from jigsawpy.tools.mathutils import R3toS2, S2toR3
 
 from jigsawpy.tools.meshutils import attach, jumble
 
+from jigsawpy.parse.saveobj import saveobj
 from jigsawpy.parse.saveoff import saveoff
 from jigsawpy.parse.savewav import savewav
 from jigsawpy.parse.savevtk import savevtk
