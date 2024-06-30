@@ -208,6 +208,9 @@ def bisect(mesh):
             return_index=True,
             return_inverse=True, axis=0)
 
+        # for numpy 2.x compatibility
+        erev = erev.ravel()
+
         edge = edge[efwd, :]
 
     if (quad.size != 0):
@@ -216,6 +219,9 @@ def bisect(mesh):
             return_index=True,
             return_inverse=True, axis=0)
 
+        # for numpy 2.x compatibility
+        qrev = qrev.ravel()
+
         quad = quad[qfwd, :]
 
     if (hexa.size != 0):
@@ -223,6 +229,9 @@ def bisect(mesh):
             np.sort(hexa, axis=+1),
             return_index=True,
             return_inverse=True, axis=0)
+
+        # for numpy 2.x compatibility
+        hrev = hrev.ravel()
 
         hexa = hexa[hfwd, :]
 
