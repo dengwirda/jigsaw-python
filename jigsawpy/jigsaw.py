@@ -253,6 +253,9 @@ def jitter(opts, imax, ibad, mesh=None):
 
     for iter in range(imax):
 
+        if (opts.optm_dual is not None):
+            OPTS.optm_dual = iter == imax - 1
+
         if (mesh.point is not None and
                 mesh.point.size != +0):
 
@@ -363,7 +366,7 @@ def tetris(opts, nlev, mesh=None):
             OPTS.hfun_hmin = \
                 opts.hfun_hmin * SCAL
 
-        if (opts.hfun_file is not None):
+        if (opts.hfun_file is not None and SCAL > 1.0):
     #------------------------ create/write current HFUN data
             path = Path(opts.hfun_file).parent
             name = Path(opts.hfun_file).stem
@@ -384,7 +387,7 @@ def tetris(opts, nlev, mesh=None):
             savemsh(OPTS.hfun_file, HFUN)
 
     #------------------------ call JIGSAW kernel at this lev
-        jitter(OPTS, 4 + (nlev > 0) * 44, 3, mesh)
+        jitter(OPTS, 4 + (nlev > 0) *12, 3, mesh)
 
         nlev = nlev - 1
         SCAL = SCAL / 2.
