@@ -207,6 +207,12 @@
         function above which gradient-based optimisation is
         attempted.
 
+    OPTS.OPTM_WMIN - {default=-7./8.} lower limit on dual 
+        mesh weights relative to cell radius.
+
+    OPTS.OPTM_WMAX - {default=+1./80} upper limit on dual 
+        mesh weights relative to cell radius.
+
     OPTS.OPTM_TRIA - {default= true} allow for optimisation
         of TRIA grid geometry.
 
@@ -321,6 +327,9 @@ class jigsaw_jig_t:
 
         self.optm_qtol = None
         self.optm_qlim = None
+
+        self.optm_wmin = None
+        self.optm_wmax = None
 
         self.optm_zip_ = None
         self.optm_div_ = None

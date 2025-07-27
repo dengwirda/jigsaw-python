@@ -160,6 +160,11 @@ def loadjig(name, opts):
                 if (item == "OPTM_QLIM"):
                     opts.optm_qlim = float(ltag[1])
 
+                if (item == "OPTM_WMIN"):
+                    opts.optm_wmin = float(ltag[1])
+                if (item == "OPTM_WMAX"):
+                    opts.optm_wmax = float(ltag[1])
+
                 if (item == "OPTM_ZIP_"):
                     opts.optm_zip_ = bool(ltag[1])
                 if (item == "OPTM_DIV_"):

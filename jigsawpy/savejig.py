@@ -203,6 +203,11 @@ def savejig(name, opts):
         if (opts.optm_qlim is not None):
             savereal(fptr, opts.optm_qlim, "OPTM_QLIM")
 
+        if (opts.optm_wmin is not None):
+            savereal(fptr, opts.optm_wmin, "OPTM_WMIN")
+        if (opts.optm_wmax is not None):
+            savereal(fptr, opts.optm_wmax, "OPTM_WMAX")
+
         if (opts.optm_zip_ is not None):
             savebool(fptr, opts.optm_zip_, "OPTM_ZIP_")
         if (opts.optm_div_ is not None):

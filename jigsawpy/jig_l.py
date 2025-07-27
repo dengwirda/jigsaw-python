@@ -269,6 +269,16 @@ class libsaw_jig_t(ct.Structure):
 
     ("optm_qlim", real_t),
 
+    # OPTM_WMIN - {default=-7./8.} lower limit on dual 
+    # mesh weights relative to cell radius.
+
+    ("optm_wmin", real_t),
+
+    # OPTM_WMAX - {default=+1./80} upper limit on dual 
+    # mesh weights relative to cell radius.
+
+    ("optm_wmax", real_t),
+
     # OPTM_TRIA - {default= true} allow for optimisation
     # of TRIA grid geometry.
 

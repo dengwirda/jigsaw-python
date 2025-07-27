@@ -317,6 +317,16 @@ def put_jig_t(jigt, jigl):
     elif (jigt.optm_qlim is not None):
         raise TypeError("OPTM-QLIM type")
 
+    if (is_type_t(jigt.optm_wmin, float)):
+        jigl.optm_wmin = real_t(jigt.optm_wmin)
+    elif (jigt.optm_wmin is not None):
+        raise TypeError("OPTM-WMIN type")
+
+    if (is_type_t(jigt.optm_wmax, float)):
+        jigl.optm_wmax = real_t(jigt.optm_wmax)
+    elif (jigt.optm_wmax is not None):
+        raise TypeError("OPTM-WMAX type")
+
     if (is_type_t(jigt.optm_tria, bool)):
         jigl.optm_tria = indx_t(jigt.optm_tria)
     elif (jigt.optm_tria is not None):
