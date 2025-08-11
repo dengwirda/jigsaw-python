@@ -469,6 +469,9 @@
         {
             save_point () ;           // lon-lat to R^3
             save_power () ;           // match to point
+  
+            this->                    // pts now in R^3
+           _init->_kind = jmsh_kind::euclidean_mesh ;
         }
         } ;
 
@@ -1157,6 +1160,13 @@
 
                 _errv = __invalid_indexing ;
             }
+        }
+        else
+        {
+            _jlog.  push (
+    "**input error: couldn't determine format of INIT.\n") ;
+
+            return __invalid_argument ;
         }
 
         return (  _errv ) ;
