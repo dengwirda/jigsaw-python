@@ -7,7 +7,9 @@
   <img src = "../master/external/jigsaw/img/bunny-TRIA4-3.png" width="20%" hspace="0.25%">
 </p>
 
-`JIGSAW` is an unstructured mesh generator and tessellation library; designed to generate high-quality triangulations and polyhedral decompositions of general planar, surface and volumetric domains. `JIGSAW` includes refinement-based algorithms for the construction of new meshes, optimisation-driven techniques for the improvement of existing grids, as well as routines to assemble (restricted) Delaunay tessellations, Voronoi complexes and Power diagrams.
+`JIGSAW` is an unstructured mesh generator and tessellation library; designed to generate high-quality triangulations and polyhedral decompositions of general planar, surface and volumetric domains. 
+
+`JIGSAW` includes refinement-based algorithms for constructing new meshes, optimisation-driven techniques for improving existing grids, as well as routines to assemble (restricted) Delaunay tessellations, Voronoi complexes and Power diagrams.
 
 This package provides a <a href="http://www.python.org">`Python`</a> based scripting interface to the underlying `JIGSAW` mesh generator, including a range of additional facilities for file I/O, mesh visualisation and post-processing operations.
 
@@ -21,7 +23,7 @@ This package provides a <a href="http://www.python.org">`Python`</a> based scrip
     python3 setup.py install
     python3 example.py --IDnumber=0
     
-Note: installation of `JIGSAW` requires a `c++` compiler and the `cmake` utility. `JIGSAW` may also be installed as a `conda` package. See <a href="https://github.com/dengwirda/jigsaw">here</a> for details.
+Note: installation of `JIGSAW` requires a `c++` compiler and the `cmake` utility.
     
 ### `Function Listing`
 
@@ -75,7 +77,7 @@ This program may be freely redistributed under the condition that the copyright 
 
 ### `References`
 
-There are a number of publications that describe the algorithms used in `JIGSAW` in detail. If you make use of `JIGSAW` in your work, please consider including a reference to the following:
+There are a number of publications that describe the algorithms used in `JIGSAW` in detail. If you make use of `JIGSAW` in your work, please include references as appropriate:
 
 `[1]` - Darren Engwirda: Generalised primal-dual grids for unstructured co-volume schemes, J. Comp. Phys., 375, pp. 155-176, https://doi.org/10.1016/j.jcp.2018.07.025, 2018.
 
