@@ -96,6 +96,18 @@
         inement iterations. Set ITER=N to see progress after
         N iterations.
 
+    OPTS.MESH_ORPH - {default=true} allow "orphaned" facets
+        to remain in the mesh. A K-1 dimensional subcell is
+        orphaned if it does not appear in any K-dimensional 
+        cell, e.g. a surface triangle that is not the face 
+        of any interior tetrahedron.
+
+    OPTS.MESH_LOCK - {default=false} prevent the refinement
+        of subfaces during subsequent refinement. The
+        refinement of a K-dimensional cell is deferred if
+        doing so would cause any K-1 dimensional subfaces to 
+        be refined.
+
     OPTS.MESH_TOP1 - {default=false} enforce 1-dim. topolog-
         ical constraints. 1-dim. edges are refined until all
         embedded nodes are "locally 1-manifold", i.e. nodes
@@ -291,6 +303,9 @@ class jigsaw_jig_t:
         self.bnds_kern = None
 
         self.mesh_iter = None
+
+        self.mesh_orph = None
+        self.mesh_lock = None
 
         self.mesh_dims = None
 

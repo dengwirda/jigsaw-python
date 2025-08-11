@@ -253,16 +253,19 @@ def jitter(opts, imax, ibad, mesh=None):
 
     for iter in range(imax):
 
+        npts = npwr = 0
+        if (mesh.point is not None): npts = mesh.point.size
+        if (mesh.power is not None): npwr = mesh.power.size
+
         if (opts.optm_dual is not None):
-            OPTS.optm_dual = iter == imax - 1
+            OPTS.optm_dual = iter == imax-1 or npts == npwr
 
         if (mesh.point is not None and
                 mesh.point.size != +0):
 
             nvrt = mesh.point.size
 
-            keep = np.full(
-                (nvrt), True, dtype=bool)
+            keep = np.full((nvrt), True, dtype=bool)
 
     #------------------------------ setup initial conditions
             path = Path(opts.mesh_file).parent
@@ -304,11 +307,15 @@ def jitter(opts, imax, ibad, mesh=None):
 
     #------------------------------ keep nodes far from seam
             init = jigsaw_msh_t()
-            init.point = mesh.point[keep]
+            if (mesh.point is not None): 
+                init.point = mesh.point[keep]
+            if (mesh.power is not None):
+                init.power = mesh.power[keep]
 
             savemsh(OPTS.init_file, init)
 
     #------------------------------ call JIGSAW with new ICs
+        print("optm_dual:", OPTS.optm_dual)
         jigsaw (OPTS, mesh)       # noqa
 
     return

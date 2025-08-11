@@ -146,6 +146,11 @@ def savejig(name, opts):
         if (opts.mesh_iter is not None):
             saveints(fptr, opts.mesh_iter, "MESH_ITER")
 
+        if (opts.mesh_orph is not None):
+            savebool(fptr, opts.mesh_orph, "MESH_ORPH")
+        if (opts.mesh_lock is not None):
+            savebool(fptr, opts.mesh_lock, "MESH_LOCK")
+
         if (opts.mesh_dims is not None):
             saveints(fptr, opts.mesh_dims, "MESH_DIMS")
 

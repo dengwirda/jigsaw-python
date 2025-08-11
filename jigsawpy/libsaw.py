@@ -221,6 +221,16 @@ def put_jig_t(jigt, jigl):
     elif (jigt.mesh_iter is not None):
         raise TypeError("MESH-ITER type")
 
+    if (is_type_t(jigt.mesh_orph, bool)):
+        jigl.mesh_orph = indx_t(jigt.mesh_orph)
+    elif (jigt.mesh_orph is not None):
+        raise TypeError("MESH-ORPH type")
+
+    if (is_type_t(jigt.mesh_lock, bool)):
+        jigl.mesh_lock = indx_t(jigt.mesh_lock)
+    elif (jigt.mesh_lock is not None):
+        raise TypeError("MESH-LOCK type")
+
     if (is_type_t(jigt.mesh_top1, bool)):
         jigl.mesh_top1 = indx_t(jigt.mesh_top1)
     elif (jigt.mesh_top1 is not None):

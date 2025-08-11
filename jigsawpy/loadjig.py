@@ -33,8 +33,7 @@ def loadjig(name, opts):
 
         #----------------------- parse next non-null section
                 line = line.strip()
-                if (line[0] == "#"):
-                    continue
+                if (line[0] == "#"): continue
 
                 ltag = line.split("=")
                 item = ltag[0].upper().strip()
@@ -102,6 +101,11 @@ def loadjig(name, opts):
 
                 if (item == "MESH_ITER"):
                     opts.mesh_iter = int(ltag[1])
+
+                if (item == "MESH_ORPH"):
+                    opts.mesh_orph = bool(ltag[1])
+                if (item == "MESH_LOCK"):
+                    opts.mesh_lock = bool(ltag[1])
 
                 if (item == "MESH_DIMS"):
                     opts.mesh_dims = int(ltag[1])

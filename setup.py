@@ -5,7 +5,6 @@ import subprocess
 import shutil
 
 from setuptools import setup, find_packages, Command
-from packaging import version
 
 NAME = "jigsawpy"
 DESCRIPTION = \
@@ -13,7 +12,7 @@ DESCRIPTION = \
 AUTHOR = "Darren Engwirda"
 AUTHOR_EMAIL = "d.engwirda@gmail.com"
 URL = "https://github.com/dengwirda/"
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 REQUIRES_PYTHON = ">=3.6.0"
 KEYWORDS = "Mesh-generation Delaunay Voronoi"
 
@@ -43,18 +42,6 @@ try:
 
 except FileNotFoundError:
     LONG_DESCRIPTION = DESCRIPTION
-
-
-def get_cmake_version():
-    try:
-        out = subprocess.check_output(
-            ["cmake", "--version"]).decode("utf-8")
-        sln = out.splitlines()[0]
-        ver = sln.split()[2]
-        return ver
-
-    except:
-        print("cmake not found!")
 
 
 class build_external(Command):
@@ -114,22 +101,24 @@ class build_external(Command):
 
             self.announce("cmake complie", level=3)
 
-            ver = get_cmake_version()
-            if version.parse(ver) < version.parse("3.12"):
-                compilecall = [
-                    "cmake", "--build", ".",
-                    "--config", "Release",
-                    "--target", "install"
-                    ]
-            else:            
+            try:            
                 compilecall = [
                     "cmake", "--build", ".",
                     "--config", "Release",
                     "--target", "install",
                     "--parallel", "4"
                     ]
+                subprocess.run(
+                    compilecall, check=True)
 
-            subprocess.run(compilecall, check=True)
+            except:
+                compilecall = [
+                    "cmake", "--build", ".",
+                    "--config", "Release",
+                    "--target", "install"
+                    ]
+                subprocess.run(
+                    compilecall, check=True)
 
             self.announce("cmake cleanup", level=3)
 

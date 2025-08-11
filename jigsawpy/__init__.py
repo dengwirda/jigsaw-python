@@ -13,9 +13,9 @@ r"""
  * JIGSAW: Interface to the JIGSAW meshing library.
 ------------------------------------------------------------
  *
- * Last updated: 10 Jan., 2023
+ * Last updated: 04 Aug., 2025
  *
- * Copyright 2019-2023
+ * Copyright 2019-2025
  * Darren Engwirda
  * d.engwirda@gmail.com
  * https://github.com/dengwirda
@@ -65,6 +65,8 @@ from jigsawpy.loadmsh import loadmsh
 from jigsawpy.savemsh import savemsh
 from jigsawpy.loadjig import loadjig
 from jigsawpy.savejig import savejig
+from jigsawpy.loadprj import loadprj
+from jigsawpy.saveprj import saveprj
 
 from jigsawpy.certify import certify
 
