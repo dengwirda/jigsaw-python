@@ -98,14 +98,14 @@ def project(mesh, proj, sign):
             if (mesh.value is not None and
                     mesh.value.size != +0):
 
-                mesh.value = mesh.value * SCAL
+                mesh.value*= SCAL.reshape(mesh.value.shape)
 
             if (mesh.power is not None and
                     mesh.power.size != +0):
 
                 SPOW = np.sqrt(SCAL)
 
-                mesh.power = mesh.power * SPOW
+                mesh.power*= SPOW.reshape(mesh.power.shape)
 
     elif (kind == "euclidean-grid" or
           kind == "ellipsoid-grid"):
@@ -220,8 +220,7 @@ def project(mesh, proj, sign):
 
                 tset.append(triaB)
 
-            mesh.tria3 = \
-                np.concatenate(tset, axis=0)
+            mesh.tria3 = np.concatenate(tset, axis=0)
 
     #----------------------------------- setup proj.'d extras
             if (mesh.slope is not None and
@@ -236,7 +235,7 @@ def project(mesh, proj, sign):
                 mesh.value = np.reshape(
                     mesh.value, mesh.value.size)
 
-                mesh.value = mesh.value * SCAL
+                mesh.value*= SCAL.reshape(mesh.value.shape)
 
             if (mesh.power is not None and
                     mesh.power.size != +0):
@@ -246,6 +245,6 @@ def project(mesh, proj, sign):
 
                 SPOW = np.sqrt(SCAL)
 
-                mesh.power = mesh.power * SPOW
+                mesh.power*= SPOW.reshape(mesh.power.shape)
 
     return
