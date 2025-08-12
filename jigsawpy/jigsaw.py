@@ -309,13 +309,15 @@ def jitter(opts, imax, ibad, mesh=None):
             init = jigsaw_msh_t()
             if (mesh.point is not None): 
                 init.point = mesh.point[keep]
-            if (mesh.power is not None):
+
+            if (mesh.power is not None and 
+                    mesh.power.size == 
+                    mesh.point.size):
                 init.power = mesh.power[keep]
 
             savemsh(OPTS.init_file, init)
 
     #------------------------------ call JIGSAW with new ICs
-        print("optm_dual:", OPTS.optm_dual)
         jigsaw (OPTS, mesh)       # noqa
 
     return
