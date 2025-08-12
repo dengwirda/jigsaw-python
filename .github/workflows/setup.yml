@@ -57,7 +57,9 @@ jobs:
           pip install -r requirements.txt
 
       - name: Build jigsaw-python
-        run: python setup.py build_external install
+        run: |
+          python build.py
+          pip install .
 
       - name: Eval. jigsaw-python
         run: python example.py --IDnumber=-1
