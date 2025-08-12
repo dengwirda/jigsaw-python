@@ -1,11 +1,11 @@
 
 import io
 import os
-import subprocess
-import shutil
-
 from setuptools import setup, find_packages, Command
-from packaging import version
+
+#-- old setup.py workflow for backwards compatibility
+#-- python setup.py build_external
+#-- python setup.py install 
 
 NAME = "jigsawpy"
 DESCRIPTION = \
@@ -13,7 +13,7 @@ DESCRIPTION = \
 AUTHOR = "Darren Engwirda"
 AUTHOR_EMAIL = "d.engwirda@gmail.com"
 URL = "https://github.com/dengwirda/"
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 REQUIRES_PYTHON = ">=3.6.0"
 KEYWORDS = "Mesh-generation Delaunay Voronoi"
 
@@ -45,18 +45,6 @@ except FileNotFoundError:
     LONG_DESCRIPTION = DESCRIPTION
 
 
-def get_cmake_version():
-    try:
-        out = subprocess.check_output(
-            ["cmake", "--version"]).decode("utf-8")
-        sln = out.splitlines()[0]
-        ver = sln.split()[2]
-        return ver
-
-    except:
-        print("cmake not found!")
-
-
 class build_external(Command):
 
     description = "build external JIGSAW dependencies"
@@ -68,78 +56,8 @@ class build_external(Command):
     def finalize_options(self): pass
 
     def run(self):
-        """
-        The actual cmake-based build steps for JIGSAW
-
-        """
         if (self.dry_run): return
-
-        cwd_pointer = os.getcwd()
-
-        try:
-            self.announce("cmake config.", level=3)
-
-            source_path = os.path.join(
-                HERE, "external", "jigsaw")
-
-            builds_path = \
-                os.path.join(source_path, "tmp")
-
-            os.makedirs(builds_path, exist_ok=True)
-
-            exesrc_path = \
-                os.path.join(source_path, "bin")
-
-            libsrc_path = \
-                os.path.join(source_path, "lib")
-
-            exedst_path = os.path.join(
-                HERE, "jigsawpy", "_bin")
-
-            libdst_path = os.path.join(
-                HERE, "jigsawpy", "_lib")
-
-            shutil.rmtree(
-                exedst_path, ignore_errors=True)
-            shutil.rmtree(
-                libdst_path, ignore_errors=True)
-
-            os.chdir(builds_path)
-
-            config_call = [
-                "cmake",
-                "..", "-DCMAKE_BUILD_TYPE=Release"]
-
-            subprocess.run(config_call, check=True)
-
-            self.announce("cmake complie", level=3)
-
-            ver = get_cmake_version()
-            if version.parse(ver) < version.parse("3.12"):
-                compilecall = [
-                    "cmake", "--build", ".",
-                    "--config", "Release",
-                    "--target", "install"
-                    ]
-            else:            
-                compilecall = [
-                    "cmake", "--build", ".",
-                    "--config", "Release",
-                    "--target", "install",
-                    "--parallel", "4"
-                    ]
-
-            subprocess.run(compilecall, check=True)
-
-            self.announce("cmake cleanup", level=3)
-
-            shutil.copytree(exesrc_path, exedst_path)
-            shutil.copytree(libsrc_path, libdst_path)
-
-        finally:
-            os.chdir(cwd_pointer)
-
-            shutil.rmtree(builds_path)
+        import build; build.build_external()
 
 
 setup(
@@ -148,7 +66,6 @@ setup(
     description=DESCRIPTION,
     long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",
-    license="custom",
     author=AUTHOR,
     author_email=AUTHOR_EMAIL,
     python_requires=REQUIRES_PYTHON,
@@ -160,3 +77,4 @@ setup(
     install_requires=REQUIRED,
     classifiers=CLASSIFY
 )
+

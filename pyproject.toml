@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jigsawpy"
+version = "1.1.0"
+description = "Python interface for the JIGSAW meshing library."
+readme = "README.md"
+authors = [
+    { name = "Darren Engwirda", email = "d.engwirda@gmail.com" },
+]
+requires-python = ">=3.6.0"
+keywords = ["Mesh-generation", "Delaunay", "Voronoi"]
+license-files = ["LICENSE.md"]
+dependencies = ["numpy", "scipy"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: C++",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Scientific/Engineering :: Visualization"
+]
+
+[project.urls]
+homepage = "https://dengwirda.github.io/"
+source = "https://github.com/dengwirda/jigsaw-python/"
+
+[tool.setuptools.package-data]
+"jigsawpy" = ["_bin/*", "_lib/*"]
+

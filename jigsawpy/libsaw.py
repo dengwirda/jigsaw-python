@@ -221,6 +221,16 @@ def put_jig_t(jigt, jigl):
     elif (jigt.mesh_iter is not None):
         raise TypeError("MESH-ITER type")
 
+    if (is_type_t(jigt.mesh_orph, bool)):
+        jigl.mesh_orph = indx_t(jigt.mesh_orph)
+    elif (jigt.mesh_orph is not None):
+        raise TypeError("MESH-ORPH type")
+
+    if (is_type_t(jigt.mesh_lock, bool)):
+        jigl.mesh_lock = indx_t(jigt.mesh_lock)
+    elif (jigt.mesh_lock is not None):
+        raise TypeError("MESH-LOCK type")
+
     if (is_type_t(jigt.mesh_top1, bool)):
         jigl.mesh_top1 = indx_t(jigt.mesh_top1)
     elif (jigt.mesh_top1 is not None):
@@ -316,6 +326,16 @@ def put_jig_t(jigt, jigl):
         jigl.optm_qlim = real_t(jigt.optm_qlim)
     elif (jigt.optm_qlim is not None):
         raise TypeError("OPTM-QLIM type")
+
+    if (is_type_t(jigt.optm_wmin, float)):
+        jigl.optm_wmin = real_t(jigt.optm_wmin)
+    elif (jigt.optm_wmin is not None):
+        raise TypeError("OPTM-WMIN type")
+
+    if (is_type_t(jigt.optm_wmax, float)):
+        jigl.optm_wmax = real_t(jigt.optm_wmax)
+    elif (jigt.optm_wmax is not None):
+        raise TypeError("OPTM-WMAX type")
 
     if (is_type_t(jigt.optm_tria, bool)):
         jigl.optm_tria = indx_t(jigt.optm_tria)

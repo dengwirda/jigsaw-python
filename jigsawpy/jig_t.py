@@ -96,6 +96,18 @@
         inement iterations. Set ITER=N to see progress after
         N iterations.
 
+    OPTS.MESH_ORPH - {default=true} allow "orphaned" facets
+        to remain in the mesh. A K-1 dimensional subcell is
+        orphaned if it does not appear in any K-dimensional 
+        cell, e.g. a surface triangle that is not the face 
+        of any interior tetrahedron.
+
+    OPTS.MESH_LOCK - {default=false} prevent the refinement
+        of subfaces during subsequent refinement. The
+        refinement of a K-dimensional cell is deferred if
+        doing so would cause any K-1 dimensional subfaces to 
+        be refined.
+
     OPTS.MESH_TOP1 - {default=false} enforce 1-dim. topolog-
         ical constraints. 1-dim. edges are refined until all
         embedded nodes are "locally 1-manifold", i.e. nodes
@@ -207,6 +219,12 @@
         function above which gradient-based optimisation is
         attempted.
 
+    OPTS.OPTM_WMIN - {default=-7./8.} lower limit on dual 
+        mesh weights relative to cell radius.
+
+    OPTS.OPTM_WMAX - {default=+1./80} upper limit on dual 
+        mesh weights relative to cell radius.
+
     OPTS.OPTM_TRIA - {default= true} allow for optimisation
         of TRIA grid geometry.
 
@@ -286,6 +304,9 @@ class jigsaw_jig_t:
 
         self.mesh_iter = None
 
+        self.mesh_orph = None
+        self.mesh_lock = None
+
         self.mesh_dims = None
 
         self.mesh_top1 = None
@@ -321,6 +342,9 @@ class jigsaw_jig_t:
 
         self.optm_qtol = None
         self.optm_qlim = None
+
+        self.optm_wmin = None
+        self.optm_wmax = None
 
         self.optm_zip_ = None
         self.optm_div_ = None

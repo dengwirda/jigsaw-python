@@ -33,8 +33,7 @@ def loadjig(name, opts):
 
         #----------------------- parse next non-null section
                 line = line.strip()
-                if (line[0] == "#"):
-                    continue
+                if (line[0] == "#"): continue
 
                 ltag = line.split("=")
                 item = ltag[0].upper().strip()
@@ -103,6 +102,11 @@ def loadjig(name, opts):
                 if (item == "MESH_ITER"):
                     opts.mesh_iter = int(ltag[1])
 
+                if (item == "MESH_ORPH"):
+                    opts.mesh_orph = bool(ltag[1])
+                if (item == "MESH_LOCK"):
+                    opts.mesh_lock = bool(ltag[1])
+
                 if (item == "MESH_DIMS"):
                     opts.mesh_dims = int(ltag[1])
 
@@ -159,6 +163,11 @@ def loadjig(name, opts):
                     opts.optm_qtol = float(ltag[1])
                 if (item == "OPTM_QLIM"):
                     opts.optm_qlim = float(ltag[1])
+
+                if (item == "OPTM_WMIN"):
+                    opts.optm_wmin = float(ltag[1])
+                if (item == "OPTM_WMAX"):
+                    opts.optm_wmax = float(ltag[1])
 
                 if (item == "OPTM_ZIP_"):
                     opts.optm_zip_ = bool(ltag[1])

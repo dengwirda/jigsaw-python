@@ -253,13 +253,19 @@ def jitter(opts, imax, ibad, mesh=None):
 
     for iter in range(imax):
 
+        npts = npwr = 0
+        if (mesh.point is not None): npts = mesh.point.size
+        if (mesh.power is not None): npwr = mesh.power.size
+
+        if (opts.optm_dual is not None):
+            OPTS.optm_dual = iter == imax-1 or npts == npwr
+
         if (mesh.point is not None and
                 mesh.point.size != +0):
 
             nvrt = mesh.point.size
 
-            keep = np.full(
-                (nvrt), True, dtype=bool)
+            keep = np.full((nvrt), True, dtype=bool)
 
     #------------------------------ setup initial conditions
             path = Path(opts.mesh_file).parent
@@ -301,7 +307,13 @@ def jitter(opts, imax, ibad, mesh=None):
 
     #------------------------------ keep nodes far from seam
             init = jigsaw_msh_t()
-            init.point = mesh.point[keep]
+            if (mesh.point is not None): 
+                init.point = mesh.point[keep]
+
+            if (mesh.power is not None and 
+                    mesh.power.size == 
+                    mesh.point.size):
+                init.power = mesh.power[keep]
 
             savemsh(OPTS.init_file, init)
 
@@ -363,7 +375,7 @@ def tetris(opts, nlev, mesh=None):
             OPTS.hfun_hmin = \
                 opts.hfun_hmin * SCAL
 
-        if (opts.hfun_file is not None):
+        if (opts.hfun_file is not None and SCAL > 1.0):
     #------------------------ create/write current HFUN data
             path = Path(opts.hfun_file).parent
             name = Path(opts.hfun_file).stem
@@ -384,7 +396,7 @@ def tetris(opts, nlev, mesh=None):
             savemsh(OPTS.hfun_file, HFUN)
 
     #------------------------ call JIGSAW kernel at this lev
-        jitter(OPTS, 4 + (nlev > 0) * 44, 3, mesh)
+        jitter(OPTS, 4 + (nlev > 0) *12, 3, mesh)
 
         nlev = nlev - 1
         SCAL = SCAL / 2.

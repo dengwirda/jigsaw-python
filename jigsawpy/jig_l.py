@@ -107,6 +107,22 @@ class libsaw_jig_t(ct.Structure):
 
     ("mesh_iter", indx_t),
 
+    # MESH_ORPH - {default=true} allow "orphaned" facets
+    # to remain in the mesh. A K-1 dimensional subcell is
+    # orphaned if it does not appear in any K-dimensional 
+    # cell, e.g. a surface triangle that is not the face 
+    # of any interior tetrahedron.
+
+    ("mesh_orph", indx_t),
+
+    # MESH_LOCK - {default=false} prevent the refinement
+    # of subfaces during subsequent refinement. The
+    # refinement of a K-dimensional cell is deferred if
+    # doing so would cause any K-1 dimensional subfaces to 
+    # be refined.
+
+    ("mesh_lock", indx_t),
+
     # MESH_TOP1 - {default=false} enforce 1-dim. topolog-
     # ical constraints. 1-dim. edges are refined until all
     # embedded nodes are "locally 1-manifold", i.e. nodes
@@ -268,6 +284,16 @@ class libsaw_jig_t(ct.Structure):
     # attempted.
 
     ("optm_qlim", real_t),
+
+    # OPTM_WMIN - {default=-7./8.} lower limit on dual 
+    # mesh weights relative to cell radius.
+
+    ("optm_wmin", real_t),
+
+    # OPTM_WMAX - {default=+1./80} upper limit on dual 
+    # mesh weights relative to cell radius.
+
+    ("optm_wmax", real_t),
 
     # OPTM_TRIA - {default= true} allow for optimisation
     # of TRIA grid geometry.

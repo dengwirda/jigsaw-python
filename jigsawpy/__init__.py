@@ -13,9 +13,9 @@ r"""
  * JIGSAW: Interface to the JIGSAW meshing library.
 ------------------------------------------------------------
  *
- * Last updated: 10 Jan., 2023
+ * Last updated: 10 Aug., 2025
  *
- * Copyright 2019-2023
+ * Copyright 2019-2025
  * Darren Engwirda
  * d.engwirda@gmail.com
  * https://github.com/dengwirda
@@ -59,12 +59,14 @@ from jigsawpy.jig_t import jigsaw_jig_t
 from jigsawpy.def_t import jigsaw_def_t
 from jigsawpy.prj_t import jigsaw_prj_t
 
-from jigsawpy import jigsaw, libsaw
+from jigsawpy import jigsaw
 
 from jigsawpy.loadmsh import loadmsh
 from jigsawpy.savemsh import savemsh
 from jigsawpy.loadjig import loadjig
 from jigsawpy.savejig import savejig
+from jigsawpy.loadprj import loadprj
+from jigsawpy.saveprj import saveprj
 
 from jigsawpy.certify import certify
 
@@ -133,18 +135,18 @@ class lib:
     @staticmethod
     def jigsaw(opts, geom, mesh, init=None,
                hfun=None):
-
+        from jigsawpy import libsaw
         return libsaw.jigsaw(opts, geom,
                              mesh,
                              init, hfun)
 
     @staticmethod
     def tripod(opts, init, tria, geom=None):
-
+        from jigsawpy import libsaw
         return libsaw.tripod(opts, init,
                              tria, geom)
 
     @staticmethod
     def marche(opts, ffun):
-
+        from jigsawpy import libsaw
         return libsaw.marche(opts, ffun)

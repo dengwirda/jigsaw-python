@@ -12,7 +12,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ["3.10"]
+        python-version: ["3.12"]
 
     steps:
       - uses: actions/checkout@v3
@@ -57,7 +57,9 @@ jobs:
           pip install -r requirements.txt
 
       - name: Build jigsaw-python
-        run: python setup.py build_external install
+        run: |
+          python build.py
+          pip install .
 
       - name: Eval. jigsaw-python
         run: python example.py --IDnumber=-1

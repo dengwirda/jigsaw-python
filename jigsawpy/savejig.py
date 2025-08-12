@@ -146,6 +146,11 @@ def savejig(name, opts):
         if (opts.mesh_iter is not None):
             saveints(fptr, opts.mesh_iter, "MESH_ITER")
 
+        if (opts.mesh_orph is not None):
+            savebool(fptr, opts.mesh_orph, "MESH_ORPH")
+        if (opts.mesh_lock is not None):
+            savebool(fptr, opts.mesh_lock, "MESH_LOCK")
+
         if (opts.mesh_dims is not None):
             saveints(fptr, opts.mesh_dims, "MESH_DIMS")
 
@@ -202,6 +207,11 @@ def savejig(name, opts):
             savereal(fptr, opts.optm_qtol, "OPTM_QTOL")
         if (opts.optm_qlim is not None):
             savereal(fptr, opts.optm_qlim, "OPTM_QLIM")
+
+        if (opts.optm_wmin is not None):
+            savereal(fptr, opts.optm_wmin, "OPTM_WMIN")
+        if (opts.optm_wmax is not None):
+            savereal(fptr, opts.optm_wmax, "OPTM_WMAX")
 
         if (opts.optm_zip_ is not None):
             savebool(fptr, opts.optm_zip_, "OPTM_ZIP_")
