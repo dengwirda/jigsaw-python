@@ -19,8 +19,8 @@ This package provides a <a href="http://www.python.org">`Python`</a> based scrip
 
     Ensure you have a c++ compiler and the cmake utility installed.
     Clone/download + unpack this repository.
-    python3 setup.py build_external
-    python3 setup.py install
+    python3 build.py
+    pip3 install .
     python3 example.py --IDnumber=0
     
 Note: installation of `JIGSAW` requires a `c++` compiler and the `cmake` utility.
@@ -29,7 +29,7 @@ Note: installation of `JIGSAW` requires a `c++` compiler and the `cmake` utility
 
 See `jigsawpy` for a description of the various functions available.
 
-    setup.py    - compile and install JIGSAW's c++ backend using cmake.
+    build.py    - compile and install JIGSAW's c++ backend using cmake.
     example.py  - a list of demo programs. 
     
     jigsaw.py   - cmd-line interface to JIGSAW's backend
