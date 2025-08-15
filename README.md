@@ -43,7 +43,6 @@ See `jigsawpy` for a description of the various functions available.
     project.py  - apply cartographic projection operators to mesh obj.
 
     bisect.py   - refine a mesh obj. via bisection.
-    extrude.py  - create a mesh obj. via extrusion.
 
 ### `Example Problems`
 
