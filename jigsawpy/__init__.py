@@ -13,7 +13,7 @@ r"""
  * JIGSAW: Interface to the JIGSAW meshing library.
 ------------------------------------------------------------
  *
- * Last updated: 10 Aug., 2025
+ * Last updated: 13 Aug., 2025
  *
  * Copyright 2019-2025
  * Darren Engwirda
@@ -92,6 +92,7 @@ from jigsawpy.tools.meshutils import attach, jumble
 from jigsawpy.parse.saveoff import saveoff
 from jigsawpy.parse.savewav import savewav
 from jigsawpy.parse.savevtk import savevtk
+from jigsawpy.parse.loadgeo import loadgeo
 
 
 class cmd:
