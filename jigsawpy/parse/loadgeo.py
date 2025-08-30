@@ -1,9 +1,11 @@
 
+import warnings
 import numpy as np
 import json
 import argparse
 
-from jigsawpy import jigsaw_msh_t, savemsh
+from jigsawpy.msh_t import jigsaw_msh_t
+from jigsawpy.savemsh import savemsh
 
 
 def linegeo(line, nset, eset, nobj, last):
@@ -30,7 +32,13 @@ def linegeo(line, nset, eset, nobj, last):
 
         last = last + npts
 
-        temp.vert2["coord"] = line[+0::]
+        data = np.asarray(line)
+        if (data.shape[1] > 2):
+            warnings.warn("Z-COORD omitted", Warning)        
+
+        # omit z if [x,y,z]
+        temp.vert2["coord"][:, 0] = data[+0:, 0]
+        temp.vert2["coord"][:, 1] = data[+0:, 1]
 
         temp.edge2["index"][:, 0] = indx + 0
         temp.edge2["index"][:, 1] = indx + 1
@@ -75,7 +83,13 @@ def polygeo(loop, nset, eset, nobj, last):
 
         last = last + npts
 
-        temp.vert2["coord"] = loop[:-1:]
+        data = np.asarray(loop)
+        if (data.shape[1] > 2):
+            warnings.warn("Z-COORD omitted", Warning) 
+        
+        # omit z if [x,y,z]
+        temp.vert2["coord"][:, 0] = data[:-1, 0]
+        temp.vert2["coord"][:, 1] = data[:-1, 1]
 
         temp.edge2["index"][:, 0] = idx1
         temp.edge2["index"][:, 1] = idx2
@@ -92,34 +106,57 @@ def readgeo(geom, nset, eset, nobj, last):
 
     """
 
-    if   (geom["type"] == "LineString"):
+    if   (geom["type"].lower() == "linestring"):
 
         line = geom["coordinates"]
 
         nobj, last = linegeo(
             line, nset, eset, nobj, last)
 
-    elif (geom["type"] == "MultiLineString"):
+    elif (geom["type"].lower() == "multilinestring"):
 
         for line in geom["coordinates"]:
 
             nobj, last = linegeo(
                 line, nset, eset, nobj, last)
 
-    elif (geom["type"] == "Polygon"):
+    elif (geom["type"].lower() == "polygon"):
 
         for loop in geom["coordinates"]:
 
             nobj, last = polygeo(
                 loop, nset, eset, nobj, last)
 
-    elif (geom["type"] == "MultiPolygon"):
+    elif (geom["type"].lower() == "multipolygon"):
 
         for poly in geom["coordinates"]:
             for loop in poly:
 
                 nobj, last = polygeo(
                     loop, nset, eset, nobj, last)
+
+    return nobj, last
+
+
+def readobj(feat, nset, eset, nobj, last):
+    """
+    READOBJ: read a geoJSON feat into a jigsaw msh_t object.
+
+    """
+
+    if (feat["type"].lower() != "geometrycollection"):
+
+        geom = feat["geometry"]
+
+        nobj, last = readgeo(
+            geom, nset, eset, nobj, last)
+
+    else:
+
+        for geom in feat["geometries"]:
+
+            nobj, last = readgeo(
+                geom, nset, eset, nobj, last)
 
     return nobj, last
 
@@ -140,21 +177,17 @@ def loadgeo(name, mesh):
 
     with open(name) as f: geoj = json.load(f)
 
-    for feat in geoj["features"]:
+    if (geoj["type"].lower() != "featurecollection"):
 
-        geom = (feat["geometry"])
+        nobj, last = readobj(
+            geoj, nset, eset, nobj, last)
 
-        if (geom["type"] != "GeometryCollection"):
+    else:
 
-            nobj, last = readgeo(
-                geom, nset, eset, nobj, last)
+        for feat in geoj["features"]:
 
-        else:
-
-            for next in geom["geometries"]:
-
-                nobj, last = readgeo(
-                    next, nset, eset, nobj, last)
+            nobj, last = readobj(
+                feat, nset, eset, nobj, last)
 
     mesh.vert2 = np.concatenate(nset, axis=0)
     mesh.edge2 = np.concatenate(eset, axis=0)

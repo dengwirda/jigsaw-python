@@ -13,7 +13,7 @@ r"""
  * JIGSAW: Interface to the JIGSAW meshing library.
 ------------------------------------------------------------
  *
- * Last updated: 13 Aug., 2025
+ * Last updated: 30 Aug., 2025
  *
  * Copyright 2019-2025
  * Darren Engwirda
