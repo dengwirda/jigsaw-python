@@ -55,6 +55,12 @@
         features are located between any neighbouring
         "faces" that subtend angles less than ETA2 deg.
 
+    OPTS.GEOM_PHI1 - {default = 60deg} 1-dim. sharp-feature
+        angle, to be "protected" during mesh refinement.
+
+    OPTS.GEOM_PHI2 - {default = 60deg} 2-dim. sharp-feature
+        angle, to be "protected" during mesh refinement.
+
     OPTIONAL fields (HFUN):
     ----------------------
 
@@ -89,12 +95,18 @@
 
     OPTS.MESH_KERN - {default='delfront'} meshing kernal,
         choice of the standard Delaunay-refinement algorithm
-        (KERN='delaunay') or the Frontal-Delaunay method
-        (KERN='delfront').
+        (KERN='delaunay'), the Frontal-Delaunay method
+        (KERN='delfront'), or the Bisection method
+        (KERN='bisector').
 
     OPTS.MESH_ITER - {default=+INF} max. number of mesh ref-
         inement iterations. Set ITER=N to see progress after
         N iterations.
+
+    OPTS.MESH_RULE - bitmask selecting which refinement
+        rules are utilised, with e.g. the status of the bit
+        RULE[MESH_RULE_OFFH] selecting mesh-size adaptive
+        off-centres, see jigsaw_const.h for options.
 
     OPTS.MESH_ORPH - {default=true} allow "orphaned" facets
         to remain in the mesh. A K-1 dimensional subcell is
@@ -286,6 +298,9 @@ class jigsaw_jig_t:
         self.geom_eta1 = None
         self.geom_eta2 = None
 
+        self.geom_phi1 = None
+        self.geom_phi2 = None
+
     #------------------------------------------ HFUN options
         self.hfun_file = None
         self.hfun_tags = None
@@ -303,6 +318,8 @@ class jigsaw_jig_t:
         self.bnds_kern = None
 
         self.mesh_iter = None
+
+        self.mesh_rule = None
 
         self.mesh_orph = None
         self.mesh_lock = None

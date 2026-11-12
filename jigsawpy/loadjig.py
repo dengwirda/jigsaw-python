@@ -3,6 +3,18 @@ from pathlib import Path
 from jigsawpy.jig_t import jigsaw_jig_t
 
 
+def loadbool(value, stag):
+    value = value.strip().upper()
+
+    if (value == "TRUE"):
+        return True
+
+    if (value == "FALSE"):
+        return False
+
+    raise ValueError("Invalid [BOOLS] data: OPTS." + stag)
+
+
 def loadjig(name, opts):
     """
     LOADJIG: load a JIG config. obj. from file.
@@ -33,6 +45,7 @@ def loadjig(name, opts):
 
         #----------------------- parse next non-null section
                 line = line.strip()
+                if (not line): continue
                 if (line[0] == "#"): continue
 
                 ltag = line.split("=")
@@ -66,7 +79,8 @@ def loadjig(name, opts):
                     opts.geom_seed = int(ltag[1])
 
                 if (item == "GEOM_FEAT"):
-                    opts.geom_feat = bool(ltag[1])
+                    opts.geom_feat = loadbool(
+                        ltag[1], "GEOM_FEAT")
 
                 if (item == "GEOM_PHI1"):
                     opts.geom_phi1 = float(ltag[1])
@@ -102,18 +116,25 @@ def loadjig(name, opts):
                 if (item == "MESH_ITER"):
                     opts.mesh_iter = int(ltag[1])
 
+                if (item == "MESH_RULE"):
+                    opts.mesh_rule = int(ltag[1])
+
                 if (item == "MESH_ORPH"):
-                    opts.mesh_orph = bool(ltag[1])
+                    opts.mesh_orph = loadbool(
+                        ltag[1], "MESH_ORPH")
                 if (item == "MESH_LOCK"):
-                    opts.mesh_lock = bool(ltag[1])
+                    opts.mesh_lock = loadbool(
+                        ltag[1], "MESH_LOCK")
 
                 if (item == "MESH_DIMS"):
                     opts.mesh_dims = int(ltag[1])
 
                 if (item == "MESH_TOP1"):
-                    opts.mesh_top1 = bool(ltag[1])
+                    opts.mesh_top1 = loadbool(
+                        ltag[1], "MESH_TOP1")
                 if (item == "MESH_TOP2"):
-                    opts.mesh_top2 = bool(ltag[1])
+                    opts.mesh_top2 = loadbool(
+                        ltag[1], "MESH_TOP2")
 
                 if (item == "MESH_SIZ1"):
                     opts.mesh_siz1 = float(ltag[1])
@@ -170,13 +191,17 @@ def loadjig(name, opts):
                     opts.optm_wmax = float(ltag[1])
 
                 if (item == "OPTM_ZIP_"):
-                    opts.optm_zip_ = bool(ltag[1])
+                    opts.optm_zip_ = loadbool(
+                        ltag[1], "OPTM_ZIP_")
                 if (item == "OPTM_DIV_"):
-                    opts.optm_div_ = bool(ltag[1])
+                    opts.optm_div_ = loadbool(
+                        ltag[1], "OPTM_DIV_")
                 if (item == "OPTM_TRIA"):
-                    opts.optm_tria = bool(ltag[1])
+                    opts.optm_tria = loadbool(
+                        ltag[1], "OPTM_TRIA")
                 if (item == "OPTM_DUAL"):
-                    opts.optm_dual = bool(ltag[1])
+                    opts.optm_dual = loadbool(
+                        ltag[1], "OPTM_DUAL")
 
             else:
         #----------------------- reached end-of-file: done!!

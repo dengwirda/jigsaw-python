@@ -51,6 +51,16 @@ class libsaw_jig_t(ct.Structure):
 
     ("geom_eta2", real_t),
 
+    # GEOM_PHI1 - {default = 60deg} 1-dim. sharp-feature
+    # angle, to be "protected" during mesh refinement.
+
+    ("geom_phi1", real_t),
+
+    # GEOM_PHI2 - {default = 60deg} 2-dim. sharp-feature
+    # angle, to be "protected" during mesh refinement.
+
+    ("geom_phi2", real_t),
+
     # INIT_NEAR - {default = 1.E-8} relative "zip" tol.
     # applied when processing initial conditions. In cases
     # where "sharp-feature" detection is active, nodes in
@@ -106,6 +116,13 @@ class libsaw_jig_t(ct.Structure):
     # N iterations.
 
     ("mesh_iter", indx_t),
+
+    # MESH_RULE - bitmask selecting which refinement
+    # rules are utilised, with e.g. the status of the bit
+    # RULE[MESH_RULE_OFFH] selecting mesh-size adaptive
+    # off-centres, see jigsaw_const.h for options.
+
+    ("mesh_rule", indx_t),
 
     # MESH_ORPH - {default=true} allow "orphaned" facets
     # to remain in the mesh. A K-1 dimensional subcell is

@@ -130,6 +130,10 @@ def put_jig_t(jigt, jigl):
             jigl.mesh_kern = \
                 defs.JIGSAW_KERN_DELAUNAY
 
+        if (jigt.mesh_kern.lower() == "bisector"):
+            jigl.mesh_kern = \
+                defs.JIGSAW_KERN_BISECTOR
+
     elif (jigt.mesh_kern is not None):
         raise TypeError("MESH-KERN type")
 
@@ -193,6 +197,16 @@ def put_jig_t(jigt, jigl):
     elif (jigt.geom_eta2 is not None):
         raise TypeError("GEOM-ETA2 type")
 
+    if (is_type_t(jigt.geom_phi1, float)):
+        jigl.geom_phi1 = real_t(jigt.geom_phi1)
+    elif (jigt.geom_phi1 is not None):
+        raise TypeError("GEOM-PHI1 type")
+
+    if (is_type_t(jigt.geom_phi2, float)):
+        jigl.geom_phi2 = real_t(jigt.geom_phi2)
+    elif (jigt.geom_phi2 is not None):
+        raise TypeError("GEOM-PHI2 type")
+
     #--------------------------------- assign INIT user-opt.
     if (is_type_t(jigt.init_near, float)):
         jigl.init_near = real_t(jigt.init_near)
@@ -220,6 +234,11 @@ def put_jig_t(jigt, jigl):
         jigl.mesh_iter = indx_t(jigt.mesh_iter)
     elif (jigt.mesh_iter is not None):
         raise TypeError("MESH-ITER type")
+
+    if (is_type_t(jigt.mesh_rule, int)):
+        jigl.mesh_rule = indx_t(jigt.mesh_rule)
+    elif (jigt.mesh_rule is not None):
+        raise TypeError("MESH-RULE type")
 
     if (is_type_t(jigt.mesh_orph, bool)):
         jigl.mesh_orph = indx_t(jigt.mesh_orph)
@@ -554,6 +573,58 @@ def get_ptr_t(ptrl, kind):
     return data
 
 
+def get_msh_values(data, mesh, stag):
+    if (data.size == +1):
+        return np.reshape(data, (+1, +1))
+
+    if (mesh.mshID.lower() in
+            ["euclidean-grid", "ellipsoid-grid"]):
+
+        axes = [mesh.xgrid, mesh.ygrid, mesh.zgrid]
+        axes = [axis for axis in axes if axis.size]
+        if (not axes): return data
+
+        npos = int(np.prod([axis.size for axis in axes]))
+
+        if (data.size % npos != 0):
+            raise ValueError("Invalid MESH." + stag + " size")
+
+        nval = data.size // npos
+
+        if (len(axes) == 1):
+            shape = (axes[0].size, nval)
+
+        elif (mesh.xgrid.size and mesh.ygrid.size and
+              mesh.zgrid.size):
+            shape = (
+                mesh.ygrid.size, mesh.xgrid.size,
+                mesh.zgrid.size, nval)
+
+        elif (mesh.xgrid.size and mesh.ygrid.size):
+            shape = (
+                mesh.ygrid.size, mesh.xgrid.size, nval)
+
+        else:
+            shape = tuple(axis.size for axis in axes) + (nval,)
+
+        data = np.reshape(data, shape, order="F")
+        if (nval == +1):
+            data = np.squeeze(data, axis=-1)
+
+        return data
+
+    point = mesh.point
+    if (point is not None and point.size):
+        if (data.size % point.size != 0):
+            raise ValueError("Invalid MESH." + stag + " size")
+
+        data = np.reshape(
+            data, (point.size, data.size // point.size),
+            order="F")
+
+    return data
+
+
 def get_msh_t(msht, mshl):
     """
     GET-MSH_t: Copy buffer from ctypes-to-python objects.
@@ -628,8 +699,17 @@ def get_msh_t(msht, mshl):
 
     if (mshl.power.size >= +1):
     #--------------------------------- copy buffer for POWER
-        msht.power = get_ptr_t(
+        power = get_ptr_t(
             mshl.power, jigsaw_msh_t.REALS_t)
+
+        point = msht.point
+        if (point is not None and point.size and
+                power.size % point.size == 0):
+            msht.power = np.reshape(
+                power, (point.size, power.size // point.size),
+                order="F")
+        else:
+            msht.power = power
 
         ptrl = ct.byref(mshl.power)
 
@@ -697,6 +777,71 @@ def get_msh_t(msht, mshl):
         ptrl = ct.byref(mshl.pyra5)
 
         JLIB.jigsaw_free_pyra5(ptrl)
+
+    if (mshl.bound.size >= +1):
+    #--------------------------------- copy buffer for BOUND
+        msht.bound = get_ptr_t(
+            mshl.bound, jigsaw_msh_t.BOUND_t)
+
+        ptrl = ct.byref(mshl.bound)
+
+        JLIB.jigsaw_free_bound(ptrl)
+
+    if (mshl.xgrid.size >= +1):
+    #--------------------------------- copy buffer for XGRID
+        msht.xgrid = get_ptr_t(
+            mshl.xgrid, jigsaw_msh_t.REALS_t)
+
+        ptrl = ct.byref(mshl.xgrid)
+
+        JLIB.jigsaw_free_reals(ptrl)
+
+    if (mshl.ygrid.size >= +1):
+    #--------------------------------- copy buffer for YGRID
+        msht.ygrid = get_ptr_t(
+            mshl.ygrid, jigsaw_msh_t.REALS_t)
+
+        ptrl = ct.byref(mshl.ygrid)
+
+        JLIB.jigsaw_free_reals(ptrl)
+
+    if (mshl.zgrid.size >= +1):
+    #--------------------------------- copy buffer for ZGRID
+        msht.zgrid = get_ptr_t(
+            mshl.zgrid, jigsaw_msh_t.REALS_t)
+
+        ptrl = ct.byref(mshl.zgrid)
+
+        JLIB.jigsaw_free_reals(ptrl)
+
+    msht.ndims = +0
+    if (msht.xgrid.size >= +1): msht.ndims = +1
+    if (msht.ygrid.size >= +1): msht.ndims = +2
+    if (msht.zgrid.size >= +1): msht.ndims = +3
+    if (msht.vert2.size >= +1): msht.ndims = +2
+    if (msht.vert3.size >= +1): msht.ndims = +3
+
+    if (mshl.value.size >= +1):
+    #--------------------------------- copy buffer for VALUE
+        value = get_ptr_t(
+            mshl.value, jigsaw_msh_t.FLT32_t)
+
+        ptrl = ct.byref(mshl.value)
+
+        JLIB.jigsaw_free_flt32(ptrl)
+
+        msht.value = get_msh_values(value, msht, "VALUE")
+
+    if (mshl.slope.size >= +1):
+    #--------------------------------- copy buffer for SLOPE
+        slope = get_ptr_t(
+            mshl.slope, jigsaw_msh_t.FLT32_t)
+
+        ptrl = ct.byref(mshl.slope)
+
+        JLIB.jigsaw_free_flt32(ptrl)
+
+        msht.slope = get_msh_values(slope, msht, "SLOPE")
 
     return
 

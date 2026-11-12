@@ -17,7 +17,7 @@ libsaw_VERT2_p = ct.POINTER(libsaw_VERT2_t)
 
 
 class libsaw_VERT2_array_t(ct.Structure):
-    _fields_ = [("size", indx_t),
+    _fields_ = [("size", ct.c_size_t),
                 ("data", libsaw_VERT2_p)]
 
 
@@ -30,7 +30,7 @@ libsaw_VERT3_p = ct.POINTER(libsaw_VERT3_t)
 
 
 class libsaw_VERT3_array_t(ct.Structure):
-    _fields_ = [("size", indx_t),
+    _fields_ = [("size", ct.c_size_t),
                 ("data", libsaw_VERT3_p)]
 
 
@@ -45,7 +45,7 @@ libsaw_EDGE2_p = ct.POINTER(libsaw_EDGE2_t)
 
 
 class libsaw_EDGE2_array_t(ct.Structure):
-    _fields_ = [("size", indx_t),
+    _fields_ = [("size", ct.c_size_t),
                 ("data", libsaw_EDGE2_p)]
 
 
@@ -60,7 +60,7 @@ libsaw_TRIA3_p = ct.POINTER(libsaw_TRIA3_t)
 
 
 class libsaw_TRIA3_array_t(ct.Structure):
-    _fields_ = [("size", indx_t),
+    _fields_ = [("size", ct.c_size_t),
                 ("data", libsaw_TRIA3_p)]
 
 
@@ -73,7 +73,7 @@ libsaw_QUAD4_p = ct.POINTER(libsaw_QUAD4_t)
 
 
 class libsaw_QUAD4_array_t(ct.Structure):
-    _fields_ = [("size", indx_t),
+    _fields_ = [("size", ct.c_size_t),
                 ("data", libsaw_QUAD4_p)]
 
 
@@ -88,7 +88,7 @@ libsaw_TRIA4_p = ct.POINTER(libsaw_TRIA4_t)
 
 
 class libsaw_TRIA4_array_t(ct.Structure):
-    _fields_ = [("size", indx_t),
+    _fields_ = [("size", ct.c_size_t),
                 ("data", libsaw_TRIA4_p)]
 
 
@@ -101,7 +101,7 @@ libsaw_HEXA8_p = ct.POINTER(libsaw_HEXA8_t)
 
 
 class libsaw_HEXA8_array_t(ct.Structure):
-    _fields_ = [("size", indx_t),
+    _fields_ = [("size", ct.c_size_t),
                 ("data", libsaw_HEXA8_p)]
 
 
@@ -114,7 +114,7 @@ libsaw_WEDG6_p = ct.POINTER(libsaw_WEDG6_t)
 
 
 class libsaw_WEDG6_array_t(ct.Structure):
-    _fields_ = [("size", indx_t),
+    _fields_ = [("size", ct.c_size_t),
                 ("data", libsaw_WEDG6_p)]
 
 
@@ -127,7 +127,7 @@ libsaw_PYRA5_p = ct.POINTER(libsaw_PYRA5_t)
 
 
 class libsaw_PYRA5_array_t(ct.Structure):
-    _fields_ = [("size", indx_t),
+    _fields_ = [("size", ct.c_size_t),
                 ("data", libsaw_PYRA5_p)]
 
 
@@ -143,7 +143,7 @@ libsaw_BOUND_p = ct.POINTER(libsaw_BOUND_t)
 
 
 class libsaw_BOUND_array_t(ct.Structure):
-    _fields_ = [("size", indx_t),
+    _fields_ = [("size", ct.c_size_t),
                 ("data", libsaw_BOUND_p)]
 
 
@@ -155,17 +155,17 @@ libsaw_INDEX_p = ct.POINTER(indx_t)
 
 
 class libsaw_REALS_array_t(ct.Structure):
-    _fields_ = [("size", indx_t),
+    _fields_ = [("size", ct.c_size_t),
                 ("data", libsaw_REALS_p)]
 
 
 class libsaw_FLT32_array_t(ct.Structure):
-    _fields_ = [("size", indx_t),
+    _fields_ = [("size", ct.c_size_t),
                 ("data", libsaw_FLT32_p)]
 
 
 class libsaw_INDEX_array_t(ct.Structure):
-    _fields_ = [("size", indx_t),
+    _fields_ = [("size", ct.c_size_t),
                 ("data", libsaw_INDEX_p)]
 
 

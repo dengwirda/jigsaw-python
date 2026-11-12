@@ -149,7 +149,7 @@ def loadarray(fptr, ltag, kind):
         data, dtype=kind, sep=";")
 
     vals = np.reshape(
-        vals, (lnum, vnum, ), order="F")
+        vals, (lnum, vnum, ), order="C")
 
     return vals
 
@@ -445,6 +445,8 @@ def loadlines(mesh, fptr, line):
     #------------------------------ skip any 'comment' lines
 
     line = line.strip()
+    if (not line): return
+
     if (line[0] != "#"):
 
     #------------------------------ split about '=' charact.
