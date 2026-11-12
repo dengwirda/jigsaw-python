@@ -37,7 +37,6 @@ if (DEFINED ICPC_LIKE)
   cfg_compile_options (-fno-math-errno RELEASE) # no errno checks
   cfg_compile_options (-fno-trapping-math RELEASE) # no fp exceptions
   cfg_compile_options (-fno-signed-zeros RELEASE) # -0.0 == +0.0
-  cfg_compile_options (-ffinite-math-only RELEASE) # no explicit nans, etc
 endif ()
 
 if (DEFINED MSVC_LIKE)
@@ -53,10 +52,14 @@ if (DEFINED GCXX_LIKE)
   cfg_compile_options (-fno-math-errno RELEASE) # no errno checks
   cfg_compile_options (-fno-trapping-math RELEASE) # no fp exceptions
   cfg_compile_options (-fno-signed-zeros RELEASE) # -0.0 == +0.0
-  cfg_compile_options (-ffinite-math-only RELEASE) # no explicit nans, etc
 endif ()
 
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+  set (CMAKE_INSTALL_PREFIX "${PROJECT_SOURCE_DIR}" CACHE PATH
+       "Install path prefix." FORCE)
+endif ()
+
+if (CMAKE_INSTALL_PREFIX STREQUAL PROJECT_SOURCE_DIR)
   set (INSTALL_LOCAL TRUE)
   message (STATUS "Installing locally")
 else ()
@@ -193,6 +196,7 @@ set_target_properties (jigsaw-lib PROPERTIES OUTPUT_NAME jigsaw)
 if (DEFINED INSTALL_LOCAL)
   install (TARGETS jigsaw-lib DESTINATION "${PROJECT_SOURCE_DIR}/lib")
 else ()
-  install (DIRECTORY inc/ DESTINATION include FILES_MATCHING PATTERN "*.h")
+  install (DIRECTORY "${PROJECT_SOURCE_DIR}/inc/"
+           DESTINATION include FILES_MATCHING PATTERN "*.h")
   install (TARGETS jigsaw-lib DESTINATION lib)
 endif ()

@@ -35,9 +35,9 @@
      *
     --------------------------------------------------------
      *
-     * Last updated: 05 Dec, 2024
+     * Last updated: 12 Nov., 2026
      *
-     * Copyright 2013-2024
+     * Copyright 2013-2026
      * Darren Engwirda
      * d.engwirda@gmail.com
      * https://github.com/dengwirda/
@@ -844,6 +844,15 @@
                 return __file_not_created;
             }
 
+            if ((_retv = nc_close(_ncid)))
+            {
+                return __unknown_error;
+            }
+
+            int _ndim = (int)_mesh._ndim ;
+            ncutil::put_att(
+                _jcfg._mesh_file, "NDIMS", NC_INT, _ndim);
+
             if (_mesh._ndim == +2 &&
                 _mesh._kind ==
                 jmsh_kind::euclidean_mesh)
@@ -1263,7 +1272,7 @@
             _mmsh._quad4._data[_fout].      \
                 _node[2] = _nmap[_iter->node(2)] ;  \
             _mmsh._quad4._data[_fout].      \
-                _node[2] = _nmap[_iter->node(2)] ;  \
+                _node[3] = _nmap[_iter->node(3)] ;  \
                                     \
             _mmsh._quad4.           \
             _data[_fout]._itag = _iter->itag() ;    \
@@ -1617,6 +1626,4 @@
 
         return ( _errv ) ;
     }
-
-
 

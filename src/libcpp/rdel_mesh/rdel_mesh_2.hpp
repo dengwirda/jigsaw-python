@@ -182,9 +182,7 @@
     typedef typename
             mesh_type::tria_list        tria_hash ;
 
-    typedef mesh::mesh_params       <
-                real_type,
-                iptr_type           >   rdel_opts ;
+    typedef mesh::mesh_params           rdel_opts ;
 
     typedef containers::array       <
                 iptr_type           >   iptr_list ;
@@ -809,7 +807,8 @@
             iptr_type constexpr _jlog_freq = +250 ;
     #       else
             iptr_type _jlog_tens =
-                (iptr_type) std::log10(_pass) ;
+                (iptr_type) std::log10(
+                    std::max(_pass, iptr_type(+1))) ;
 
             iptr_type _jlog_freq = // logarithmic updates
                 (+1 * std::max(10000,
@@ -1206,6 +1205,7 @@
                 }
 
     #           ifdef  __use_timers
+                _ttoc = _time.now() ;
                 _tcpu._list_push +=
                     _tcpu.nano_span(_ttic,_ttoc) ;
     #           endif//__use_timers
@@ -1468,6 +1468,5 @@
     }
 
 #   endif   //__RDEL_MESH_2__
-
 
 
