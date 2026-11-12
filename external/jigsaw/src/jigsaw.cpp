@@ -41,11 +41,11 @@
      * JIGSAW: an unstructured mesh generation library.
     --------------------------------------------------------
      *
-     * JIGSAW release 1.1.0.x
+     * JIGSAW release 1.1.1.x
      *
-     * Last updated: 20 Oct., 2024
+     * Last updated: 09 Nov., 2026
      *
-     * Copyright 2013 -- 2024
+     * Copyright 2013 -- 2026
      * Darren Engwirda
      * d.engwirda@gmail.com
      * https://github.com/dengwirda
@@ -193,7 +193,7 @@
     --------------------------------------------------------
      */
 
-#   define __JGSWVSTR "JIGSAW VERSION 1.1.0"
+#   define __JGSWVSTR "JIGSAW VERSION 1.1.1"
 
 #   if  defined(  USE_NETCDF)
 #       define  __use_netcdf
@@ -430,15 +430,11 @@
             (real_type) +0.00E+00 ;
 
     /*------------------------------- "low-level" config. */
-        typedef mesh::mesh_params <
-                real_type ,
-                iptr_type >      mesh_opts ;
+        typedef mesh::mesh_params      mesh_opts ;
 
         mesh_opts               _mesh_opts ;
 
-        typedef mesh::iter_params <
-                real_type ,
-                iptr_type >      iter_opts ;
+        typedef mesh::iter_params      iter_opts ;
 
         iter_opts               _iter_opts ;
 
@@ -928,6 +924,5 @@
     #   include "tripod.hpp"
 
     #   include "marche.hpp"
-
 
 

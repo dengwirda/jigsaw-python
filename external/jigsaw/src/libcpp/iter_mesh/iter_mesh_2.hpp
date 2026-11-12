@@ -35,9 +35,9 @@
      *
     --------------------------------------------------------
      *
-     * Last updated: 04 Dec., 2024
+     * Last updated: 08 Nov., 2026
      *
-     * Copyright 2013-2024
+     * Copyright 2013-2026
      * Darren Engwirda,
      * Marc Tunnell
      * d.engwirda@gmail.com
@@ -111,9 +111,7 @@
     class   cell_kind{} ;           // dummies for overload
     class   dual_kind{} ;
 
-    typedef mesh::iter_params  <
-            real_type ,
-            iptr_type          >        iter_opts ;
+    typedef mesh::iter_params           iter_opts ;
 
     typedef mesh::iter_timers           iter_stat ;
 
@@ -421,6 +419,8 @@
             _QMIN = std::min (_QMIN, _qmin) ;
             }
         }
+    #   else
+            _QMIN = _qmin ;
     #   endif//__use_openmp
         }
 
@@ -873,6 +873,5 @@
     }
 
 #   endif   //__ITER_MESH_2__
-
 
 
