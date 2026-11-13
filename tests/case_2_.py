@@ -1,11 +1,11 @@
 """
 * DEMO-2 --- Build planar meshes for the "lakes" geometry.
-% Compare performance of "delaunay" + "delfront" algorithms.
+* Compare performance of "delaunay" + "delfront" algorithms.
 *
 * These examples call to JIGSAW via its cmd.-line interface.
 *
 * Writes "case_2x.vtk" files on output for vis. in PARAVIEW.
-*
+* 
 """
 
 import os

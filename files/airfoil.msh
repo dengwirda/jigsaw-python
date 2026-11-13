@@ -1,4 +1,4 @@
-# airfoil.msh geometry file
+# airfoil.msh geometry file 
 mshid=1
 ndims=2
 point=476
