@@ -125,8 +125,11 @@ def put_jig_t(jigt, jigl):
             continue
         if isinstance(value, str):
             code = options.get(value.lower())
-            if code is not None:
-                setattr(jigl, name, indx_t(code))
+            if code is None:
+                raise ValueError(
+                    "Invalid " +
+                    name.upper().replace("_", "-") + " value")
+            setattr(jigl, name, indx_t(code))
         else:
             raise TypeError(
                 name.upper().replace("_", "-") + " type")
@@ -151,14 +154,15 @@ def put_ptr_t(data, kind):
 
 
 def put_msh_t(msht, mshl):
-    if msht is None:
-        return
+    if msht is None: return
+
     certify(msht)
 
     try:
         mshl.flags = _MESH_FLAGS[msht.mshID.lower()]
     except KeyError as error:
-        raise ValueError("Invalid MESH.MSHID tag.") from error
+        raise ValueError(
+            "Invalid MESH.MSHID tag.") from error
 
     owners = []
     for name, dtype, pointer_type, _ in _MESH_ARRAYS:

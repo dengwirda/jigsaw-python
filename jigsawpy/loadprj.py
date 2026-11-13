@@ -33,6 +33,7 @@ def loadprj(name, opts):
 
         #----------------------- parse next non-null section
                 line = line.strip()
+                if (not line): continue
                 if (line[0] == "#"): continue
 
                 ltag = line.split("=")

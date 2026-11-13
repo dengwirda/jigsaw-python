@@ -66,11 +66,11 @@ def jumble(mesh, frac):
 
         xdat = np.random.rand(xdat.size) * xdat
         
-        next = np.squeeze(np.asarray(csr_matrix(
-            (xdat, (ipos, jpos))).argmax(axis=1)))
+        next = np.asarray(csr_matrix(
+            (xdat, (ipos, jpos))).argmax(axis=1)).ravel()
 
     #-------------------------- push toward "matched" centre
-        tria = mesh.tria3["index"][next, :]
+        tria = mesh.tria3["index"][next[have], :]
        
         pmid = tribal2(mesh.point["coord"], tria)
         pmid = pmid[:, :-1]
@@ -97,11 +97,11 @@ def jumble(mesh, frac):
 
         xdat = np.random.rand(xdat.size) * xdat
         
-        next = np.squeeze(np.asarray(csr_matrix(
-            (xdat, (ipos, jpos))).argmax(axis=1)))
+        next = np.asarray(csr_matrix(
+            (xdat, (ipos, jpos))).argmax(axis=1)).ravel()
         
     #-------------------------- push toward "matched" centre
-        tria = mesh.tria4["index"][next, :]
+        tria = mesh.tria4["index"][next[have], :]
        
         pmid = tribal3(mesh.point["coord"], tria)
         pmid = pmid[:, :-1]

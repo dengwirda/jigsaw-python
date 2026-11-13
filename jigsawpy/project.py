@@ -6,6 +6,28 @@ from jigsawpy.certify import certify
 from jigsawpy.tools.projector import stereo3
 
 
+def _value_scale_shape(data, scal, stag):
+    if data.ndim == 0 or data.shape[0] != scal.size:
+        raise ValueError("Invalid MESH." + stag + " size")
+
+    return (scal.size,) + (1,) * (data.ndim - 1)
+
+
+def _scale_values(data, scal, stag):
+    data *= scal.reshape(
+        _value_scale_shape(data, scal, stag))
+    return data
+
+
+def _scale_flat_values(data, scal, stag):
+    if not scal.size or data.size % scal.size:
+        raise ValueError("Invalid MESH." + stag + " size")
+
+    data = np.reshape(data, data.size)
+    data.reshape((scal.size, -1))[:]*= scal[:, np.newaxis]
+    return data
+
+
 def project(mesh, proj, sign):
     """
     PROJECT cartographic projections for JIGSAW MSH objects.
@@ -34,6 +56,10 @@ def project(mesh, proj, sign):
 
     if (not isinstance(sign, str)):
         raise TypeError("Incorrect type: SIGN.")
+
+    sign = sign.lower()
+    if sign not in ("fwd", "inv"):
+        raise ValueError("Incorrect projection PRJID flags.")
 
     certify(mesh)
 
@@ -71,41 +97,37 @@ def project(mesh, proj, sign):
                     "Projection operator not suppoted.")
 
     #----------------------------------- setup proj.'d object
-            if   (sign.lower() == "fwd"):
+            if   (sign == "fwd"):
 
-                mesh.mshID = "euclidean-mesh"
-
-                if (mesh.radii is not None):
-                    mesh.radii = None
-
-            elif (sign.lower() == "inv"):
-
-                mesh.mshID = "ellipsoid-mesh"
-
-                mesh.radii = np.full(
-                    +3, proj.radii,
-                    dtype=jigsaw_msh_t.REALS_t)
+                kind = "euclidean-mesh"
+                radii = None
 
             else:
 
-                raise ValueError(
-                    "Incorrect projection PRJID flags.")
+                kind = "ellipsoid-mesh"
+                radii = np.full(
+                    +3, proj.radii,
+                    dtype=jigsaw_msh_t.REALS_t)
 
+            if mesh.value is not None and mesh.value.size:
+                _value_scale_shape(mesh.value, SCAL, "VALUE")
+            SPOW = (
+                np.sqrt(SCAL)
+                if mesh.power is not None and mesh.power.size
+                else None)
+            if mesh.power is not None and mesh.power.size:
+                _value_scale_shape(mesh.power, SPOW, "POWER")
+
+            mesh.mshID = kind
+            mesh.radii = radii
             mesh.point["coord"][:, 0] = XNEW
             mesh.point["coord"][:, 1] = YNEW
 
     #----------------------------------- setup proj.'d extras
-            if (mesh.value is not None and
-                    mesh.value.size != +0):
-
-                mesh.value*= SCAL.reshape(mesh.value.shape)
-
-            if (mesh.power is not None and
-                    mesh.power.size != +0):
-
-                SPOW = np.sqrt(SCAL)
-
-                mesh.power*= SPOW.reshape(mesh.power.shape)
+            if mesh.value is not None and mesh.value.size:
+                _scale_values(mesh.value, SCAL, "VALUE")
+            if mesh.power is not None and mesh.power.size:
+                _scale_values(mesh.power, SPOW, "POWER")
 
     elif (kind == "euclidean-grid" or
           kind == "ellipsoid-grid"):
@@ -144,29 +166,29 @@ def project(mesh, proj, sign):
                     "Projection operator not suppoted.")
 
     #----------------------------------- setup proj.'d object
-            mesh.point = np.empty(
-                XNEW.size, dtype=jigsaw_msh_t.VERT2_t)
+            if   (sign == "fwd"):
 
-            if   (sign.lower() == "fwd"):
-
-                mesh.mshID = "euclidean-mesh"
-
-                if (mesh.radii is not None):
-                    mesh.radii = None
-
-            elif (sign.lower() == "inv"):
-
-                mesh.mshID = "ellipsoid-mesh"
-
-                mesh.radii = np.full(
-                    +3, proj.radii,
-                    dtype=jigsaw_msh_t.REALS_t)
+                kind = "euclidean-mesh"
+                radii = None
 
             else:
 
-                raise ValueError(
-                    "Incorrect projection PRJID flags.")
+                kind = "ellipsoid-mesh"
+                radii = np.full(
+                    +3, proj.radii,
+                    dtype=jigsaw_msh_t.REALS_t)
 
+            if mesh.value is not None and mesh.value.size:
+                if mesh.value.size % SCAL.size:
+                    raise ValueError("Invalid MESH.VALUE size")
+            if mesh.power is not None and mesh.power.size:
+                if mesh.power.size % SCAL.size:
+                    raise ValueError("Invalid MESH.POWER size")
+
+            mesh.mshID = kind
+            mesh.radii = radii
+            mesh.point = np.empty(
+                XNEW.size, dtype=jigsaw_msh_t.VERT2_t)
             mesh.point["IDtag"] = +0
             mesh.point["coord"][:, 0] = XNEW
             mesh.point["coord"][:, 1] = YNEW
@@ -223,28 +245,14 @@ def project(mesh, proj, sign):
             mesh.tria3 = np.concatenate(tset, axis=0)
 
     #----------------------------------- setup proj.'d extras
-            if (mesh.slope is not None and
-                    mesh.slope.size != +0):
-
+            if mesh.slope is not None and mesh.slope.size:
                 mesh.slope = np.reshape(
                     mesh.slope, mesh.slope.size)
-
-            if (mesh.value is not None and
-                    mesh.value.size != +0):
-
-                mesh.value = np.reshape(
-                    mesh.value, mesh.value.size)
-
-                mesh.value*= SCAL.reshape(mesh.value.shape)
-
-            if (mesh.power is not None and
-                    mesh.power.size != +0):
-
-                mesh.power = np.reshape(
-                    mesh.power, mesh.power.size)
-
-                SPOW = np.sqrt(SCAL)
-
-                mesh.power*= SPOW.reshape(mesh.power.shape)
+            if mesh.value is not None and mesh.value.size:
+                mesh.value = _scale_flat_values(
+                    mesh.value, SCAL, "VALUE")
+            if mesh.power is not None and mesh.power.size:
+                mesh.power = _scale_flat_values(
+                    mesh.power, np.sqrt(SCAL), "POWER")
 
     return
