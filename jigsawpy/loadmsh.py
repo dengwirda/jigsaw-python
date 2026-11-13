@@ -6,17 +6,46 @@ from numpy.lib import recfunctions as rfn
 from jigsawpy.msh_t import jigsaw_msh_t
 
 
+_CELL_TYPES = {
+    "EDGE2": ("edge2", 3, jigsaw_msh_t.EDGE2_t),
+    "TRIA3": ("tria3", 4, jigsaw_msh_t.TRIA3_t),
+    "QUAD4": ("quad4", 5, jigsaw_msh_t.QUAD4_t),
+    "TRIA4": ("tria4", 5, jigsaw_msh_t.TRIA4_t),
+    "HEXA8": ("hexa8", 9, jigsaw_msh_t.HEXA8_t),
+    "WEDG6": ("wedg6", 7, jigsaw_msh_t.WEDG6_t),
+    "PYRA5": ("pyra5", 6, jigsaw_msh_t.PYRA5_t),
+    "BOUND": ("bound", 3, jigsaw_msh_t.BOUND_t),
+}
+
+def _read_rows(fptr, nrows, ncols, dtype):
+    lines = []
+    for _ in range(nrows):
+        lines.append(fptr.readline())
+    text = " ".join(lines).replace("\n", ";")
+    data = np.fromstring(text, dtype=dtype, sep=";")
+    return data.reshape((nrows, ncols), order="C")
+
+
+def _read_data(fptr, nrows, ncols, dtype, out_dtype):
+    data = _read_rows(fptr, nrows, ncols, dtype)
+    return rfn.unstructured_to_structured(
+        data, dtype=out_dtype, align=True)
+
+
+def _load_cell(mesh, fptr, ltag, kind):
+    name, ncols, dtype = _CELL_TYPES[kind]
+    setattr(mesh, name, _read_data(
+        fptr, int(ltag[+1]), ncols, np.int32, dtype))
+
+
 def loadmshid(mesh, fptr, ltag):
     """
     LOADMSHID: load the MSHID data segment from file.
 
     """
     data = ltag[1].split(";")
-
     if (len(data) > 1):
         mesh.mshID = data[1].strip().lower()
-
-    return
 
 
 def loadradii(mesh, fptr, ltag):
@@ -42,32 +71,14 @@ def loadradii(mesh, fptr, ltag):
     else:
         raise ValueError("Invalid RADII: " + ltag)
 
-    return
-
 
 def loadvert2(fptr, ltag):
     """
     LOADVERT2: load the 2-dim. vertex pos. from file.
 
     """
-    lnum = int(ltag[1]); vnum = 3
-
-    data = []
-    for line in range(lnum):
-        data.append(fptr.readline())
-
-    data = " ".join(data).replace("\n", ";")
-
-    vert = np.fromstring(
-        data, dtype=np.float64, sep=";")
-
-    vert = np.reshape(
-        vert, (lnum, vnum, ), order="C")
-
-    vert = rfn.unstructured_to_structured(
-        vert, dtype=jigsaw_msh_t.VERT2_t, align=True)
-
-    return vert
+    return _read_data(fptr, int(ltag[1]),
+        3, np.float64, jigsaw_msh_t.VERT2_t)
 
 
 def loadvert3(fptr, ltag):
@@ -75,24 +86,8 @@ def loadvert3(fptr, ltag):
     LOADVERT3: load the 3-dim. vertex pos. from file.
 
     """
-    lnum = int(ltag[1]); vnum = 4
-
-    data = []
-    for line in range(lnum):
-        data.append(fptr.readline())
-
-    data = " ".join(data).replace("\n", ";")
-
-    vert = np.fromstring(
-        data, dtype=np.float64, sep=";")
-
-    vert = np.reshape(
-        vert, (lnum, vnum, ), order="C")
-
-    vert = rfn.unstructured_to_structured(
-        vert, dtype=jigsaw_msh_t.VERT3_t, align=True)
-
-    return vert
+    return _read_data(fptr, int(ltag[1]),
+        4, np.float64, jigsaw_msh_t.VERT3_t)
 
 
 def loadpoint(mesh, fptr, ltag):
@@ -109,8 +104,6 @@ def loadpoint(mesh, fptr, ltag):
     else:
         raise ValueError("Invalid NDIMS: " + ltag)
 
-    return
-
 
 def loadseeds(mesh, fptr, ltag):
     """
@@ -126,32 +119,14 @@ def loadseeds(mesh, fptr, ltag):
     else:
         raise ValueError("Invalid NDIMS: " + ltag)
 
-    return
-
 
 def loadarray(fptr, ltag, kind):
     """
     LOADARRAY: load the ARRAY data segment from file.
 
     """
-    vtag = ltag[1].split(";")
-
-    lnum = int(vtag[0])
-    vnum = int(vtag[1])
-
-    data = []
-    for line in range(lnum):
-        data.append(fptr.readline())
-
-    data = " ".join(data).replace("\n", ";")
-
-    vals = np.fromstring(
-        data, dtype=kind, sep=";")
-
-    vals = np.reshape(
-        vals, (lnum, vnum, ), order="C")
-
-    return vals
+    nrows, ncols = map(int, ltag[1].split(";")[:2])
+    return _read_rows(fptr, nrows, ncols, kind)
 
 
 def loadpower(mesh, fptr, ltag):
@@ -161,8 +136,6 @@ def loadpower(mesh, fptr, ltag):
     """
     mesh.power = loadarray(fptr, ltag, mesh.REALS_t)
 
-    return
-
 
 def loadvalue(mesh, fptr, ltag):
     """
@@ -170,8 +143,6 @@ def loadvalue(mesh, fptr, ltag):
 
     """
     mesh.value = loadarray(fptr, ltag, mesh.FLT32_t)
-
-    return
 
 
 def loadslope(mesh, fptr, ltag):
@@ -181,259 +152,23 @@ def loadslope(mesh, fptr, ltag):
     """
     mesh.slope = loadarray(fptr, ltag, mesh.FLT32_t)
 
-    return
-
-
-def loadedge2(mesh, fptr, ltag):
-    """
-    LOADEDGE2: load the EDGE2 data segment from file.
-
-    """
-    lnum = int(ltag[1]); vnum = 3
-
-    data = []
-    for line in range(lnum):
-        data.append(fptr.readline())
-
-    data = " ".join(data).replace("\n", ";")
-
-    cell = np.fromstring(
-        data, dtype=np.int32, sep=";")
-
-    cell = np.reshape(
-        cell, (lnum, vnum), order="C")
-
-    cell = rfn.unstructured_to_structured(
-        cell, dtype=jigsaw_msh_t.EDGE2_t, align=True)
-
-    mesh.edge2 = cell
-
-    return
-
-
-def loadtria3(mesh, fptr, ltag):
-    """
-    LOADTRIA3: load the TRIA3 data segment from file.
-
-    """
-    lnum = int(ltag[1]); vnum = 4
-
-    data = []
-    for line in range(lnum):
-        data.append(fptr.readline())
-
-    data = " ".join(data).replace("\n", ";")
-
-    cell = np.fromstring(
-        data, dtype=np.int32, sep=";")
-
-    cell = np.reshape(
-        cell, (lnum, vnum), order="C")
-
-    cell = rfn.unstructured_to_structured(
-        cell, dtype=jigsaw_msh_t.TRIA3_t, align=True)
-
-    mesh.tria3 = cell
-
-    return
-
-
-def loadquad4(mesh, fptr, ltag):
-    """
-    LOADUAD4: load the QUAD4 data segment from file.
-
-    """
-    lnum = int(ltag[1]); vnum = 5
-
-    data = []
-    for line in range(lnum):
-        data.append(fptr.readline())
-
-    data = " ".join(data).replace("\n", ";")
-
-    cell = np.fromstring(
-        data, dtype=np.int32, sep=";")
-
-    cell = np.reshape(
-        cell, (lnum, vnum), order="C")
-
-    cell = rfn.unstructured_to_structured(
-        cell, dtype=jigsaw_msh_t.QUAD4_t, align=True)
-
-    mesh.quad4 = cell
-
-    return
-
-
-def loadtria4(mesh, fptr, ltag):
-    """
-    LOADTRIA4: load the TRIA4 data segment from file.
-
-    """
-    lnum = int(ltag[1]); vnum = 5
-
-    data = []
-    for line in range(lnum):
-        data.append(fptr.readline())
-
-    data = " ".join(data).replace("\n", ";")
-
-    cell = np.fromstring(
-        data, dtype=np.int32, sep=";")
-
-    cell = np.reshape(
-        cell, (lnum, vnum), order="C")
-
-    cell = rfn.unstructured_to_structured(
-        cell, dtype=jigsaw_msh_t.TRIA4_t, align=True)
-
-    mesh.tria4 = cell
-
-    return
-
-
-def loadhexa8(mesh, fptr, ltag):
-    """
-    LOADHEXA8: load the HEXA8 data segment from file.
-
-    """
-    lnum = int(ltag[1]); vnum = 9
-
-    data = []
-    for line in range(lnum):
-        data.append(fptr.readline())
-
-    data = " ".join(data).replace("\n", ";")
-
-    cell = np.fromstring(
-        data, dtype=np.int32, sep=";")
-
-    cell = np.reshape(
-        cell, (lnum, vnum), order="C")
-
-    cell = rfn.unstructured_to_structured(
-        cell, dtype=jigsaw_msh_t.HEXA8_t, align=True)
-
-    mesh.hexa8 = cell
-
-    return
-
-
-def loadpyra5(mesh, fptr, ltag):
-    """
-    LOADPYRA5: load the PYRA5 data segment from file.
-
-    """
-    lnum = int(ltag[1]); vnum = 6
-
-    data = []
-    for line in range(lnum):
-        data.append(fptr.readline())
-
-    data = " ".join(data).replace("\n", ";")
-
-    cell = np.fromstring(
-        data, dtype=np.int32, sep=";")
-
-    cell = np.reshape(
-        cell, (lnum, vnum), order="C")
-
-    cell = rfn.unstructured_to_structured(
-        cell, dtype=jigsaw_msh_t.PYRA5_t, align=True)
-
-    mesh.pyra5 = cell
-
-    return
-
-
-def loadwedg6(mesh, fptr, ltag):
-    """
-    LOADWEDG6: load the WEDG6 data segment from file.
-
-    """
-    lnum = int(ltag[1]); vnum = 7
-
-    data = []
-    for line in range(lnum):
-        data.append(fptr.readline())
-
-    data = " ".join(data).replace("\n", ";")
-
-    cell = np.fromstring(
-        data, dtype=np.int32, sep=";")
-
-    cell = np.reshape(
-        cell, (lnum, vnum), order="C")
-
-    cell = rfn.unstructured_to_structured(
-        cell, dtype=jigsaw_msh_t.WEDG6_t, align=True)
-
-    mesh.wedg6 = cell
-
-    return
-
-
-def loadbound(mesh, fptr, ltag):
-    """
-    LOADBOUND: load the BOUND data segment from file.
-
-    """
-    lnum = int(ltag[1]); vnum = 3
-
-    data = []
-    for line in range(lnum):
-        data.append(fptr.readline())
-
-    data = " ".join(data).replace("\n", ";")
-
-    bnds = np.fromstring(
-        data, dtype=np.int32, sep=";")
-
-    bnds = np.reshape(
-        bnds, (lnum, vnum), order="C")
-
-    bnds = rfn.unstructured_to_structured(
-        bnds, dtype=jigsaw_msh_t.BOUND_t, align=True)
-
-    mesh.bound = bnds
-
-    return
-
 
 def loadcoord(mesh, fptr, ltag):
     """
     LOADCOORD: load the COORD data segment from file.
 
     """
-    ctag = ltag[1].split(";")
+    ndim, nrow = map(int, ltag[1].split(";")[:2])
+    mesh.ndims = max(mesh.ndims, ndim)
+    values = _read_rows(
+        fptr, nrow, 1, np.float64).reshape((nrow,))
 
-    idim = int(ctag[0])
-    lnum = int(ctag[1])
-
-    mesh.ndims = max(mesh.ndims, idim)
-
-    data = []
-    for line in range(lnum):
-        data.append(fptr.readline())
-
-    data = " ".join(data).replace("\n", ";")
-
-    vals = np.fromstring(
-        data, dtype=np.float64, sep=";")
-
-    if   (idim == +1):
-        mesh.xgrid = np.reshape(
-            vals, (lnum, ), order="C")
-
-    elif (idim == +2):
-        mesh.ygrid = np.reshape(
-            vals, (lnum, ), order="C")
-
-    elif (idim == +3):
-        mesh.zgrid = np.reshape(
-            vals, (lnum, ), order="C")
-
-    return
+    if   ndim == 1:
+        mesh.xgrid = values
+    elif ndim == 2:
+        mesh.ygrid = values
+    elif ndim == 3:
+        mesh.zgrid = values
 
 
 def loadlines(mesh, fptr, line):
@@ -441,166 +176,101 @@ def loadlines(mesh, fptr, line):
     LOADLINES: load the next non-null line from file.
 
     """
-
-    #------------------------------ skip any 'comment' lines
-
     line = line.strip()
     if (not line): return
 
     if (line[0] != "#"):
-
-    #------------------------------ split about '=' charact.
         ltag = line.split("=")
         kind = ltag[0].upper().strip()
 
-        if   (kind == "MSHID"):
-
-    #----------------------------------- parse MSHID struct.
+        if   kind == "MSHID":
             loadmshid(mesh, fptr, ltag)
 
-        elif (kind == "NDIMS"):
-
-    #----------------------------------- parse NDIMS struct.
+        elif kind == "NDIMS":
             mesh.ndims = int(ltag[1])
 
-        elif (kind == "RADII"):
-
-    #----------------------------------- parse RADII struct.
+        elif kind == "RADII":
             loadradii(mesh, fptr, ltag)
 
-        elif (kind == "POINT"):
-
-    #----------------------------------- parse POINT struct.
+        elif kind == "POINT":
             loadpoint(mesh, fptr, ltag)
 
-        elif (kind == "SEEDS"):
-
-    #----------------------------------- parse SEEDS struct.
+        elif kind == "SEEDS":
             loadseeds(mesh, fptr, ltag)
 
-        elif (kind == "POWER"):
-
-    #----------------------------------- parse POWER struct.
+        elif kind == "POWER":
             loadpower(mesh, fptr, ltag)
 
-        elif (kind == "VALUE"):
-
-    #----------------------------------- parse VALUE struct.
+        elif kind == "VALUE":
             loadvalue(mesh, fptr, ltag)
 
-        elif (kind == "SLOPE"):
-
-    #----------------------------------- parse SLOPE struct.
+        elif kind == "SLOPE":
             loadslope(mesh, fptr, ltag)
 
-        elif (kind == "EDGE2"):
+        elif kind == "EDGE2":
+            _load_cell(mesh, fptr, ltag, "EDGE2")
 
-    #----------------------------------- parse EDGE2 struct.
-            loadedge2(mesh, fptr, ltag)
+        elif kind == "TRIA3":
+            _load_cell(mesh, fptr, ltag, "TRIA3")
 
-        elif (kind == "TRIA3"):
+        elif kind == "QUAD4":
+            _load_cell(mesh, fptr, ltag, "QUAD4")
 
-    #----------------------------------- parse TRIA3 struct.
-            loadtria3(mesh, fptr, ltag)
+        elif kind == "TRIA4":
+            _load_cell(mesh, fptr, ltag, "TRIA4")
 
-        elif (kind == "QUAD4"):
+        elif kind == "HEXA8":
+            _load_cell(mesh, fptr, ltag, "HEXA8")
 
-    #----------------------------------- parse QUAD4 struct.
-            loadquad4(mesh, fptr, ltag)
+        elif kind == "PYRA5":
+            _load_cell(mesh, fptr, ltag, "PYRA5")
 
-        elif (kind == "TRIA4"):
+        elif kind == "WEDG6":
+            _load_cell(mesh, fptr, ltag, "WEDG6")
 
-    #----------------------------------- parse TRIA4 struct.
-            loadtria4(mesh, fptr, ltag)
+        elif kind == "BOUND":
+            _load_cell(mesh, fptr, ltag, "BOUND")
 
-        elif (kind == "HEXA8"):
-
-    #----------------------------------- parse HEXA8 struct.
-            loadhexa8(mesh, fptr, ltag)
-
-        elif (kind == "PYRA5"):
-
-    #----------------------------------- parse PYRA5 struct.
-            loadpyra5(mesh, fptr, ltag)
-
-        elif (kind == "WEDG6"):
-
-    #----------------------------------- parse WEDG6 struct.
-            loadwedg6(mesh, fptr, ltag)
-
-        elif (kind == "BOUND"):
-
-    #----------------------------------- parse BOUND struct.
-            loadbound(mesh, fptr, ltag)
-
-        elif (kind == "COORD"):
-
-    #----------------------------------- parse COORD struct.
+        elif kind == "COORD":
             loadcoord(mesh, fptr, ltag)
 
-    return
 
-
-def sanitise_grid(mesh, data):
+def sanitiser(mesh, data):
     """
-    SANITISE-GRID: reshape the "unrolled" array in DATA such
+    SANITISER: reshape the "unrolled" array in DATA such
     that the matrix matches the dimensions of the structured
     grid objects.
 
     """
-
-    F = "F"                    # use fortran matrix ordering
-
-    if (data is not None and data.size > +1):
-    #--------------------------- finalise VALUE.shape layout
-        if (mesh.ndims == +2):
-    #--------------------------- reshape data to 2-dim array
-            if (mesh.xgrid is None or
-                    mesh.xgrid.size == 0):
+    if data is not None and data.size > 1:
+        if mesh.ndims == 2:
+            if mesh.xgrid is None or mesh.xgrid.size == 0:
                 raise ValueError("Invalid XGRID")
-
-            if (mesh.ygrid is None or
-                    mesh.ygrid.size == 0):
+            if mesh.ygrid is None or mesh.ygrid.size == 0:
                 raise ValueError("Invalid YGRID")
-
-            num1 = mesh.ygrid.size
-            num2 = mesh.xgrid.size
-
-            nprd = (num1 * num2)
-
-            nval = mesh.value.size // nprd
-
-            size = (num1, num2, nval)
-
+            npos = mesh.ygrid.size * mesh.xgrid.size
+            if data.size % npos:
+                raise ValueError("Invalid grid data size")
+            shape = (mesh.ygrid.size, mesh.xgrid.size,
+                     data.size // npos)
             data = np.squeeze(
-                np.reshape(data, size, order=F))
+                np.reshape(data, shape, order="F"))
 
-        if (mesh.ndims == +3):
-    #--------------------------- reshape data to 3-dim array
-            if (mesh.xgrid is None or
-                    mesh.xgrid.size == 0):
+        if mesh.ndims == 3:
+            if mesh.xgrid is None or mesh.xgrid.size == 0:
                 raise ValueError("Invalid XGRID")
-
-            if (mesh.ygrid is None or
-                    mesh.ygrid.size == 0):
+            if mesh.ygrid is None or mesh.ygrid.size == 0:
                 raise ValueError("Invalid YGRID")
-
-            if (mesh.zgrid is None or
-                    mesh.zgrid.size == 0):
+            if mesh.zgrid is None or mesh.zgrid.size == 0:
                 raise ValueError("Invalid ZGRID")
-
-            num1 = mesh.ygrid.size
-            num2 = mesh.xgrid.size
-            num3 = mesh.zgrid.size
-
-            nprd = (num1 * num2 * num3)
-
-            nval = mesh.value.size // nprd
-
-            size = (num1, num2, num3, nval)
-
+            npos = (mesh.ygrid.size * mesh.xgrid.size *
+                    mesh.zgrid.size)
+            if data.size % npos:
+                raise ValueError("Invalid grid data size")
+            shape = (mesh.ygrid.size, mesh.xgrid.size,
+                     mesh.zgrid.size, data.size // npos)
             data = np.squeeze(
-                np.reshape(data, size, order=F))
+                np.reshape(data, shape, order="F"))
 
     return data
 
@@ -618,7 +288,6 @@ def loadmsh(name, mesh):
     in the file will be read.
 
     """
-
     if (not isinstance(name, str)):
         raise TypeError("Incorrect type: NAME.")
 
@@ -626,12 +295,12 @@ def loadmsh(name, mesh):
         raise TypeError("Incorrect type: MESH.")
 
     with Path(name).open("r") as fptr:
-        while (True):
+        while True:
 
     #--------------------------- get the next line from file
             line = fptr.readline()
 
-            if (len(line) != +0):
+            if (len(line) != 0):
 
     #--------------------------- parse next non-null section
                 loadlines(mesh, fptr, line)
@@ -642,11 +311,5 @@ def loadmsh(name, mesh):
 
     if (mesh.mshID.lower() in
             ["euclidean-grid", "ellipsoid-grid"]):
-
-        mesh.value = \
-            sanitise_grid(mesh, mesh.value)
-
-        mesh.slope = \
-            sanitise_grid(mesh, mesh.slope)
-
-    return
+        mesh.value = sanitiser(mesh, mesh.value)
+        mesh.slope = sanitiser(mesh, mesh.slope)

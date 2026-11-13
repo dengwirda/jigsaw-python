@@ -7,7 +7,46 @@ from jigsawpy.msh_t import jigsaw_msh_t
 from jigsawpy.certify import certify
 
 
-def saveradii(mesh, fptr, args):
+_CHUNK_ROWS = 2 ** 19
+_MESH_RECORDS = (
+    ("edge2", "EDGE2", 3),
+    ("tria3", "TRIA3", 4),
+    ("quad4", "QUAD4", 5),
+    ("tria4", "TRIA4", 5),
+    ("hexa8", "HEXA8", 9),
+    ("wedg6", "WEDG6", 7),
+    ("pyra5", "PYRA5", 6),
+    ("bound", "BOUND", 3),
+)
+
+def _write_rows(fptr, data, nrows, formats, dtype=None):
+    row_format = ";".join(formats) + "\n"
+
+    start = 0
+    while start < nrows:
+        end = min(start + _CHUNK_ROWS, nrows)
+        rows = data[start:end]
+        if dtype is not None:
+            values = rfn.structured_to_unstructured(
+                rows, dtype=dtype).ravel()
+        else:
+            values = rows.ravel()
+
+        text_format = row_format * (end - start)
+        fptr.write(text_format % tuple(values))
+        start = end
+
+
+def _write_data(ftag, data, fptr, formats, dtype):
+    fptr.write(ftag + "=" + str(data.size) + "\n")
+    _write_rows(fptr, data, data.size, formats, dtype)
+
+
+def _save_cells(data, fptr, ftag, ncols):
+    _write_data(ftag, data, fptr, ["%d"] * ncols, np.int32)
+
+
+def saveradii(mesh, fptr):
     """
     SAVERADII: save the RADII data structure to *.msh file.
 
@@ -29,570 +68,123 @@ def saveradii(mesh, fptr, args):
     return
 
 
-def savevert2(ftag, data, fptr, args):
+def savevert2(ftag, data, fptr):
     """
     SAVEVERT2: save the POINT data structure to *.msh file.
 
     """
-    fptr.write(ftag + "=" + str(data.size) + "\n")
-
-    rmax = 2 ** 19; next = 0; prec = 17
-
-    while (next < data.size):
-
-        nrow = min(rmax, data.size - next)
-        nend = next + nrow
-
-        sfmt = "%%.%ug" % prec
-
-        sfmt = ";".join([sfmt] * 2) + ";%d\n"
-        sfmt = sfmt * nrow
-
-        fdat = sfmt % tuple(
-            rfn.structured_to_unstructured(
-                data[next:nend], dtype=np.float64).ravel())
-
-        fptr.write(fdat)
-
-        next = next + nrow
-
-    return
+    _write_data(ftag, data, fptr,
+        ["%.17g", "%.17g", "%d"], np.float64)
 
 
-def savevert3(ftag, data, fptr, args):
+def savevert3(ftag, data, fptr):
     """
     SAVEVERT3: save the POINT data structure to *.msh file.
 
     """
-    fptr.write(ftag + "=" + str(data.size) + "\n")
-
-    rmax = 2 ** 19; next = 0; prec = 17
-
-    while (next < data.size):
-
-        nrow = min(rmax, data.size - next)
-        nend = next + nrow
-
-        sfmt = "%%.%ug" % prec
-
-        sfmt = ";".join([sfmt] * 3) + ";%d\n"
-        sfmt = sfmt * nrow
-
-        fdat = sfmt % tuple(
-            rfn.structured_to_unstructured(
-                data[next:nend], dtype=np.float64).ravel())
-
-        fptr.write(fdat)
-
-        next = next + nrow
-
-    return
+    _write_data(ftag, data, fptr,
+        ["%.17g", "%.17g", "%.17g", "%d"], np.float64)
 
 
-def savevalue(ftag, data, fptr, args):
+def savevalue(ftag, data, fptr):
     """
     SAVEVALUE: save the ARRAY data structure to *.msh file.
 
     """
-    if (np.ndim(data) == +1):
-        data = np.reshape(data, (data.size, +1))
+    if data.ndim == 1:
+        data = data.reshape((data.size, 1))
 
-    npos = np.size(data, 0)
-    nval = np.size(data, 1)
+    prec = 9 if data.dtype == np.float32 else 17
 
-    fptr.write(
-        ftag + "=" + str(npos) + ";" + str(nval) + "\n")
+    nrows, ncols = data.shape
+    fptr.write(f"{ftag}={nrows};{ncols}\n")
+    _write_rows(fptr, data, nrows,  [f"%.{prec}g"] * ncols)
 
-    rmax = 2 ** 19; next = 0; prec = 17
 
-    if (data.dtype == np.float32):
-        prec = 9
-
-    while (next < data.shape[0]):
-
-        nrow = min(rmax, data.shape[0] - next)
-        nend = next + nrow
-
-        sfmt = "%%.%ug" % prec
-
-        sfmt = ";".join([sfmt] * nval) + "\n"
-        sfmt = sfmt * nrow
-
-        fdat = sfmt % tuple(data[next:nend:, :].ravel())
-
-        fptr.write(fdat)
-
-        next = next + nrow
-
-    return
-
-
-def saveedge2(data, fptr, args):
-    """
-    SAVEEDGE2: save the EDGE2 data structure to *.msh file.
-
-    """
-    fptr.write("EDGE2=" + str(data.size) + "\n")
-
-    rmax = 2 ** 19; next = 0
-
-    while (next < data.size):
-
-        nrow = min(rmax, data.size - next)
-        nend = next + nrow
-
-        sfmt = ";".join(["%d"] * 2) + ";%d\n"
-        sfmt = sfmt * nrow
-
-        fdat = sfmt % tuple(
-            rfn.structured_to_unstructured(
-                data[next:nend], dtype=np.int32).ravel())
-
-        fptr.write(fdat)
-
-        next = next + nrow
-
-    return
-
-
-def savetria3(data, fptr, args):
-    """
-    SAVETRIA3: save the TRIA3 data structure to *.msh file.
-
-    """
-    fptr.write("TRIA3=" + str(data.size) + "\n")
-
-    rmax = 2 ** 19; next = 0
-
-    while (next < data.size):
-
-        nrow = min(rmax, data.size - next)
-        nend = next + nrow
-
-        sfmt = ";".join(["%d"] * 3) + ";%d\n"
-        sfmt = sfmt * nrow
-
-        fdat = sfmt % tuple(
-            rfn.structured_to_unstructured(
-                data[next:nend], dtype=np.int32).ravel())
-
-        fptr.write(fdat)
-
-        next = next + nrow
-
-    return
-
-
-def savequad4(data, fptr, args):
-    """
-    SAVEQUAD4: save the QUAD4 data structure to *.msh file.
-
-    """
-    fptr.write("QUAD4=" + str(data.size) + "\n")
-
-    rmax = 2 ** 19; next = 0
-
-    while (next < data.size):
-
-        nrow = min(rmax, data.size - next)
-        nend = next + nrow
-
-        sfmt = ";".join(["%d"] * 4) + ";%d\n"
-        sfmt = sfmt * nrow
-
-        fdat = sfmt % tuple(
-            rfn.structured_to_unstructured(
-                data[next:nend], dtype=np.int32).ravel())
-
-        fptr.write(fdat)
-
-        next = next + nrow
-
-    return
-
-
-def savetria4(data, fptr, args):
-    """
-    SAVETRIA4: save the TRIA4 data structure to *.msh file.
-
-    """
-    fptr.write("TRIA4=" + str(data.size) + "\n")
-
-    rmax = 2 ** 19; next = 0
-
-    while (next < data.size):
-
-        nrow = min(rmax, data.size - next)
-        nend = next + nrow
-
-        sfmt = ";".join(["%d"] * 4) + ";%d\n"
-        sfmt = sfmt * nrow
-
-        fdat = sfmt % tuple(
-            rfn.structured_to_unstructured(
-                data[next:nend], dtype=np.int32).ravel())
-
-        fptr.write(fdat)
-
-        next = next + nrow
-
-    return
-
-
-def savehexa8(data, fptr, args):
-    """
-    SAVEHEXA8: save the HEXA8 data structure to *.msh file.
-
-    """
-    fptr.write("HEXA8=" + str(data.size) + "\n")
-
-    rmax = 2 ** 19; next = 0
-
-    while (next < data.size):
-
-        nrow = min(rmax, data.size - next)
-        nend = next + nrow
-
-        sfmt = ";".join(["%d"] * 8) + ";%d\n"
-        sfmt = sfmt * nrow
-
-        fdat = sfmt % tuple(
-            rfn.structured_to_unstructured(
-                data[next:nend], dtype=np.int32).ravel())
-
-        fptr.write(fdat)
-
-        next = next + nrow
-
-    return
-
-
-def savewedg6(data, fptr, args):
-    """
-    SAVEWEDG6: save the WEDG6 data structure to *.msh file.
-
-    """
-    fptr.write("WEDG6=" + str(data.size) + "\n")
-
-    rmax = 2 ** 19; next = 0
-
-    while (next < data.size):
-
-        nrow = min(rmax, data.size - next)
-        nend = next + nrow
-
-        sfmt = ";".join(["%d"] * 6) + ";%d\n"
-        sfmt = sfmt * nrow
-
-        fdat = sfmt % tuple(
-            rfn.structured_to_unstructured(
-                data[next:nend], dtype=np.int32).ravel())
-
-        fptr.write(fdat)
-
-        next = next + nrow
-
-    return
-
-
-def savepyra5(data, fptr, args):
-    """
-    SAVEPYRA5: save the PYRA5 data structure to *.msh file.
-
-    """
-    fptr.write("PYRA5=" + str(data.size) + "\n")
-
-    rmax = 2 ** 19; next = 0
-
-    while (next < data.size):
-
-        nrow = min(rmax, data.size - next)
-        nend = next + nrow
-
-        sfmt = ";".join(["%d"] * 5) + ";%d\n"
-        sfmt = sfmt * nrow
-
-        fdat = sfmt % tuple(
-            rfn.structured_to_unstructured(
-                data[next:nend], dtype=np.int32).ravel())
-
-        fptr.write(fdat)
-
-        next = next + nrow
-
-    return
-
-
-def savebound(data, fptr, args):
-    """
-    SAVEBOUND: save the BOUND data structure to *.msh file.
-
-    """
-    fptr.write("BOUND=" + str(data.size) + "\n")
-
-    rmax = 2 ** 19; next = 0
-
-    while (next < data.size):
-
-        nrow = min(rmax, data.size - next)
-        nend = next + nrow
-
-        sfmt = "%d;%d;%d\n" * nrow
-
-        fdat = sfmt % tuple(
-            rfn.structured_to_unstructured(
-                data[next:nend], dtype=np.int32).ravel())
-
-        fptr.write(fdat)
-
-        next = next + nrow
-
-    return
-
-
-def savecoord(data, fptr, args, inum):
+def savecoord(data, fptr, inum):
     """
     SAVECOORD: save the COORD data structure to *.msh file.
 
     """
-    nnum = np.prod(data.shape)
-
-    fptr.write(
-        "COORD=" + str(inum) + ";" + str(nnum) + "\n")
-
-    rmax = 2 ** 19; next = 0; prec = 17
-
-    while (next < data.shape[0]):
-
-        nrow = min(rmax, data.shape[0] - next)
-
-        sfmt = "%%.%ug\n" % prec
-        sfmt = sfmt * nrow
-
-        fdat = sfmt % tuple(data[next:next+nrow].ravel())
-        fptr.write(fdat)
-
-        next = next + nrow
-
-    return
+    fptr.write(f"COORD={inum};{data.size}\n")
+    _write_rows(fptr, data, data.size, ["%.17g"])
 
 
-def savendmat(ftag, data, fptr, args):
+def savendmat(ftag, data, fptr):
     """
     SAVENDMAT: save the VALUE data structure to *.msh file.
 
     """
-    nnum = np.prod(data.shape)
+    fptr.write(f"{ftag}={data.size}; 1\n")
 
-    fptr.write(
-        ftag + "=" + str(nnum) + "; 1" + "\n")
+    prec = 9 if data.dtype == np.float32 else 17
 
-    dptr = data.reshape(-1, order="F")
-
-    rmax = 2 ** 19; next = 0; prec = 17
-
-    if (dptr.dtype == np.float32):
-        prec = 9
-
-    while (next < dptr.shape[0]):
-
-        nrow = min(rmax, dptr.shape[0] - next)
-
-        sfmt = "%%.%ug\n" % prec
-        sfmt = sfmt * nrow
-
-        fdat = sfmt % tuple(dptr[next:next+nrow].ravel())
-        fptr.write(fdat)
-
-        next = next + nrow
-
-    return
+    vals = data.reshape(-1, order="F")
+    _write_rows(fptr, vals, vals.size, [f"%.{prec}g"])
 
 
 def save_mesh_file(mesh, fptr, args, kind):
-
     fptr.write("MSHID=" + str(args.nver) + ";" + kind + "\n")
 
-    if (mesh.vert2 is not None and
-            mesh.vert2.size != +0):
+    ndim = 0
+    if mesh.vert2 is not None and mesh.vert2.size:
+       ndim = +2
+    if mesh.vert3 is not None and mesh.vert3.size:
+       ndim = +3
+    if mesh.seed2 is not None and mesh.seed2.size:
+       ndim = +2
+    if mesh.seed3 is not None and mesh.seed3.size:
+       ndim = +3
 
-    #----------------------------------- write NDIMS struct.
-        fptr.write("NDIMS=2\n")
+    if ndim == 2: fptr.write("NDIMS=2\n")
+    if ndim == 3: fptr.write("NDIMS=3\n")
 
-    if (mesh.vert3 is not None and
-            mesh.vert3.size != +0):
+    if mesh.radii is not None and mesh.radii.size:
+        saveradii(mesh, fptr)
 
-    #----------------------------------- write NDIMS struct.
-        fptr.write("NDIMS=3\n")
+    if mesh.vert2 is not None and mesh.vert2.size:
+        savevert2("POINT", mesh.point, fptr)
+    if mesh.vert3 is not None and mesh.vert3.size:
+        savevert3("POINT", mesh.point, fptr)
+    if mesh.seed2 is not None and mesh.seed2.size:
+        savevert2("SEEDS", mesh.seeds, fptr)
+    if mesh.seed3 is not None and mesh.seed3.size:
+        savevert3("SEEDS", mesh.seeds, fptr)
 
-    if (mesh.radii is not None and
-            mesh.radii.size != +0):
+    for name in ("power", "value", "slope"):
+        data = getattr(mesh, name)
+        if data is not None and data.size:
+            savevalue(name.upper(), data, fptr)
 
-    #----------------------------------- write RADII struct.
-        saveradii(mesh, fptr, args)
-
-    if (mesh.vert2 is not None and
-            mesh.vert2.size != +0):
-
-    #----------------------------------- write VERT2 struct.
-        savevert2("POINT",
-                  mesh.point, fptr, args)
-
-    if (mesh.vert3 is not None and
-            mesh.vert3.size != +0):
-
-    #----------------------------------- write VERT3 struct.
-        savevert3("POINT",
-                  mesh.point, fptr, args)
-
-    if (mesh.seed2 is not None and
-            mesh.seed2.size != +0):
-
-    #----------------------------------- write VERT2 struct.
-        savevert2("SEEDS",
-                  mesh.seeds, fptr, args)
-
-    if (mesh.seed3 is not None and
-            mesh.seed3.size != +0):
-
-    #----------------------------------- write VERT3 struct.
-        savevert3("SEEDS",
-                  mesh.seeds, fptr, args)
-
-    if (mesh.power is not None and
-            mesh.power.size != +0):
-
-    #----------------------------------- write POWER struct.
-        savevalue("POWER",
-                  mesh.power, fptr, args)
-
-    if (mesh.value is not None and
-            mesh.value.size != +0):
-
-    #----------------------------------- write VALUE struct.
-        savevalue("VALUE",
-                  mesh.value, fptr, args)
-
-    if (mesh.slope is not None and
-            mesh.slope.size != +0):
-
-    #----------------------------------- write SLOPE struct.
-        savevalue("SLOPE",
-                  mesh.slope, fptr, args)
-
-    if (mesh.edge2 is not None and
-            mesh.edge2.size != +0):
-
-    #----------------------------------- write EDGE2 struct.
-        saveedge2(mesh.edge2, fptr, args)
-
-    if (mesh.tria3 is not None and
-            mesh.tria3.size != +0):
-
-    #----------------------------------- write TRIA3 struct.
-        savetria3(mesh.tria3, fptr, args)
-
-    if (mesh.quad4 is not None and
-            mesh.quad4.size != +0):
-
-    #----------------------------------- write QUAD4 struct.
-        savequad4(mesh.quad4, fptr, args)
-
-    if (mesh.tria4 is not None and
-            mesh.tria4.size != +0):
-
-    #----------------------------------- write TRIA4 struct.
-        savetria4(mesh.tria4, fptr, args)
-
-    if (mesh.hexa8 is not None and
-            mesh.hexa8.size != +0):
-
-    #----------------------------------- write HEXA8 struct.
-        savehexa8(mesh.hexa8, fptr, args)
-
-    if (mesh.wedg6 is not None and
-            mesh.wedg6.size != +0):
-
-    #----------------------------------- write WEDG6 struct.
-        savewedg6(mesh.wedg6, fptr, args)
-
-    if (mesh.pyra5 is not None and
-            mesh.pyra5.size != +0):
-
-    #----------------------------------- write PYRA5 struct.
-        savepyra5(mesh.pyra5, fptr, args)
-
-    if (mesh.bound is not None and
-            mesh.bound.size != +0):
-
-    #----------------------------------- write BOUND struct.
-        savebound(mesh.bound, fptr, args)
-
-    return
+    for name, tag, ncols in _MESH_RECORDS:
+        data = getattr(mesh, name)
+        if data is not None and data.size:
+            _save_cells(data, fptr, tag, ncols)
 
 
 def save_grid_file(mesh, fptr, args, kind):
-
     fptr.write("MSHID=" + str(args.nver) + ";" + kind + "\n")
 
-    if (mesh.radii is not None and
-            mesh.radii.size != +0):
+    if mesh.radii is not None and mesh.radii.size:
+        saveradii(mesh, fptr)
 
-    #----------------------------------- write RADII struct.
-        saveradii(mesh, fptr, args)
+    coordinates = (
+        ("xgrid",1), ("ygrid",2), ("zgrid",3))
+    present = [
+        (getattr(mesh, name), axis)
+        for name, axis in coordinates
+        if getattr(mesh, name) is not None and
+           getattr(mesh, name).size
+    ]
+    if present:
+        fptr.write(f"NDIMS={len(present)}\n")
+    for data, axis in present:
+        savecoord(data, fptr, axis)
 
-    #----------------------------------- calc. NDIMS struct.
-    ndim = +0
-    if (mesh.xgrid is not None and
-            mesh.xgrid.size != +0):
-        ndim += +1
-
-    if (mesh.ygrid is not None and
-            mesh.ygrid.size != +0):
-        ndim += +1
-
-    if (mesh.zgrid is not None and
-            mesh.zgrid.size != +0):
-        ndim += +1
-
-    if (ndim >= +1):
-    #----------------------------------- write NDIMS struct.
-        fptr.write("NDIMS="
-                   + str(ndim) + "\n")
-
-    if (mesh.xgrid is not None and
-            mesh.xgrid.size != +0):
-
-    #----------------------------------- write XGRID struct.
-        savecoord(mesh.xgrid, fptr, args, +1)
-
-    if (mesh.ygrid is not None and
-            mesh.ygrid.size != +0):
-
-    #----------------------------------- write YGRID struct.
-        savecoord(mesh.ygrid, fptr, args, +2)
-
-    if (mesh.zgrid is not None and
-            mesh.zgrid.size != +0):
-
-    #----------------------------------- write ZGRID struct.
-        savecoord(mesh.zgrid, fptr, args, +3)
-
-    if (mesh.value is not None and
-            mesh.value.size != +0):
-
-    #----------------------------------- write VALUE struct.
-        savendmat("VALUE",
-                  mesh.value, fptr, args)
-
-    if (mesh.slope is not None and
-            mesh.slope.size != +0):
-
-    #----------------------------------- write SLOPE struct.
-        savendmat("SLOPE",
-                  mesh.slope, fptr, args)
-
-    return
+    for name in ("value", "slope"):
+        data = getattr(mesh, name)
+        if data is not None and data.size:
+            savendmat(name.upper(), data, fptr)
 
 
 def savemsh(name, mesh):
@@ -608,7 +200,6 @@ def savemsh(name, mesh):
     will be saved to file.
 
     """
-
     if (not isinstance(name, str)):
         raise TypeError("Incorrect type: NAME.")
 
@@ -650,5 +241,3 @@ def savemsh(name, mesh):
         if (kind == "ellipsoid-grid"):
             save_grid_file(
                 mesh, fptr, args, "ellipsoid-grid")
-
-    return
