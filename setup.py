@@ -1,6 +1,7 @@
 
 import io
 import os
+import importlib.util
 from setuptools import setup, find_packages, Command
 
 #-- old setup.py workflow for backwards compatibility
@@ -57,7 +58,12 @@ class build_external(Command):
 
     def run(self):
         if (self.dry_run): return
-        import build; build.build_external()
+        spec = importlib.util.spec_from_file_location(
+            "jigsaw_build", 
+                os.path.join(HERE, "build.py"))
+        build = importlib.util.module_from_spec (spec)
+        spec.loader.exec_module(build)
+        build.build_external()
 
 
 setup(
