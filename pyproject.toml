@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "jigsawpy"
-version = "1.1.0"
+version = "1.1.1"
 description = "Python interface for the JIGSAW meshing library."
 readme = "README.md"
 authors = [

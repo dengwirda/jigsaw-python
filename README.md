@@ -35,8 +35,8 @@ See `jigsawpy` for a description of the various functions available.
     jigsaw.py   - cmd-line interface to JIGSAW's backend
     libsaw.py   - api-lib. interface to JIGSAW's backend
     
-    loadmsh.py  - load *.msh files.
-    savemsh.py  - save *.msh files.
+    loadmsh.py  - load *.msh or NetCDF *.nc files.
+    savemsh.py  - save *.msh or NetCDF *.nc files.
     loadjig.py  - load *.jig files.
     savejig.py  - save *.jig files.
 
@@ -87,4 +87,3 @@ There are a number of publications that describe the algorithms used in `JIGSAW`
 `[4]` - Darren Engwirda, David Ivers, Off-centre Steiner points for Delaunay-refinement on curved surfaces, Computer-Aided Design, 72, pp. 157-171, http://dx.doi.org/10.1016/j.cad.2015.10.007, 2016.
 
 `[5]` - Darren Engwirda, Locally-optimal Delaunay-refinement and optimisation-based mesh generation, Ph.D. Thesis, School of Mathematics and Statistics, The University of Sydney, http://hdl.handle.net/2123/13148, 2014.
-
