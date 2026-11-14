@@ -27,10 +27,12 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Visualization"
 ]
 
+[project.optional-dependencies]
+netcdf = ["netCDF4"]
+
 [project.urls]
 homepage = "https://dengwirda.github.io/"
 source = "https://github.com/dengwirda/jigsaw-python/"
 
 [tool.setuptools.package-data]
 "jigsawpy" = ["_bin/*", "_lib/*"]
-

@@ -75,6 +75,6 @@ setup(
     cmdclass={"build_external": build_external},
     package_data={"jigsawpy": ["_bin/*", "_lib/*"]},
     install_requires=REQUIRED,
+    extras_require={"netcdf": ["netCDF4"]},
     classifiers=CLASSIFY
 )
-
