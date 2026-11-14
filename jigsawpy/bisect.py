@@ -253,7 +253,7 @@ def bisect(mesh):
     if (mesh.quad4 is not None and
             mesh.quad4.size != +0):
         qmap.quad4.index[:, 0] = \
-            qrev[emap.quad4.index[:, 0]]
+            qrev[qmap.quad4.index[:, 0]]
 
         emap.quad4.index[:, 0] = \
             erev[emap.quad4.index[:, 0]]
