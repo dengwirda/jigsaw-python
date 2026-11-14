@@ -242,11 +242,14 @@ def get_msh_t(msht, mshl):
     else:
         raise ValueError("Invalid MESH.MSHID flag.")
 
+    empty = jigsaw_msh_t()
     for name, dtype, _, free_type in _MESH_ARRAYS:
         c_array = getattr(mshl, name)
         if c_array.size:
             setattr(msht, name, _copy_and_free(
                 c_array, dtype, free_type))
+        else:
+            setattr(msht, name, getattr(empty, name))
 
     msht.ndims = (
         3 if msht.vert3.size or msht.zgrid.size else
