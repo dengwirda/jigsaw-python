@@ -165,7 +165,7 @@ def loadgeo(name, mesh):
 if (__name__ == "__main__"):
     parser = argparse.ArgumentParser(
         description=__doc__,
-        formatter_class=argparse.RawTextHelpFormatter)
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 
     parser.add_argument(
         "--src-file", dest="src_file", type=str,
