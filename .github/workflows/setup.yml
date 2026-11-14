@@ -63,3 +63,11 @@ jobs:
 
       - name: Eval. jigsaw-python
         run: python example.py --IDnumber=-1
+
+      - name: Check installed package
+        working-directory: ${{ runner.temp }}
+        run: >-
+          python -I -c "
+          import jigsawpy; 
+          import jigsawpy.libsaw;
+          print(jigsawpy.__file__)"

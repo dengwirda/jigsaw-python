@@ -24,6 +24,11 @@ This package provides a <a href="http://www.python.org">`Python`</a> based scrip
     python3 example.py --IDnumber=0
     
 Note: installation of `JIGSAW` requires a `c++` compiler and the `cmake` utility.
+
+Note: Run `python3 build.py` before building a wheel or installing from source.
+Prebuilt wheels are platform- and Python-version-specific and may require the
+native libraries used when the backend was compiled (such as NetCDF or OpenMP)
+on the target system.
     
 ### `Function Listing`
 
