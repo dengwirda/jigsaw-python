@@ -395,6 +395,9 @@ def tetris(opts, nlev, mesh=None):
 
             savemsh(OPTS.hfun_file, HFUN)
 
+        elif (opts.hfun_file is not None):
+            OPTS.hfun_file = opts.hfun_file
+
     #------------------------ call JIGSAW kernel at this lev
         jitter(OPTS, 4 + (nlev > 0) *12, 3, mesh)
 
