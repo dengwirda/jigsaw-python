@@ -295,6 +295,9 @@ def jigsaw(opts, geom, mesh, init=None, hfun=None):
     for details.
 
     """
+    if not isinstance(mesh, jigsaw_msh_t):
+        raise TypeError("MESH not MSH_t")
+
     jig = _init_opts(opts)
     gmsh, mmsh, imsh, hmsh = (
         _init_mesh(), _init_mesh(), _init_mesh(), _init_mesh())
@@ -302,15 +305,19 @@ def jigsaw(opts, geom, mesh, init=None, hfun=None):
     put_msh_t (init, imsh)
     put_msh_t (hfun, hmsh)
 
-    retv = JLIB.jigsaw(
-        ct.byref(jig), ct.byref(gmsh),
-        ct.byref(imsh) if init is not None else 0,
-        ct.byref(hmsh) if hfun is not None else 0,
-        ct.byref(mmsh))
-    if retv:
+    try:
+        retv = JLIB.jigsaw(
+            ct.byref (jig), 
+            ct.byref(gmsh),
+            ct.byref(imsh) if init is not None else 0,
+            ct.byref(hmsh) if hfun is not None else 0,
+            ct.byref(mmsh))
+        if retv:
+            raise ValueError(
+                "JIGSAW returned error code: " + str(retv))
+        get_msh_t(mesh, mmsh)
+    finally:
         JLIB.jigsaw_free_msh_t(ct.byref(mmsh))
-        raise ValueError("JIGSAW returned code: " + str(retv))
-    get_msh_t(mesh, mmsh)
 
 
 def tripod(opts, init, tria, geom=None):
@@ -326,26 +333,33 @@ def tripod(opts, init, tria, geom=None):
     for details.
 
     """
+    if not isinstance(tria, jigsaw_msh_t):
+        raise TypeError("TRIA not MSH_t")
+
     jig = _init_opts(opts)
     imsh, tmsh, gmsh = _init_mesh(), _init_mesh(), _init_mesh()
     put_msh_t (init, imsh)
     put_msh_t (geom, gmsh)
 
-    retv = JLIB.tripod(
-        ct.byref(jig), ct.byref(imsh),
-        ct.byref(gmsh) if geom is not None else 0,
-        ct.byref(tmsh))
-    if retv:
+    try:
+        retv = JLIB.tripod(
+            ct.byref (jig), 
+            ct.byref(imsh),
+            ct.byref(gmsh) if geom is not None else 0,
+            ct.byref(tmsh))
+        if retv:
+            raise ValueError(
+                "TRIPOD returned error code: " + str(retv))
+        get_msh_t(tria, tmsh)
+    finally:
         JLIB.jigsaw_free_msh_t(ct.byref(tmsh))
-        raise ValueError("TRIPOD returned code: " + str(retv))
-    get_msh_t(tria, tmsh)
 
 
 def marche(opts, ffun):
     """
     MARCHE API-lib. interface to MARCHE.
 
-    MARCHE(OPTS,FFUN=None)
+    MARCHE(OPTS,FFUN)
 
     Call the "fast-marching" solver MARCHE using the config.
     options specified in the OPTS structure. MARCHE solves
@@ -361,10 +375,16 @@ def marche(opts, ffun):
     for details.
 
     """
+    if not isinstance(ffun, jigsaw_msh_t):
+        raise TypeError("MESH not MSH_t")
+
     jig = _init_opts(opts)
     fmsh = _init_mesh()
     put_msh_t (ffun, fmsh)
 
-    retv = JLIB.marche(ct.byref(jig), ct.byref(fmsh))
+    retv = JLIB.marche(ct.byref (jig), 
+                       ct.byref(fmsh)
+    )
     if retv:
-        raise ValueError("MARCHE returned code: " + str(retv))
+        raise ValueError(
+            "MARCHE returned error code: " + str(retv))
