@@ -207,12 +207,8 @@ def certifycoord(data, stag):
 
 def certifyNDmat(data, stag, dims):
 
-    if (data.size > 1 and 
-            data.ndim != len(dims)):
-        raise ValueError("Invalid " + stag + " size.")
-
-    if (data.size > 1 and 
-            data.size != np.prod(dims)):
+    if (data.size > 1 and
+            data.shape != tuple(dims)):
         raise ValueError("Invalid " + stag + " size.")
 
     if (data.dtype != jigsaw_msh_t.REALS_t and 
@@ -241,7 +237,7 @@ def certifygridt(mesh):
 
     if (certifyarray(mesh.ygrid, "MESH.YGRID")):
 
-        dims = dims + [mesh.ygrid.size]
+        dims = [mesh.ygrid.size] + dims
 
         certifycoord(mesh.ygrid, "MESH.YGRID")
 

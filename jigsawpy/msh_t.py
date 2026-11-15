@@ -65,8 +65,8 @@
         all elements in the geometry are assumed to define
         the boundaries of enclosed "parts".
 
-    MESH.VALUE - [NPxNV] array of "values" associated with
-        the vertices of the mesh.
+    MESH.VALUE - array of "values" associated with mesh
+        vertices.
 
     .IF. MESH.MSHID == 'ELLIPSOID-MESH':
     -----------------------------------
@@ -89,16 +89,16 @@
     MESH.ZGRID - [NZx 1] array of "z-axis" grid coordinates.
         Values must increase or decrease monotonically.
 
-    MESH.VALUE - [NMxNV] array of "values" associated with
-        vertices in the grid, where NM is the product of
-        the dimensions of the grid. NV values are associated
-        with each vertex.
+    MESH.VALUE - array of "values" associated with grid
+        vertices.
 
-    MESH.SLOPE - [NMx 1] array of "slopes" associated with
-        vertices in the grid, where NM is the product of
-        the dimensions of the grid. Slope values define the
-        gradient-limits ||dh/dx|| used by the Eikonal solver
-        MARCHE.
+    MESH.SLOPE - array of "slopes" associated with grid
+        vertices. Slope values define the gradient-limits
+        ||dh/dx|| used by the Eikonal solver MARCHE.
+
+    Non-scalar VALUE and SLOPE arrays have shape (NX,),
+    (NY, NX), or (NY, NX, NZ) for 1D, 2D, or 3D grids.
+    A single scalar value may also be shared over the grid.
 
     See also JIG_t
 
