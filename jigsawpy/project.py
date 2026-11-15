@@ -6,25 +6,32 @@ from jigsawpy.certify import certify
 from jigsawpy.tools.projector import stereo3
 
 
-def _value_scale_shape(data, scal, stag):
+def _scale_shape(data, scal, stag):
     if data.ndim == 0 or data.shape[0] != scal.size:
         raise ValueError("Invalid MESH." + stag + " size")
 
     return (scal.size,) + (1,) * (data.ndim - 1)
 
 
-def _scale_values(data, scal, stag):
-    data *= scal.reshape(
-        _value_scale_shape(data, scal, stag))
+def _scale_value(data, scal, stag):
+    data *= scal.reshape(_scale_shape(data, scal, stag))
     return data
 
 
-def _scale_flat_values(data, scal, stag):
+def _scale_flat_value(data, scal, stag):
     if not scal.size or data.size % scal.size:
         raise ValueError("Invalid MESH." + stag + " size")
 
     data = np.reshape(data, data.size)
     data.reshape((scal.size, -1))[:]*= scal[:, np.newaxis]
+    return data
+
+
+def _expand_scalar(data, size):
+    if data.size == 1:
+        if data.ndim == 0:
+            data = data.reshape(1)
+        return np.repeat(data, size, axis=0)
     return data
 
 
@@ -67,7 +74,6 @@ def project(mesh, proj, sign):
 
     if   (kind == "euclidean-mesh" or
           kind == "ellipsoid-mesh"):
-
     #------------------------------- proj. from MESH to MESH
 
         if (mesh.vert2 is not None and
@@ -96,14 +102,15 @@ def project(mesh, proj, sign):
                         dtype=jigsaw_msh_t.REALS_t)
 
             if mesh.value is not None and mesh.value.size:
-                _value_scale_shape(mesh.value, SCAL, "VALUE")
+                if mesh.value.size != 1: \
+                _scale_shape(mesh.value, SCAL, "VALUE")
 
             SPOW = (
                 SCAL ** 2 if mesh.power is not None and 
                              mesh.power.size else None
             )
             if mesh.power is not None and mesh.power.size:
-                _value_scale_shape(mesh.power, SPOW, "POWER")
+                _scale_shape(mesh.power, SPOW, "POWER")
 
             mesh.mshID = kind
             mesh.radii = radii
@@ -112,13 +119,19 @@ def project(mesh, proj, sign):
 
     #----------------------------------- setup proj.'d extras
             if mesh.value is not None and mesh.value.size:
-                _scale_values(mesh.value, SCAL, "VALUE")
+                mesh.value = \
+                    _expand_scalar(mesh.value, SCAL.size)
+                _scale_value(mesh.value, SCAL, "VALUE")
+
+            if mesh.slope is not None and mesh.slope.size:
+                mesh.slope = \
+                    _expand_scalar(mesh.slope, SCAL.size)
+
             if mesh.power is not None and mesh.power.size:
-                _scale_values(mesh.power, SPOW, "POWER")
+                _scale_value(mesh.power, SPOW, "POWER")
 
     elif (kind == "euclidean-grid" or
           kind == "ellipsoid-grid"):
-
     #------------------------------- proj. from GRID to MESH
 
         if (mesh.xgrid is not None and
@@ -152,7 +165,8 @@ def project(mesh, proj, sign):
                         dtype=jigsaw_msh_t.REALS_t)
 
             if mesh.value is not None and mesh.value.size:
-                if mesh.value.size % SCAL.size:
+                if mesh.value.size != 1 and \
+                   mesh.value.size % SCAL.size:
                     raise ValueError("Invalid MESH.VALUE size")
 
             if mesh.power is not None and mesh.power.size:
@@ -218,15 +232,19 @@ def project(mesh, proj, sign):
 
     #----------------------------------- setup proj.'d extras
             if mesh.slope is not None and mesh.slope.size:
+                mesh.slope = \
+                    _expand_scalar(mesh.slope, SCAL.size)
                 mesh.slope = np.reshape(
                     mesh.slope, mesh.slope.size)
 
             if mesh.value is not None and mesh.value.size:
-                mesh.value = _scale_flat_values(
+                mesh.value = \
+                    _expand_scalar(mesh.value, SCAL.size)
+                mesh.value = _scale_flat_value(
                     mesh.value, SCAL ** 1, "VALUE")
 
             if mesh.power is not None and mesh.power.size:
-                mesh.power = _scale_flat_values(
+                mesh.power = _scale_flat_value(
                     mesh.power, SCAL ** 2, "POWER")
 
     return
