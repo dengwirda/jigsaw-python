@@ -25,6 +25,22 @@ from jigsawpy.savemsh import savemsh
 from jigsawpy.savejig import savejig
 
 
+def _run_and_load(executable, config, filename, mesh):
+    if mesh is not None:
+        jigsaw_msh_t.__init__(mesh)
+
+    success = False
+    try:
+        subprocess.run(
+            [str(executable), config], check=True)
+        if mesh is not None:
+            loadmsh(filename, mesh)
+        success = True
+    finally:
+        if mesh is not None and not success:
+            jigsaw_msh_t.__init__(mesh)
+
+
 def jigsaw(opts, mesh=None):
     """
     JIGSAW cmd-line interface to JIGSAW.
@@ -36,6 +52,9 @@ def jigsaw(opts, mesh=None):
 
     OPTS is a user-defined set of meshing options. See JIG_t
     for details.
+
+    MESH is reset before execution, and remains empty if the
+    command or output loading fails.
 
     """
     jexename = Path()
@@ -79,11 +98,9 @@ def jigsaw(opts, mesh=None):
 
     if (jexename != Path()):
 #---------------------------- call JIGSAW and capture output
-        subprocess.run([
-            str(jexename), opts.jcfg_file], check=True)
-
-        if (mesh is not None):
-            loadmsh(opts.mesh_file, mesh)
+        _run_and_load(
+            jexename, opts.jcfg_file,
+                      opts.mesh_file, mesh)
 
     else:
 
@@ -103,6 +120,9 @@ def tripod(opts, tria=None):
 
     OPTS is a user-defined set of meshing options. See JIG_t
     for details.
+
+    TRIA is reset before execution, and remains empty if the
+    command or output loading fails.
 
     """
     jexename = Path()
@@ -146,11 +166,9 @@ def tripod(opts, tria=None):
 
     if (jexename != Path()):
 #---------------------------- call JIGSAW and capture output
-        subprocess.run([
-            str(jexename), opts.jcfg_file], check=True)
-
-        if (tria is not None):
-            loadmsh(opts.mesh_file, tria)
+        _run_and_load(
+            jexename, opts.jcfg_file,
+                      opts.mesh_file, tria)
 
     else:
 
@@ -177,6 +195,9 @@ def marche(opts, ffun=None):
 
     OPTS is a user-defined set of meshing options. See JIG_t
     for details.
+
+    FFUN is reset before execution, and remains empty if the
+    command or output loading fails.
 
     """
     jexename = Path()
@@ -220,11 +241,9 @@ def marche(opts, ffun=None):
 
     if (jexename != Path()):
 #---------------------------- call JIGSAW and capture output
-        subprocess.run([
-            str(jexename), opts.jcfg_file], check=True)
-
-        if (ffun is not None):
-            loadmsh(opts.hfun_file, ffun)
+        _run_and_load(
+            jexename, opts.jcfg_file,
+                      opts.hfun_file, ffun)
 
     else:
 
