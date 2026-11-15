@@ -531,6 +531,7 @@ def icosahedron(opts, nlev, mesh=None):
     loadmsh(opts.geom_file, geom)
 
     if (mesh is None): mesh = jigsaw_msh_t()
+    else: jigsaw_msh_t.__init__(mesh)
 
 #-------------------------------- setup icosahedron geometry
     la = math.atan(0.5)
@@ -612,6 +613,7 @@ def cubedsphere(opts, nlev, mesh=None):
     loadmsh(opts.geom_file, geom)
 
     if (mesh is None): mesh = jigsaw_msh_t()
+    else: jigsaw_msh_t.__init__(mesh)
 
 #-------------------------------- setup cubedsphere geometry
     aval = math.atan(
