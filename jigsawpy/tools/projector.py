@@ -81,7 +81,8 @@ def stereo3_i(rrad, xpos, ypos, xmid, ymid):
     ytmp = ypos * ccym * sscv
 
     rlim = np.where(zero, +1.0, rval)
-    ynew = np.arcsin(cccv * ssym + ytmp / rlim)
+    ynew = np.arcsin(np.clip(
+        cccv * ssym + ytmp / rlim, -1.0, +1.0))
     ynew = np.where(zero, ymid, ynew)
 
     #------------------------------------ compute indicatrix
