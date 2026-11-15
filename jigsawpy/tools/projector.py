@@ -137,9 +137,9 @@ def stereo3(rrad, xpos, ypos, xmid, ymid, kind):
     with [XPOS,YPOS] the stereographic coordinates, and
     [XNEW,YNEW] the resulting lon-lat spherical angles.
 
-    SCAL is the scale-factor associated with the forward ma-
-    pping. This array stores the relative length distortion
-    induced by the projection for all points in [XNEW,YNEW].
+    SCAL is the local length scale-factor for the requested
+    mapping: plane length / sphere length for "FWD", and its
+    reciprocal for "INV", at each corresponding point.
 
     """
 

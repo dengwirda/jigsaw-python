@@ -78,43 +78,30 @@ def project(mesh, proj, sign):
 
     #----------------------------------- proj. geometry parts
             if   (proj.prjID.lower() == "stereographic"):
-
                 XNEW, YNEW, SCAL = stereo3(
                     proj.radii, XPOS, YPOS,
                     proj.xbase, proj.ybase, sign)
-
-                """
-            elif (proj.prjID.lower() == "hammer-aitoff"):
-
-                XNEW, YNEW, SCAL = hammer3(
-                    proj.radii, XPOS, YPOS,
-                    proj.xbase, proj.ybase, sign)
-                """
-
             else:
-
                 raise ValueError(
                     "Projection operator not suppoted.")
 
     #----------------------------------- setup proj.'d object
             if   (sign == "fwd"):
-
                 kind = "euclidean-mesh"
                 radii = None
-
             else:
-
                 kind = "ellipsoid-mesh"
                 radii = np.full(
-                    +3, proj.radii,
-                    dtype=jigsaw_msh_t.REALS_t)
+                    +3, proj.radii, 
+                        dtype=jigsaw_msh_t.REALS_t)
 
             if mesh.value is not None and mesh.value.size:
                 _value_scale_shape(mesh.value, SCAL, "VALUE")
+
             SPOW = (
-                np.sqrt(SCAL)
-                if mesh.power is not None and mesh.power.size
-                else None)
+                SCAL ** 2 if mesh.power is not None and 
+                             mesh.power.size else None
+            )
             if mesh.power is not None and mesh.power.size:
                 _value_scale_shape(mesh.power, SPOW, "POWER")
 
@@ -147,40 +134,27 @@ def project(mesh, proj, sign):
 
     #----------------------------------- proj. geometry parts
             if   (proj.prjID.lower() == "stereographic"):
-
                 XNEW, YNEW, SCAL = stereo3(
                     proj.radii, XPOS, YPOS,
                     proj.xbase, proj.ybase, sign)
-
-                """
-            elif (proj.prjID.lower() == "hammer-aitoff"):
-
-                XNEW, YNEW, SCAL = hammer3(
-                    proj.radii, XPOS, YPOS,
-                    proj.xbase, proj.ybase, sign)
-                """
-
             else:
-
                 raise ValueError(
                     "Projection operator not suppoted.")
 
     #----------------------------------- setup proj.'d object
             if   (sign == "fwd"):
-
                 kind = "euclidean-mesh"
                 radii = None
-
             else:
-
                 kind = "ellipsoid-mesh"
                 radii = np.full(
                     +3, proj.radii,
-                    dtype=jigsaw_msh_t.REALS_t)
+                        dtype=jigsaw_msh_t.REALS_t)
 
             if mesh.value is not None and mesh.value.size:
                 if mesh.value.size % SCAL.size:
                     raise ValueError("Invalid MESH.VALUE size")
+
             if mesh.power is not None and mesh.power.size:
                 if mesh.power.size % SCAL.size:
                     raise ValueError("Invalid MESH.POWER size")
@@ -199,10 +173,8 @@ def project(mesh, proj, sign):
 
             dim1 = mesh.xgrid.size
             mesh.xgrid = None
-
             dim2 = mesh.ygrid.size
             mesh.ygrid = None
-
             tset = []
             for jpos in range(dim2 - 1):
 
@@ -248,11 +220,13 @@ def project(mesh, proj, sign):
             if mesh.slope is not None and mesh.slope.size:
                 mesh.slope = np.reshape(
                     mesh.slope, mesh.slope.size)
+
             if mesh.value is not None and mesh.value.size:
                 mesh.value = _scale_flat_values(
-                    mesh.value, SCAL, "VALUE")
+                    mesh.value, SCAL ** 1, "VALUE")
+
             if mesh.power is not None and mesh.power.size:
                 mesh.power = _scale_flat_values(
-                    mesh.power, np.sqrt(SCAL), "POWER")
+                    mesh.power, SCAL ** 2, "POWER")
 
     return
