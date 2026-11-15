@@ -105,12 +105,13 @@ def trideg2(ppos, tri2):
     triangulation.
 
     VDEG = TRIDEG2(VERT,TRIA) returns the no. of triangles
-    incident to each vertex. VDEG is a V-by-1 array of
-    vertex degrees, VERT is a V-by-D array of XYZ coord. and
+    incident to each vertex. VDEG is a length-V array of
+    vertex degrees, including zero for isolated vertices.
+    VERT is a V-by-D array of XYZ coord. and
     TRIA is a T-by-3 array of vertex indexes, where each row
     defines a triangle, such that VERT[TRIA[II,0],:],
     VERT[TRIA[II,1],:] and VERT[TRIA[II,2],:] are the coord.
-    of the II-TH triangle.
+    of the II-TH triangle. Extra TRIA columns are ignored.
 
     """
 
@@ -119,7 +120,7 @@ def trideg2(ppos, tri2):
 #------------------------------------- compute vertex degree
 
     return np.bincount(
-        np.reshape(tri2, (tri2.size)))
+        tri2[:, :3].reshape(-1), minlength=ppos.shape[0])
 
 
 def trideg3(ppos, tri3):
@@ -128,12 +129,14 @@ def trideg3(ppos, tri3):
     triangulation.
 
     VDEG = TRIDEG3(VERT,TRIA) returns the no. of tetrahedra
-    incident to each vertex. VDEG is a V-by-1 array of
-    vertex degrees, VERT is a V-by-D array of XYZ coord. and
+    incident to each vertex. VDEG is a length-V array of
+    vertex degrees, including zero for isolated vertices.
+    VERT is a V-by-D array of XYZ coord. and
     TRIA is a T-by-4 array of vertex indexes, where each row
     defines a tetrahedron, such that VERT[TRIA[II,0],:],
     VERT[TRIA[II,1],:], VERT[TRIA[II,2],:] and
-    VERT[TRIA[II,3],:] are the coord. of the II-TH triangle.
+    VERT[TRIA[II,3],:] are the coord. of the II-TH simplex.
+    Extra TRIA columns are ignored.
 
     """
 
@@ -142,7 +145,7 @@ def trideg3(ppos, tri3):
 #------------------------------------- compute vertex degree
 
     return np.bincount(
-        np.reshape(tri3, (tri3.size)))
+        tri3[:, :4].reshape(-1), minlength=ppos.shape[0])
 
 
 def triang2(ppos, tri2):
