@@ -374,9 +374,16 @@ def marche(opts, ffun):
     OPTS is a user-defined set of meshing options. See JIG_t
     for details.
 
+    FFUN.VALUE must be writable: MARCHE updates it in place.
+
     """
     if not isinstance(ffun, jigsaw_msh_t):
         raise TypeError("MESH not MSH_t")
+
+    if isinstance(ffun.value, np.ndarray) and \
+            ffun.value.size and not \
+            ffun.value.flags.writeable:
+        raise ValueError("MESH.VALUE must be writable")
 
     jig = _init_opts(opts)
     fmsh = _init_mesh()
