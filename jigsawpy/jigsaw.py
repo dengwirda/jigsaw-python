@@ -277,7 +277,8 @@ def jitter(opts, imax, ibad, mesh=None):
         if (mesh.power is not None): npwr = mesh.power.size
 
         if (opts.optm_dual is not None):
-            OPTS.optm_dual = iter == imax-1 or npts == npwr
+            OPTS.optm_dual = opts.optm_dual and \
+                (iter == imax-1 or npts == npwr)
 
         if (mesh.point is not None and
                 mesh.point.size != +0):
@@ -382,7 +383,7 @@ def tetris(opts, nlev, mesh=None):
 
         if (opts.optm_dual is not None):
     #------------------------ create/write current DUAL data
-            OPTS.optm_dual = nlev == 0
+            OPTS.optm_dual = opts.optm_dual and nlev == 0
 
         if (opts.hfun_hmax is not None):
     #------------------------ create/write current HMAX data
@@ -484,12 +485,13 @@ def refine(opts, nlev, mesh=None):
 
     for ilev in reversed(range(nlev + 1)):
 
+        OPTS = copy.copy(opts)
         if (opts.optm_dual is not None):
     #------------------------ create/write current DUAL data
-            opts.optm_dual = ilev == 0
+            OPTS.optm_dual = opts.optm_dual and ilev == 0
 
     #------------------------ call JIGSAW kernel at this lev
-        jigsaw(opts, mesh)
+        jigsaw(OPTS, mesh)
 
         if (ilev <= +0): break
 
