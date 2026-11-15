@@ -23,6 +23,8 @@ def savemsh(name, mesh):
     (x, y), or (z, x, y), preserving y-fast ordering.
     Mesh fields use the vertex-row dimension; a shared scalar
     slope is stored separately.
+    Radius-only ellipsoid meshes default to NDIMS=3 when
+    MESH.NDIMS is unspecified.
 
     """
     if (not isinstance(name, str)):

@@ -109,22 +109,36 @@ def _write_bound(nc, mesh):
 def save_nc(name, mesh):
     certify(mesh)
     dataset = netcdf_dataset()
+
+    kind = mesh.mshID.lower()
+    ndim = 0
+    if present(getattr(mesh, "xgrid")): ndim = 1
+    if present(getattr(mesh, "ygrid")): ndim = 2
+    if present(getattr(mesh, "zgrid")): ndim = 3
+
+    if present(getattr(mesh, "vert2")): ndim = 2
+    if present(getattr(mesh, "vert3")): ndim = 3
+
+    if present(getattr(mesh, "seed2")): ndim = 2
+    if present(getattr(mesh, "seed3")): ndim = 3
+
+    if (not isinstance(mesh.ndims, (int, np.integer)) or
+            isinstance(mesh.ndims, (bool, np.bool_))):
+        raise ValueError("Invalid MESH.NDIMS")
+
+    if not ndim:
+        ndim = mesh.ndims
+        if not ndim and kind == "ellipsoid-mesh" and \
+                present(mesh.radii):
+            ndim = 3
+    elif mesh.ndims not in (0,ndim):
+        raise ValueError("Inconsistent MESH.NDIMS")
+
+    if ndim <= 0:
+        raise ValueError("Invalid MESH.NDIMS")
+
     with dataset(name, "w", format="NETCDF4") as nc:
         nc.createDimension("singleton", +1)
-
-        kind = mesh.mshID.lower()
-        if present(getattr(mesh, "xgrid")): ndim = 1
-        if present(getattr(mesh, "ygrid")): ndim = 2
-        if present(getattr(mesh, "zgrid")): ndim = 3
-
-        if present(getattr(mesh, "vert2")): ndim = 2
-        if present(getattr(mesh, "vert3")): ndim = 3
-
-        if present(getattr(mesh, "seed2")): ndim = 2
-        if present(getattr(mesh, "seed3")): ndim = 3
-
-        if mesh.ndims not in (0, ndim):
-            raise ValueError("Inconsistent MESH.NDIMS")
 
         nc.setncattr("MSHID", kind.upper())
         nc.setncattr("NDIMS", np.int32(ndim))
@@ -136,7 +150,7 @@ def save_nc(name, mesh):
         if present(mesh.radii):
             nc.setncattr("RADII", mesh.radii)
 
-        if kind in MESH_KINDS:
+        if kind in MESH_KINDS and ndim > 1:
             name = "vert" + str(ndim)
             _write_verts(
                 nc, name, getattr(mesh, name), ndim)
@@ -148,6 +162,7 @@ def save_nc(name, mesh):
             _write_values(nc, "power_val", mesh.power, 
                           mesh, ndim, kind in GRID_KINDS)
 
+        if kind in MESH_KINDS:
             for cell, width, _ in CELL_TYPES:
                 _write_cells(
                     nc, cell, getattr(mesh, cell), width)
@@ -158,7 +173,8 @@ def save_nc(name, mesh):
                           mesh, ndim, kind in GRID_KINDS)
             _write_values(nc, "slope_mat", mesh.slope, 
                           mesh, ndim, kind in GRID_KINDS)
-        else:
+
+        if kind in GRID_KINDS:
             _write_coord(nc, mesh)
 
             _write_values(nc, "value_mat", mesh.value, 
