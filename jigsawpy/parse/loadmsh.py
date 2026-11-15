@@ -41,7 +41,7 @@ def _load_cell(mesh, fptr, ltag, kind):
 
 def _shape_val(mesh, data):
     if data is not None and data.size > 1:
-        if mesh.ndims in (2, 3):
+        if mesh.ndims in (1, 2, 3):
             for axis in ("xgrid", "ygrid", 
                          "zgrid")[:mesh.ndims]:
                 coords = getattr(mesh, axis)
