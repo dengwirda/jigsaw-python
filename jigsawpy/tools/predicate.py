@@ -31,8 +31,8 @@ def istri_1(ppos, tri1):
     if (tri1.shape[1] < +2):
         raise ValueError("Invalid TRIA shape.")
 
-    if (np.min(tri1[:, 0:1]) < +0 or
-            np.max(tri1[:, 0:1]) >= nump):
+    if (np.any(tri1[:, :2] < +0) or
+            np.any(tri1[:, :2] >= nump)):
         raise IndexError("Invalid TRIA index.")
 
     return okay
@@ -67,8 +67,8 @@ def istri_2(ppos, tri2):
     if (tri2.shape[1] < +3):
         raise ValueError("Invalid TRIA shape.")
 
-    if (np.min(tri2[:, 0:2]) < +0 or
-            np.max(tri2[:, 0:2]) >= nump):
+    if (np.any(tri2[:, :3] < +0) or
+            np.any(tri2[:, :3] >= nump)):
         raise IndexError("Invalid TRIA index.")
 
     return okay
@@ -103,8 +103,8 @@ def istri_3(ppos, tri3):
     if (tri3.shape[1] < +4):
         raise ValueError("Invalid TRIA shape.")
 
-    if (np.min(tri3[:, 0:3]) < +0 or
-            np.max(tri3[:, 0:3]) >= nump):
+    if (np.any(tri3[:, :4] < +0) or
+            np.any(tri3[:, :4] >= nump)):
         raise IndexError("Invalid TRIA index.")
 
     return okay

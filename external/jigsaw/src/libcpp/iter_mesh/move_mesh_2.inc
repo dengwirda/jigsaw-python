@@ -35,9 +35,9 @@
      *
     --------------------------------------------------------
      *
-     * Last updated: 27 Jul., 2025
+     * Last updated: 11 Nov., 2026
      *
-     * Copyright 2013-2025
+     * Copyright 2013-2026
      * Darren Engwirda,
      * Marc Tunnell
      * d.engwirda@gmail.com
@@ -232,10 +232,10 @@
         {
     /*---------------- push update along search direction */
             real_type _scal = _SCAL;
-            real_type _zeta = _opts._zeta *
+            real_type _zeta = _opts.zeta() *
                 std::min ((real_type)1.,_scal) ;
 
-            real_type _beta = _opts._beta ;
+            real_type _beta = _opts.beta() ;
 
             for (auto _idim  =
             pred_type::geom_dims; _idim-- != +0; )
@@ -334,7 +334,7 @@
         real_list &_hval ,  // cached node spacing array
         iter_opts &_opts ,  // user options
         node_iter  _node ,  // iterator to node to iter.
-        real_type  _last ,  // lagged line direction
+        real_type &_last ,  // lagged line direction
         iptr_type &_move ,  // > 0 if move successful
         conn_list &_conn ,  // list of adj. cells
         fp32_list &_dold ,  // list of old adj. costs
@@ -412,11 +412,11 @@
         {
             real_type _wmov;
             real_type _scal = _SCAL;
-            real_type _zeta = _opts._zeta *
+            real_type _zeta = _opts.zeta() *
                 (real_type)3./4. *
             std::min((real_type)1.,_scal) ;
 
-            real_type _beta = _opts._beta ;
+            real_type _beta = _opts.beta() ;
 
     /*---------------- momentum-type bias for search dir. */
             _step =

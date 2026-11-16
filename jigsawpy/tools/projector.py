@@ -62,10 +62,8 @@ def stereo3_i(rrad, xpos, ypos, xmid, ymid):
 
     #------------------------------------ do inverse mapping
 
-    rval = np.sqrt(xpos**2 + ypos**2)
-
-    rval = np.maximum(
-        1.0E-16 * np.max(rval), rval)
+    rval = np.hypot(xpos, ypos)
+    zero = (rval == 0.)
 
     cval = +2.0 * np.arctan2(rval, +2.0 * rrad)
 
@@ -78,10 +76,14 @@ def stereo3_i(rrad, xpos, ypos, xmid, ymid):
     xtmp = rval * ccym * cccv - ypos * ssym * sscv
 
     xnew = xmid + np.arctan2(xpos * sscv, xtmp)
+    xnew = np.where(zero, xmid, xnew)
 
     ytmp = ypos * ccym * sscv
 
-    ynew = np.arcsin(cccv * ssym + ytmp / rval)
+    rlim = np.where(zero, +1.0, rval)
+    ynew = np.arcsin(np.clip(
+        cccv * ssym + ytmp / rlim, -1.0, +1.0))
+    ynew = np.where(zero, ymid, ynew)
 
     #------------------------------------ compute indicatrix
 
@@ -113,6 +115,7 @@ def stereo3_i(rrad, xpos, ypos, xmid, ymid):
 
     scal = \
         rrad * +1.0 / np.sqrt(dxdy**2 + dydy**2)
+    scal = np.where(zero, 1., scal)
 
     return xnew, ynew, scal
 
@@ -137,9 +140,9 @@ def stereo3(rrad, xpos, ypos, xmid, ymid, kind):
     with [XPOS,YPOS] the stereographic coordinates, and
     [XNEW,YNEW] the resulting lon-lat spherical angles.
 
-    SCAL is the scale-factor associated with the forward ma-
-    pping. This array stores the relative length distortion
-    induced by the projection for all points in [XNEW,YNEW].
+    SCAL is the local length scale-factor for the requested
+    mapping: plane length / sphere length for "FWD", and its
+    reciprocal for "INV", at each corresponding point.
 
     """
 

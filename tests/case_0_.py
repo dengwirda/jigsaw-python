@@ -5,7 +5,7 @@
 * These examples call to JIGSAW via its api.-lib. interface.
 *
 * Writes "case_0x.vtk" files on output for vis. in PARAVIEW.
-*
+* 
 """
 
 import os

@@ -1,9 +1,11 @@
 
 from pathlib import Path
 import numpy as np
+import argparse
 
 from jigsawpy.msh_t import jigsaw_msh_t
 from jigsawpy.certify import certify
+from jigsawpy.loadmsh import loadmsh
 
 
 def savepoint(data, fptr, ndim):
@@ -392,3 +394,24 @@ def savevtk(name, mesh):
                 "MESH.mshID is not supported!!")
 
     return
+
+
+if (__name__ == "__main__"):
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
+    parser.add_argument(
+        "--src-file", dest="src_file", type=str,
+        required=True, help="Input *.msh file to load")
+
+    parser.add_argument(
+        "--dst-file", dest="dst_file", type=str,
+        required=True, help="Output .vtk file to save")
+
+    args = parser.parse_args()
+
+    mesh = jigsaw_msh_t()
+
+    loadmsh(name=args.src_file, mesh=mesh)
+    savevtk(name=args.dst_file, mesh=mesh)

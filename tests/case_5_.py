@@ -5,7 +5,7 @@
 * These examples call to JIGSAW via its cmd.-line interface.
 *
 * Writes "case_5x.vtk" files on output for vis. in PARAVIEW.
-*
+* 
 """
 
 import os

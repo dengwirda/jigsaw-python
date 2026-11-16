@@ -6,6 +6,23 @@ from jigsawpy.tools.scorecard import triscr2, triscr3
 from jigsawpy.certify import certify
 
 
+def _clear_data(mesh):
+    cleared = []
+    for name in ("value", "slope", "power", "bound"):
+        data = getattr(mesh, name)
+        if data is not None and data.size:
+            cleared.append(name)
+
+    if cleared:
+        message = "BISECT clears MESH." \
+            + ", MESH.".join(
+                name.upper() for name in cleared)
+        warnings.warn(message, Warning)
+        empty = jigsaw_msh_t()
+        for name in cleared:
+            setattr(mesh, name, getattr(empty, name))
+
+
 class struct(object): pass
 class mapper(object):
 #------------------------------ obj. to store index mappings
@@ -235,6 +252,8 @@ def bisect(mesh):
 
         hexa = hexa[hfwd, :]
 
+    if (edge.size != 0): _clear_data(mesh)
+
 #------------------------------ map unique joins to elements
     if (mesh.edge2 is not None and
             mesh.edge2.size != +0):
@@ -253,7 +272,7 @@ def bisect(mesh):
     if (mesh.quad4 is not None and
             mesh.quad4.size != +0):
         qmap.quad4.index[:, 0] = \
-            qrev[emap.quad4.index[:, 0]]
+            qrev[qmap.quad4.index[:, 0]]
 
         emap.quad4.index[:, 0] = \
             erev[emap.quad4.index[:, 0]]

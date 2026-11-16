@@ -1,4 +1,4 @@
-# jigsaw things
+# jigsaw things 
 *
 !/**/
 !*.*
@@ -10,7 +10,7 @@ cache/*.log
 cache/*.jig
 cache/*.msh
 
-# python things
+# python things 
 __pycache__/
 *.py[cod]
 

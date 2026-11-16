@@ -1,7 +1,10 @@
 
 import io
 import os
-from setuptools import setup, find_packages, Command
+import importlib.util
+import platform
+from setuptools import setup, find_packages, Command, Distribution
+from wheel.bdist_wheel import bdist_wheel
 
 #-- old setup.py workflow for backwards compatibility
 #-- python setup.py build_external
@@ -13,7 +16,7 @@ DESCRIPTION = \
 AUTHOR = "Darren Engwirda"
 AUTHOR_EMAIL = "d.engwirda@gmail.com"
 URL = "https://github.com/dengwirda/"
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 REQUIRES_PYTHON = ">=3.6.0"
 KEYWORDS = "Mesh-generation Delaunay Voronoi"
 
@@ -23,7 +26,9 @@ REQUIRED = [
 
 CLASSIFY = [
     "Development Status :: 5 - Production/Stable",
-    "Operating System :: OS Independent",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
     "Intended Audience :: Science/Research",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
@@ -57,7 +62,48 @@ class build_external(Command):
 
     def run(self):
         if (self.dry_run): return
-        import build; build.build_external()
+        spec = importlib.util.spec_from_file_location(
+            "jigsaw_build", 
+                os.path.join(HERE, "build.py"))
+        build = importlib.util.module_from_spec (spec)
+        spec.loader.exec_module(build)
+        build.build_external()
+
+
+class BinaryDistribution(Distribution):
+    def has_ext_modules(self):
+        return True
+
+
+class build_wheel(bdist_wheel):
+    def run(self):
+        system = platform.system()
+        libraries = {
+            "Windows": "jigsaw.dll",
+            "Linux": "libjigsaw.so",
+            "Darwin": "libjigsaw.dylib",
+        }
+        if system not in libraries:
+            raise RuntimeError(
+                "Unsupported wheel platform: " + system)
+
+        suffix = ".exe" if system == "Windows" else ""
+        required = [
+            os.path.join(HERE, "jigsawpy", "_bin", name + suffix)
+            for name in ("jigsaw", "tripod", "marche")
+        ]
+        required.append(os.path.join(
+            HERE, "jigsawpy", "_lib", libraries[system]))
+        missing = [
+            path for path in required if not os.path.isfile(path)
+        ]
+        if missing:
+            raise RuntimeError(
+                "Missing JIGSAW backend binaries: " +
+                ", ".join(missing) + ". Run python build.py "
+                "before building a wheel."
+            )
+        super().run()
 
 
 setup(
@@ -72,9 +118,11 @@ setup(
     keywords=KEYWORDS,
     url=URL,
     packages=find_packages(exclude=["tests",]),
-    cmdclass={"build_external": build_external},
+    cmdclass={"build_external": build_external, 
+              "bdist_wheel": build_wheel},
+    distclass=BinaryDistribution,
     package_data={"jigsawpy": ["_bin/*", "_lib/*"]},
     install_requires=REQUIRED,
+    extras_require={"netcdf": ["netCDF4"]},
     classifiers=CLASSIFY
 )
-

@@ -25,6 +25,22 @@ from jigsawpy.savemsh import savemsh
 from jigsawpy.savejig import savejig
 
 
+def _run_and_load(executable, config, filename, mesh):
+    if mesh is not None:
+        jigsaw_msh_t.__init__(mesh)
+
+    success = False
+    try:
+        subprocess.run(
+            [str(executable), config], check=True)
+        if mesh is not None:
+            loadmsh(filename, mesh)
+        success = True
+    finally:
+        if mesh is not None and not success:
+            jigsaw_msh_t.__init__(mesh)
+
+
 def jigsaw(opts, mesh=None):
     """
     JIGSAW cmd-line interface to JIGSAW.
@@ -36,6 +52,9 @@ def jigsaw(opts, mesh=None):
 
     OPTS is a user-defined set of meshing options. See JIG_t
     for details.
+
+    MESH is reset before execution, and remains empty if the
+    command or output loading fails.
 
     """
     jexename = Path()
@@ -79,11 +98,9 @@ def jigsaw(opts, mesh=None):
 
     if (jexename != Path()):
 #---------------------------- call JIGSAW and capture output
-        subprocess.run([
-            str(jexename), opts.jcfg_file], check=True)
-
-        if (mesh is not None):
-            loadmsh(opts.mesh_file, mesh)
+        _run_and_load(
+            jexename, opts.jcfg_file,
+                      opts.mesh_file, mesh)
 
     else:
 
@@ -103,6 +120,9 @@ def tripod(opts, tria=None):
 
     OPTS is a user-defined set of meshing options. See JIG_t
     for details.
+
+    TRIA is reset before execution, and remains empty if the
+    command or output loading fails.
 
     """
     jexename = Path()
@@ -146,11 +166,9 @@ def tripod(opts, tria=None):
 
     if (jexename != Path()):
 #---------------------------- call JIGSAW and capture output
-        subprocess.run([
-            str(jexename), opts.jcfg_file], check=True)
-
-        if (tria is not None):
-            loadmsh(opts.mesh_file, tria)
+        _run_and_load(
+            jexename, opts.jcfg_file,
+                      opts.mesh_file, tria)
 
     else:
 
@@ -177,6 +195,9 @@ def marche(opts, ffun=None):
 
     OPTS is a user-defined set of meshing options. See JIG_t
     for details.
+
+    FFUN is reset before execution, and remains empty if the
+    command or output loading fails.
 
     """
     jexename = Path()
@@ -220,11 +241,9 @@ def marche(opts, ffun=None):
 
     if (jexename != Path()):
 #---------------------------- call JIGSAW and capture output
-        subprocess.run([
-            str(jexename), opts.jcfg_file], check=True)
-
-        if (ffun is not None):
-            loadmsh(opts.hfun_file, ffun)
+        _run_and_load(
+            jexename, opts.jcfg_file,
+                      opts.hfun_file, ffun)
 
     else:
 
@@ -258,7 +277,8 @@ def jitter(opts, imax, ibad, mesh=None):
         if (mesh.power is not None): npwr = mesh.power.size
 
         if (opts.optm_dual is not None):
-            OPTS.optm_dual = iter == imax-1 or npts == npwr
+            OPTS.optm_dual = opts.optm_dual and \
+                (iter == imax-1 or npts == npwr)
 
         if (mesh.point is not None and
                 mesh.point.size != +0):
@@ -363,7 +383,7 @@ def tetris(opts, nlev, mesh=None):
 
         if (opts.optm_dual is not None):
     #------------------------ create/write current DUAL data
-            OPTS.optm_dual = nlev == 0
+            OPTS.optm_dual = opts.optm_dual and nlev == 0
 
         if (opts.hfun_hmax is not None):
     #------------------------ create/write current HMAX data
@@ -394,6 +414,9 @@ def tetris(opts, nlev, mesh=None):
             HFUN.value = HFUN.value * SCAL
 
             savemsh(OPTS.hfun_file, HFUN)
+
+        elif (opts.hfun_file is not None):
+            OPTS.hfun_file = opts.hfun_file
 
     #------------------------ call JIGSAW kernel at this lev
         jitter(OPTS, 4 + (nlev > 0) *12, 3, mesh)
@@ -462,12 +485,13 @@ def refine(opts, nlev, mesh=None):
 
     for ilev in reversed(range(nlev + 1)):
 
+        OPTS = copy.copy(opts)
         if (opts.optm_dual is not None):
     #------------------------ create/write current DUAL data
-            opts.optm_dual = ilev == 0
+            OPTS.optm_dual = opts.optm_dual and ilev == 0
 
     #------------------------ call JIGSAW kernel at this lev
-        jigsaw(opts, mesh)
+        jigsaw(OPTS, mesh)
 
         if (ilev <= +0): break
 
@@ -509,6 +533,7 @@ def icosahedron(opts, nlev, mesh=None):
     loadmsh(opts.geom_file, geom)
 
     if (mesh is None): mesh = jigsaw_msh_t()
+    else: jigsaw_msh_t.__init__(mesh)
 
 #-------------------------------- setup icosahedron geometry
     la = math.atan(0.5)
@@ -590,6 +615,7 @@ def cubedsphere(opts, nlev, mesh=None):
     loadmsh(opts.geom_file, geom)
 
     if (mesh is None): mesh = jigsaw_msh_t()
+    else: jigsaw_msh_t.__init__(mesh)
 
 #-------------------------------- setup cubedsphere geometry
     aval = math.atan(

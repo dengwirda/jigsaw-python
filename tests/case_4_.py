@@ -1,11 +1,11 @@
 """
 * DEMO-4 --- Build volume meshes for the "bunny" geometry.
-% Compare performance of "delaunay" + "delfront" algorithms.
+* Compare performance of "delaunay" + "delfront" algorithms.
 *
 * These examples call to JIGSAW via its cmd.-line interface.
 *
 * Writes "case_4x.vtk" files on output for vis. in PARAVIEW.
-*
+* 
 """
 
 import os
